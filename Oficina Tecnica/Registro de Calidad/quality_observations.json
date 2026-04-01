@@ -1,0 +1,2509 @@
+{
+  "items": {
+    "a000800000996||b&p-001-or205-01": {
+      "item": "A000800000996",
+      "produc": "B&P-001-OR205-01",
+      "subgrupo": "ARO EXTERIOR",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar0661||b&p-001-or205-01": {
+      "item": "AR0661",
+      "produc": "B&P-001-OR205-01",
+      "subgrupo": "ARO EXTERIOR",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "a000800002512||b&p-003-ball-7/16": {
+      "item": "A000800002512",
+      "produc": "B&P-003-Ball-7/16",
+      "subgrupo": "BOLITAS",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "a000100001443||b&p-037-ag59520-03-z": {
+      "item": "A000100001443",
+      "produc": "B&P-037-AG59520-03-Z",
+      "subgrupo": "VARIOS",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar0457||b&p-041-bp-13009-5": {
+      "item": "AR0457",
+      "produc": "B&P-041-BP-13009-5",
+      "subgrupo": "RODAMIENTO DE BOLAS",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar0409||b&p-041-f490306": {
+      "item": "AR0409",
+      "produc": "B&P-041-F490306",
+      "subgrupo": "RODAMIENTO DE BOLAS",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar7448||b&p-041-hd06-2rs": {
+      "item": "AR7448",
+      "produc": "B&P-041-HD06-2RS",
+      "subgrupo": "RODAMIENTO DE BOLAS",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar7381||b&p-041-ls04-2rst": {
+      "item": "AR7381",
+      "produc": "B&P-041-LS04-2RST",
+      "subgrupo": "RODAMIENTO DE BOLAS",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar4258||b&p-041-ls05-2rst": {
+      "item": "AR4258",
+      "produc": "B&P-041-LS05-2RST",
+      "subgrupo": "RODAMIENTO DE BOLAS",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "17088ic06000144||b&p-041-ls05-d": {
+      "item": "17088IC06000144",
+      "produc": "B&P-041-LS05-D",
+      "subgrupo": "RODAMIENTO DE BOLAS",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar7196||b&p-041-ls07-2rst": {
+      "item": "AR7196",
+      "produc": "B&P-041-LS07-2RST",
+      "subgrupo": "RODAMIENTO DE BOLAS",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar2445||b&p-041-ms04-2rld-c3": {
+      "item": "AR2445",
+      "produc": "B&P-041-MS04-2RLD-C3",
+      "subgrupo": "RODAMIENTO DE BOLAS",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar7308||b&p-041-ms04-2rs": {
+      "item": "AR7308",
+      "produc": "B&P-041-MS04-2RS",
+      "subgrupo": "RODAMIENTO DE BOLAS",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar7380||b&p-041-ms07-2rst": {
+      "item": "AR7380",
+      "produc": "B&P-041-MS07-2RST",
+      "subgrupo": "RODAMIENTO DE BOLAS",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar7377||b&p-041-ms07-2rstx": {
+      "item": "AR7377",
+      "produc": "B&P-041-MS07-2RSTX",
+      "subgrupo": "RODAMIENTO DE BOLAS",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar7311||b&p-041-ms12-2rs": {
+      "item": "AR7311",
+      "produc": "B&P-041-MS12-2RS",
+      "subgrupo": "RODAMIENTO DE BOLAS",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar7436||b&p-047-acl-209-28": {
+      "item": "AR7436",
+      "produc": "B&P-047-ACL-209-28",
+      "subgrupo": "AUTOCENTRANTES",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar0578||b&p-047-acl-210-50mm": {
+      "item": "AR0578",
+      "produc": "B&P-047-ACL-210-50mm",
+      "subgrupo": "AUTOCENTRANTES",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar7482||b&p-047-acl206-18rg": {
+      "item": "AR7482",
+      "produc": "B&P-047-ACL206-18RG",
+      "subgrupo": "AUTOCENTRANTES",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar7414||b&p-047-aclr205-14r": {
+      "item": "AR7414",
+      "produc": "B&P-047-ACLR205-14R",
+      "subgrupo": "AUTOCENTRANTES",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar7429||b&p-047-aclr208-40rg": {
+      "item": "AR7429",
+      "produc": "B&P-047-ACLR208-40RG",
+      "subgrupo": "AUTOCENTRANTES",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar7462||b&p-047-aclr208-40rg": {
+      "item": "AR7462",
+      "produc": "B&P-047-ACLR208-40RG",
+      "subgrupo": "AUTOCENTRANTES",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar7477||b&p-047-asl-205-14rg": {
+      "item": "AR7477",
+      "produc": "B&P-047-ASL-205-14RG",
+      "subgrupo": "AUTOCENTRANTES",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar4603||b&p-047-asl206-30rg": {
+      "item": "AR4603",
+      "produc": "B&P-047-ASL206-30RG",
+      "subgrupo": "AUTOCENTRANTES",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar7459||b&p-047-ecl-205-25dg": {
+      "item": "AR7459",
+      "produc": "B&P-047-ECL-205-25DG",
+      "subgrupo": "AUTOCENTRANTES",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar7499||b&p-047-ecl-207-35dg": {
+      "item": "AR7499",
+      "produc": "B&P-047-ECL-207-35DG",
+      "subgrupo": "AUTOCENTRANTES",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar1776||b&p-047-ecl-208-40dg": {
+      "item": "AR1776",
+      "produc": "B&P-047-ECL-208-40DG",
+      "subgrupo": "AUTOCENTRANTES",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar7456||b&p-047-ecl-210-50dg": {
+      "item": "AR7456",
+      "produc": "B&P-047-ECL-210-50DG",
+      "subgrupo": "AUTOCENTRANTES",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar7253||b&p-047-ecl-211-55dg": {
+      "item": "AR7253",
+      "produc": "B&P-047-ECL-211-55DG",
+      "subgrupo": "AUTOCENTRANTES",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar7369||b&p-047-ecl-212-60dg": {
+      "item": "AR7369",
+      "produc": "B&P-047-ECL-212-60DG",
+      "subgrupo": "AUTOCENTRANTES",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar7383||b&p-047-ecl208-24dg": {
+      "item": "AR7383",
+      "produc": "B&P-047-ECL208-24DG",
+      "subgrupo": "AUTOCENTRANTES",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar7465||b&p-047-sab-207-35dg": {
+      "item": "AR7465",
+      "produc": "B&P-047-SAB-207-35DG",
+      "subgrupo": "AUTOCENTRANTES",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar7446||b&p-047-sab-208-40dg": {
+      "item": "AR7446",
+      "produc": "B&P-047-SAB-208-40DG",
+      "subgrupo": "AUTOCENTRANTES",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar7470||b&p-047-sab-208-40dg": {
+      "item": "AR7470",
+      "produc": "B&P-047-SAB-208-40DG",
+      "subgrupo": "AUTOCENTRANTES",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "1088ic06000171p||b&p-047-sab-212-60dg": {
+      "item": "1088IC06000171P",
+      "produc": "B&P-047-SAB-212-60DG",
+      "subgrupo": "AUTOCENTRANTES",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar7376||b&p-047-sab205-14dg": {
+      "item": "AR7376",
+      "produc": "B&P-047-SAB205-14DG",
+      "subgrupo": "AUTOCENTRANTES",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar3912||b&p-047-sab207-p": {
+      "item": "AR3912",
+      "produc": "B&P-047-SAB207-P",
+      "subgrupo": "AUTOCENTRANTES",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar7258||b&p-047-sab208-3": {
+      "item": "AR7258",
+      "produc": "B&P-047-SAB208-3",
+      "subgrupo": "AUTOCENTRANTES",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar7339||b&p-048-204-jy3": {
+      "item": "AR7339",
+      "produc": "B&P-048-204-JY3",
+      "subgrupo": "Rodamientos Esp.Agricolas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar7264||b&p-048-204-kyy7": {
+      "item": "AR7264",
+      "produc": "B&P-048-204-KYY7",
+      "subgrupo": "Rodamientos Esp.Agricolas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar7326||b&p-048-204-kyy7": {
+      "item": "AR7326",
+      "produc": "B&P-048-204-KYY7",
+      "subgrupo": "Rodamientos Esp.Agricolas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar7316||b&p-048-205-pp9": {
+      "item": "AR7316",
+      "produc": "B&P-048-205-PP9",
+      "subgrupo": "Rodamientos Esp.Agricolas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar7126||b&p-048-210-ppb20": {
+      "item": "AR7126",
+      "produc": "B&P-048-210-PPB20",
+      "subgrupo": "Rodamientos Esp.Agricolas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar7337||b&p-048-ag-1235-b": {
+      "item": "AR7337",
+      "produc": "B&P-048-AG-1235-B",
+      "subgrupo": "Rodamientos Esp.Agricolas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar7335||b&p-048-ag-1235-ppz9": {
+      "item": "AR7335",
+      "produc": "B&P-048-AG-1235-PPZ9",
+      "subgrupo": "Rodamientos Esp.Agricolas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar7336||b&p-048-ag-1235-ppz9": {
+      "item": "AR7336",
+      "produc": "B&P-048-AG-1235-PPZ9",
+      "subgrupo": "Rodamientos Esp.Agricolas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar4218||b&p-048-ntbs1613-rst": {
+      "item": "AR4218",
+      "produc": "B&P-048-NTBS1613-RST",
+      "subgrupo": "Rodamientos Esp.Agricolas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar4541||b&p-048-sab5209-3": {
+      "item": "AR4541",
+      "produc": "B&P-048-SAB5209-3",
+      "subgrupo": "Rodamientos Esp.Agricolas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "29072014||b&p-048-uk-208": {
+      "item": "29072014",
+      "produc": "B&P-048-UK-208",
+      "subgrupo": "Rodamientos Esp.Agricolas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar7162||b&p-048-w-208-pp21-n": {
+      "item": "AR7162",
+      "produc": "B&P-048-W-208-PP21-N",
+      "subgrupo": "Rodamientos Esp.Agricolas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "5088djai000228y||b&p-050-set-10": {
+      "item": "5088DJAI000228Y",
+      "produc": "B&P-050-SET-10",
+      "subgrupo": "Cono y cubeta",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar4138||b&p-052-ag59517-03": {
+      "item": "AR4138",
+      "produc": "B&P-052-AG59517-03",
+      "subgrupo": "BUJES",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar1875||b&p-053-hm-518445": {
+      "item": "AR1875",
+      "produc": "B&P-053-HM-518445",
+      "subgrupo": "CONO",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "14088djai000082||b&p-053-tdx218": {
+      "item": "14088DJAI000082",
+      "produc": "B&P-053-TDX218",
+      "subgrupo": "CONO",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar0050||b&p-053-x-32216": {
+      "item": "AR0050",
+      "produc": "B&P-053-X-32216",
+      "subgrupo": "CONO",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar0246||b&p-058-30203-mx": {
+      "item": "AR0246",
+      "produc": "B&P-058-30203-MX",
+      "subgrupo": "Rodamientos de Rodillos Conicos",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar4136||b&p-059-ag59517-01": {
+      "item": "AR4136",
+      "produc": "B&P-059-AG59517-01",
+      "subgrupo": "MAZAS - Term y Ptes.Pzas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar4300||b&p-059-ag59517-02": {
+      "item": "AR4300",
+      "produc": "B&P-059-AG59517-02",
+      "subgrupo": "MAZAS - Term y Ptes.Pzas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar4154||b&p-059-ag59520-01": {
+      "item": "AR4154",
+      "produc": "B&P-059-AG59520-01",
+      "subgrupo": "MAZAS - Term y Ptes.Pzas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar3876||b&p-059-aghub39fm20": {
+      "item": "AR3876",
+      "produc": "B&P-059-AGHUB39FM20",
+      "subgrupo": "MAZAS - Term y Ptes.Pzas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "0088ico5000053n||b&p-999-206-rw-08": {
+      "item": "0088ICO5000053N",
+      "produc": "B&P-999-206-RW-08",
+      "subgrupo": "Productos Varios",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "a000800000594||b&p-999-pf-6-z": {
+      "item": "A000800000594",
+      "produc": "B&P-999-PF-6-Z",
+      "subgrupo": "Productos Varios",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar1954||bpb-033-ca627-m40a-m": {
+      "item": "AR1954",
+      "produc": "BPB-033-CA627-M40A-M",
+      "subgrupo": "Cadenas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar3024||bpb-037-9011": {
+      "item": "AR3024",
+      "produc": "BPB-037-9011",
+      "subgrupo": "Varios",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar2662||bpb-037-9014": {
+      "item": "AR2662",
+      "produc": "BPB-037-9014",
+      "subgrupo": "Varios",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "l180828135||bpb-040-mg-5306-krr3": {
+      "item": "L180828135",
+      "produc": "BPB-040-MG-5306-KRR3",
+      "subgrupo": "Rod.Varios",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "9017zfe1001312c||bpb-041-5210": {
+      "item": "9017ZFE1001312C",
+      "produc": "BPB-041-5210",
+      "subgrupo": "Rod. Rigidos de Bolas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar0446||bpb-041-bp-13006": {
+      "item": "AR0446",
+      "produc": "BPB-041-BP-13006",
+      "subgrupo": "Rod. Rigidos de Bolas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "a000100131870||bpb-041-bp-13007": {
+      "item": "A000100131870",
+      "produc": "BPB-041-BP-13007",
+      "subgrupo": "Rod. Rigidos de Bolas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar0451||bpb-041-bp-13007": {
+      "item": "AR0451",
+      "produc": "BPB-041-BP-13007",
+      "subgrupo": "Rod. Rigidos de Bolas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar0161||bpb-041-bp-13011": {
+      "item": "AR0161",
+      "produc": "BPB-041-BP-13011",
+      "subgrupo": "Rod. Rigidos de Bolas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar7200||bpb-041-ms04-2rs": {
+      "item": "AR7200",
+      "produc": "BPB-041-MS04-2RS",
+      "subgrupo": "Rod. Rigidos de Bolas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "epfab1184||bpb-043-cb6203-1450": {
+      "item": "EPFAB1184",
+      "produc": "BPB-043-CB6203-1450",
+      "subgrupo": "Rod.Varios",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar4071||bpb-045-pff-9-m": {
+      "item": "AR4071",
+      "produc": "BPB-045-PFF-9-M",
+      "subgrupo": "Soporte",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "a000100000595||bpb-045-pfl-6-zm": {
+      "item": "A000100000595",
+      "produc": "BPB-045-PFL-6-ZM",
+      "subgrupo": "Soporte",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar0572||bpb-047-acl-207-35dg": {
+      "item": "AR0572",
+      "produc": "BPB-047-ACL-207-35DG",
+      "subgrupo": "Autocentrantes y Soportes",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar7132||bpb-047-acl205-16rg": {
+      "item": "AR7132",
+      "produc": "BPB-047-ACL205-16RG",
+      "subgrupo": "Autocentrantes y Soportes",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar7146||bpb-047-acl205-16rg": {
+      "item": "AR7146",
+      "produc": "BPB-047-ACL205-16RG",
+      "subgrupo": "Autocentrantes y Soportes",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar7145||bpb-047-acl205-16rr": {
+      "item": "AR7145",
+      "produc": "BPB-047-ACL205-16RR",
+      "subgrupo": "Autocentrantes y Soportes",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar0449||bpb-047-acl206-20": {
+      "item": "AR0449",
+      "produc": "BPB-047-ACL206-20",
+      "subgrupo": "Autocentrantes y Soportes",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar7255||bpb-047-ecl-211-32": {
+      "item": "AR7255",
+      "produc": "BPB-047-ECL-211-32",
+      "subgrupo": "Autocentrantes y Soportes",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar2544||bpb-047-ecl-212-39-d": {
+      "item": "AR2544",
+      "produc": "BPB-047-ECL-212-39-D",
+      "subgrupo": "Autocentrantes y Soportes",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar7064||bpb-047-ecl-212-39-d": {
+      "item": "AR7064",
+      "produc": "BPB-047-ECL-212-39-D",
+      "subgrupo": "Autocentrantes y Soportes",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "0088ic06000112j||bpb-047-ecl-212-60mm": {
+      "item": "0088IC06000112J",
+      "produc": "BPB-047-ECL-212-60mm",
+      "subgrupo": "Autocentrantes y Soportes",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar7173||bpb-047-ecl205-16mm": {
+      "item": "AR7173",
+      "produc": "BPB-047-ECL205-16MM",
+      "subgrupo": "Autocentrantes y Soportes",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar7170||bpb-047-ecl207-20mg": {
+      "item": "AR7170",
+      "produc": "BPB-047-ECL207-20MG",
+      "subgrupo": "Autocentrantes y Soportes",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar7181||bpb-047-ecl209-28mm": {
+      "item": "AR7181",
+      "produc": "BPB-047-ECL209-28MM",
+      "subgrupo": "Autocentrantes y Soportes",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar7254||bpb-047-ecl210-50d-3": {
+      "item": "AR7254",
+      "produc": "BPB-047-ECL210-50D-3",
+      "subgrupo": "Autocentrantes y Soportes",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar7182||bpb-047-ecl211-32mg": {
+      "item": "AR7182",
+      "produc": "BPB-047-ECL211-32MG",
+      "subgrupo": "Autocentrantes y Soportes",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar3497||bpb-047-f-205": {
+      "item": "AR3497",
+      "produc": "BPB-047-F-205",
+      "subgrupo": "Autocentrantes y Soportes",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "a000300003100||bpb-047-f-205-a1": {
+      "item": "A000300003100",
+      "produc": "BPB-047-F-205-A1",
+      "subgrupo": "Autocentrantes y Soportes",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "r000100013896||bpb-047-f-205-a1": {
+      "item": "R000100013896",
+      "produc": "BPB-047-F-205-A1",
+      "subgrupo": "Autocentrantes y Soportes",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "r000100013896||bpb-047-f-211-a1": {
+      "item": "R000100013896",
+      "produc": "BPB-047-F-211-A1",
+      "subgrupo": "Autocentrantes y Soportes",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "1088ic04000126y||bpb-047-fb-210": {
+      "item": "1088IC04000126Y",
+      "produc": "BPB-047-FB-210",
+      "subgrupo": "Autocentrantes y Soportes",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "r000100013896||bpb-047-fts-205-a1": {
+      "item": "R000100013896",
+      "produc": "BPB-047-FTS-205-A1",
+      "subgrupo": "Autocentrantes y Soportes",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar7171||bpb-047-sab205-16mg": {
+      "item": "AR7171",
+      "produc": "BPB-047-SAB205-16MG",
+      "subgrupo": "Autocentrantes y Soportes",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "18088ic06000128||bpb-047-sab209-45lg": {
+      "item": "18088IC06000128",
+      "produc": "BPB-047-SAB209-45LG",
+      "subgrupo": "Autocentrantes y Soportes",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar7227||bpb-048-204kyy2": {
+      "item": "AR7227",
+      "produc": "BPB-048-204KYY2",
+      "subgrupo": "Rodamientos Esp.Agricolas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar7268||bpb-048-204kyy2": {
+      "item": "AR7268",
+      "produc": "BPB-048-204KYY2",
+      "subgrupo": "Rodamientos Esp.Agricolas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "8017zfe1000496n||bpb-048-205-krr2": {
+      "item": "8017ZFE1000496N",
+      "produc": "BPB-048-205-KRR2",
+      "subgrupo": "Rodamientos Esp.Agricolas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar2307||bpb-048-206-k14": {
+      "item": "AR2307",
+      "produc": "BPB-048-206-K14",
+      "subgrupo": "Rodamientos Esp.Agricolas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar2792||bpb-048-dtr2549-fm": {
+      "item": "AR2792",
+      "produc": "BPB-048-DTR2549-FM",
+      "subgrupo": "Rodamientos Esp.Agricolas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar4332||bpb-048-dtr2549-fm": {
+      "item": "AR4332",
+      "produc": "BPB-048-DTR2549-FM",
+      "subgrupo": "Rodamientos Esp.Agricolas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "9017zfe1000155g||bpb-048-dtr2552-fm": {
+      "item": "9017ZFE1000155G",
+      "produc": "BPB-048-DTR2552-FM",
+      "subgrupo": "Rodamientos Esp.Agricolas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar2823||bpb-048-dtr2552-rg": {
+      "item": "AR2823",
+      "produc": "BPB-048-DTR2552-RG",
+      "subgrupo": "Rodamientos Esp.Agricolas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar3102||bpb-048-dtr3062-fm": {
+      "item": "AR3102",
+      "produc": "BPB-048-DTR3062-FM",
+      "subgrupo": "Rodamientos Esp.Agricolas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar3343||bpb-048-dtr3062-fm": {
+      "item": "AR3343",
+      "produc": "BPB-048-DTR3062-FM",
+      "subgrupo": "Rodamientos Esp.Agricolas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "10017zfe1001314||bpb-048-dtr3572-fm": {
+      "item": "10017ZFE1001314",
+      "produc": "BPB-048-DTR3572-FM",
+      "subgrupo": "Rodamientos Esp.Agricolas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "a000700021691||bpb-048-g-209-kyyb2": {
+      "item": "A000700021691",
+      "produc": "BPB-048-G-209-KYYB2",
+      "subgrupo": "Rodamientos Esp.Agricolas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "a000200000075||bpb-056-ds4575c25chs": {
+      "item": "A000200000075",
+      "produc": "BPB-056-DS4575C25CHS",
+      "subgrupo": "CRUCETAS Y ENGRANAJES",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar1444||bpb-056-ds4575c25chs": {
+      "item": "AR1444",
+      "produc": "BPB-056-DS4575C25CHS",
+      "subgrupo": "CRUCETAS Y ENGRANAJES",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar0851||bpb-056-eng353040chs": {
+      "item": "AR0851",
+      "produc": "BPB-056-ENG353040CHS",
+      "subgrupo": "CRUCETAS Y ENGRANAJES",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "0073ic04179587l||bpb-998-dtr3572-fm": {
+      "item": "0073IC04179587L",
+      "produc": "BPB-998-DTR3572-FM",
+      "subgrupo": "Retrabajados",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "10017zfe1001314||bpb-998-dtr3572-fm": {
+      "item": "10017ZFE1001314",
+      "produc": "BPB-998-DTR3572-FM",
+      "subgrupo": "Retrabajados",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar3321||bpb-999-32216-mx": {
+      "item": "AR3321",
+      "produc": "BPB-999-32216-MX",
+      "subgrupo": "Productos Varios",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "simi-2017-02-17||bpb-999-5206-2rst": {
+      "item": "SIMI-2017-02-17",
+      "produc": "BPB-999-5206-2RST",
+      "subgrupo": "Productos Varios",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar1769||bpb-999-ecl210-50d-3": {
+      "item": "AR1769",
+      "produc": "BPB-999-ECL210-50D-3",
+      "subgrupo": "Productos Varios",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "03082022||bpb-999-sab208-40dg": {
+      "item": "03082022",
+      "produc": "BPB-999-SAB208-40DG",
+      "subgrupo": "Productos Varios",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "03082022||bpb-999-sab209-45dg": {
+      "item": "03082022",
+      "produc": "BPB-999-SAB209-45DG",
+      "subgrupo": "Productos Varios",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "f718926||fk--047-uc-211": {
+      "item": "F718926",
+      "produc": "FK--047-UC-211",
+      "subgrupo": "Autocentrantes y Soportes",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ic04164693v||pee-031-fwd-421413-k": {
+      "item": "IC04164693V",
+      "produc": "PEE-031-FWD-421413-K",
+      "subgrupo": "Automotores",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "zfe1000417a||pee-031-w24-5303-2rl": {
+      "item": "ZFE1000417A",
+      "produc": "PEE-031-W24-5303-2RL",
+      "subgrupo": "Automotores",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "a000400046536||pee-043-6009-2rld": {
+      "item": "A000400046536",
+      "produc": "PEE-043-6009-2RLD",
+      "subgrupo": "Rod.Varios",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ic04002345d||pee-045-pfl-7-z": {
+      "item": "IC04002345D",
+      "produc": "PEE-045-PFL-7-Z",
+      "subgrupo": "Soporte de Chapa",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "8017zfe1000937n||pee-047-fhr-207-35mm": {
+      "item": "8017ZFE1000937N",
+      "produc": "PEE-047-FHR-207-35MM",
+      "subgrupo": "Autocentrantes y Soportes",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ic06000129m||pee-047-gr-211-35r": {
+      "item": "IC06000129M",
+      "produc": "PEE-047-GR-211-35R",
+      "subgrupo": "Autocentrantes y Soportes",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    ".||pee-047-ser-208-24": {
+      "item": ".",
+      "produc": "PEE-047-SER-208-24",
+      "subgrupo": "Autocentrantes y Soportes",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "po#1800||b&p-033-asa80-1h-pl": {
+      "item": "PO#1800",
+      "produc": "B&P-033-ASA80-1H-PL",
+      "subgrupo": "Cadenas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "sm11192025||b&p-ds1-x4683427003": {
+      "item": "SM11192025",
+      "produc": "B&P-DS1-X4683427003",
+      "subgrupo": "Dosificador Simple",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "8088ic06000173b||b&p-047-ecl209-27dg": {
+      "item": "8088IC06000173B",
+      "produc": "B&P-047-ECL209-27DG",
+      "subgrupo": "AUTOCENTRANTES",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "0088ic06000065r||b&p-048-207-krrb12": {
+      "item": "0088IC06000065R",
+      "produc": "B&P-048-207-KRRB12",
+      "subgrupo": "Rodamientos Esp.Agricolas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "6088ic06000056a||b&p-032-bp-25004-01": {
+      "item": "6088IC06000056A",
+      "produc": "B&P-032-BP-25004-01",
+      "subgrupo": "Tensores",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "6088ic06000056a||b&p-032-bp-25004-02": {
+      "item": "6088IC06000056A",
+      "produc": "B&P-032-BP-25004-02",
+      "subgrupo": "Tensores",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "6088ic06000056a||b&p-032-bp-25004-04": {
+      "item": "6088IC06000056A",
+      "produc": "B&P-032-BP-25004-04",
+      "subgrupo": "Tensores",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "a000600310895||bpb-000-polyrex-em": {
+      "item": "A000600310895",
+      "produc": "BPB-000-POLYREX-EM",
+      "subgrupo": "GRASA",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "a000700074108||bpb-999-30209-mx": {
+      "item": "A000700074108",
+      "produc": "BPB-999-30209-MX",
+      "subgrupo": "Productos Varios",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "1088ic04000026n||b&p-001-or207-a1": {
+      "item": "1088IC04000026N",
+      "produc": "B&P-001-OR207-A1",
+      "subgrupo": "ARO EXTERIOR",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "simi-2023-10-11||b&p-048-dtr-1742-fm": {
+      "item": "SIMI-2023-10-11",
+      "produc": "B&P-048-DTR-1742-FM",
+      "subgrupo": "Rodamientos Esp.Agricolas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "6088ic06000048b||b&p-040-5205-2rst": {
+      "item": "6088IC06000048B",
+      "produc": "B&P-040-5205-2RST",
+      "subgrupo": "Rod. Varios",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "3088ic06000141p||b&p-004-207-dbl-08": {
+      "item": "3088IC06000141P",
+      "produc": "B&P-004-207-DBL-08",
+      "subgrupo": "SELLOS",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "020520260099||b&p-048-dtr1645-dm": {
+      "item": "020520260099",
+      "produc": "B&P-048-DTR1645-DM",
+      "subgrupo": "Rodamientos Esp.Agricolas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "020520260099||b&p-048-ntbs1613-rst": {
+      "item": "020520260099",
+      "produc": "B&P-048-NTBS1613-RST",
+      "subgrupo": "Rodamientos Esp.Agricolas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "3088ic06000023y||b&p-047-sfc-80-m": {
+      "item": "3088IC06000023Y",
+      "produc": "B&P-047-SFC-80-M",
+      "subgrupo": "AUTOCENTRANTES",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "5088ic06000218w||b&p-037-bp-22001-02": {
+      "item": "5088IC06000218W",
+      "produc": "B&P-037-BP-22001-02",
+      "subgrupo": "VARIOS",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "5088ic06000219a||tsg-dds-70": {
+      "item": "5088IC06000219A",
+      "produc": "TSG-DDS-70",
+      "subgrupo": "Disco de siembra",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "5088ic06000155w||b&p-059-ag59517-65": {
+      "item": "5088IC06000155W",
+      "produc": "B&P-059-AG59517-65",
+      "subgrupo": "MAZAS - Term y Ptes.Pzas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "5088ic06000212z||b&p-037-bp-21001-bd": {
+      "item": "5088IC06000212Z",
+      "produc": "B&P-037-BP-21001-BD",
+      "subgrupo": "VARIOS",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "5088ic06000212z||b&p-037-bp-21001-bi": {
+      "item": "5088IC06000212Z",
+      "produc": "B&P-037-BP-21001-BI",
+      "subgrupo": "VARIOS",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "5088ic06000213r||b&p-047-t-210": {
+      "item": "5088IC06000213R",
+      "produc": "B&P-047-T-210",
+      "subgrupo": "AUTOCENTRANTES",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "5088ic06000189g||b&p-041-ls04-2rst": {
+      "item": "5088IC06000189G",
+      "produc": "B&P-041-LS04-2RST",
+      "subgrupo": "RODAMIENTO DE BOLAS",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "5088ic06000154v||bpb-033-asa40-1-reel": {
+      "item": "5088IC06000154V",
+      "produc": "BPB-033-ASA40-1-REEL",
+      "subgrupo": "Cadenas",
+      "observacion": "devolución Jonathan",
+      "updated_at": "2026-03-20T12:23:24",
+      "updated_by": "calidad2@bpbargentina.com"
+    },
+    "5088ic06000135u||b&p-045-pff-9-z": {
+      "item": "5088IC06000135U",
+      "produc": "B&P-045-PFF-9-Z",
+      "subgrupo": "SOPORTE DE CHAPAS",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "5088ic06000135u||b&p-048-bb203-krr2fd": {
+      "item": "5088IC06000135U",
+      "produc": "B&P-048-BB203-KRR2FD",
+      "subgrupo": "Rodamientos Esp.Agricolas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "po#943||b&p-037-bp-22001-02": {
+      "item": "PO#943",
+      "produc": "B&P-037-BP-22001-02",
+      "subgrupo": "VARIOS",
+      "observacion": "Ingreso por courrier Martina",
+      "updated_at": "2026-03-20T12:40:21",
+      "updated_by": "calidad2@bpbargentina.com"
+    },
+    "po#1294||b&p-045-pfm-5-z": {
+      "item": "PO#1294",
+      "produc": "B&P-045-PFM-5-Z",
+      "subgrupo": "SOPORTE DE CHAPAS",
+      "observacion": "Ingreso por courrier Martina",
+      "updated_at": "2026-03-20T12:44:52",
+      "updated_by": "calidad2@bpbargentina.com"
+    },
+    "po#909||b&p-048-dtr1645-rd": {
+      "item": "PO#909",
+      "produc": "B&P-048-DTR1645-RD",
+      "subgrupo": "Rodamientos Esp.Agricolas",
+      "observacion": "Ingreso por courrier Martina",
+      "updated_at": "2026-03-20T12:47:25",
+      "updated_by": "calidad2@bpbargentina.com"
+    },
+    "5088ic06000120y||b&p-047-sp205-al": {
+      "item": "5088IC06000120Y",
+      "produc": "B&P-047-SP205-AL",
+      "subgrupo": "AUTOCENTRANTES",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "5073ic04045664f||b&p-047-aclr208-40rg": {
+      "item": "5073IC04045664F",
+      "produc": "B&P-047-ACLR208-40RG",
+      "subgrupo": "AUTOCENTRANTES",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "5088ic06000093a||b&p-004-208-dbl-08": {
+      "item": "5088IC06000093A",
+      "produc": "B&P-004-208-DBL-08",
+      "subgrupo": "SELLOS",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "5088ic06000086c||b&p-033-c2060-h-sk1": {
+      "item": "5088IC06000086C",
+      "produc": "B&P-033-C2060-H-SK1",
+      "subgrupo": "Cadenas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "5088ic06000085b||b&p-042-22211ckw33c3": {
+      "item": "5088IC06000085B",
+      "produc": "B&P-042-22211CKW33C3",
+      "subgrupo": "Rod.Esfericos",
+      "observacion": "Raul. (No son K)",
+      "updated_at": "2026-03-20T13:02:21",
+      "updated_by": "calidad2@bpbargentina.com"
+    },
+    "25088sedi000033||b&p-048-205-krr2": {
+      "item": "25088SEDI000033",
+      "produc": "B&P-048-205-KRR2",
+      "subgrupo": "Rodamientos Esp.Agricolas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "5088ic04000078b||b&p-048-205-kyr2": {
+      "item": "5088IC04000078B",
+      "produc": "B&P-048-205-KYR2",
+      "subgrupo": "Rodamientos Esp.Agricolas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "5088ic04000078b||b&p-048-205-kyy5": {
+      "item": "5088IC04000078B",
+      "produc": "B&P-048-205-KYY5",
+      "subgrupo": "Rodamientos Esp.Agricolas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "5088ic06000053t||bpb-048-fhrl-bb9105": {
+      "item": "5088IC06000053T",
+      "produc": "BPB-048-FHRL-BB9105",
+      "subgrupo": "Rodamientos Esp.Agricolas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "5088ic04000049w||b&p-004-snl512-tg": {
+      "item": "5088IC04000049W",
+      "produc": "B&P-004-SNL512-TG",
+      "subgrupo": "SELLOS",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "5088ic04000049w||b&p-004-snl519-tg": {
+      "item": "5088IC04000049W",
+      "produc": "B&P-004-SNL519-TG",
+      "subgrupo": "SELLOS",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "5088ic04000049w||b&p-036-snl510": {
+      "item": "5088IC04000049W",
+      "produc": "B&P-036-SNL510",
+      "subgrupo": "Soporte bipartido",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "5088ic04000049w||b&p-036-snl511": {
+      "item": "5088IC04000049W",
+      "produc": "B&P-036-SNL511",
+      "subgrupo": "Soporte bipartido",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "5088ic04000049w||b&p-047-ha-210": {
+      "item": "5088IC04000049W",
+      "produc": "B&P-047-HA-210",
+      "subgrupo": "AUTOCENTRANTES",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "24088sedi000636||bpb-047-sab209-45dg": {
+      "item": "24088SEDI000636",
+      "produc": "BPB-047-SAB209-45DG",
+      "subgrupo": "Autocentrantes y Soportes",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "4088ic04000232p||b&p-027-08-dtr2549": {
+      "item": "4088IC04000232P",
+      "produc": "B&P-027-08-DTR2549",
+      "subgrupo": "SELLO",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "4088ic04000176w||b&p-041-ms08-2rstx": {
+      "item": "4088IC04000176W",
+      "produc": "B&P-041-MS08-2RSTX",
+      "subgrupo": "RODAMIENTO DE BOLAS",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "4088ic04000176w||b&p-041-ms11-2rs": {
+      "item": "4088IC04000176W",
+      "produc": "B&P-041-MS11-2RS",
+      "subgrupo": "RODAMIENTO DE BOLAS",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "a003-00027300||b&p-001-ntbs-1613-01": {
+      "item": "A003-00027300",
+      "produc": "B&P-001-NTBS-1613-01",
+      "subgrupo": "ARO EXTERIOR",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "a003-00027300||b&p-002-ntbs-1613-02": {
+      "item": "A003-00027300",
+      "produc": "B&P-002-NTBS-1613-02",
+      "subgrupo": "ARO INTERIOR",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "4088ic04000140n||b&p-047-ecl212-39d": {
+      "item": "4088IC04000140N",
+      "produc": "B&P-047-ECL212-39D",
+      "subgrupo": "AUTOCENTRANTES",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "4088ic06000001l||b&p-047-f-212": {
+      "item": "4088IC06000001L",
+      "produc": "B&P-047-F-212",
+      "subgrupo": "AUTOCENTRANTES",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "a001100024132||b&p-999-sab205-25dg": {
+      "item": "A001100024132",
+      "produc": "B&P-999-SAB205-25DG",
+      "subgrupo": "Productos Varios",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "3088ic04000142y||b&p-004-ls10rstx": {
+      "item": "3088IC04000142Y",
+      "produc": "B&P-004-LS10RSTX",
+      "subgrupo": "SELLOS",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "3088ic04000142y||b&p-004-ms10rstx": {
+      "item": "3088IC04000142Y",
+      "produc": "B&P-004-MS10RSTX",
+      "subgrupo": "SELLOS",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "3088ic04000142y||b&p-048-204-krr2": {
+      "item": "3088IC04000142Y",
+      "produc": "B&P-048-204-KRR2",
+      "subgrupo": "Rodamientos Esp.Agricolas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "3088ic04000142y||b&p-048-207-krrb9": {
+      "item": "3088IC04000142Y",
+      "produc": "B&P-048-207-KRRB9",
+      "subgrupo": "Rodamientos Esp.Agricolas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "3088ic04000142y||b&p-048-207-kyyb2": {
+      "item": "3088IC04000142Y",
+      "produc": "B&P-048-207-KYYB2",
+      "subgrupo": "Rodamientos Esp.Agricolas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "3088ic04000142y||bpb-048-dd59205sc": {
+      "item": "3088IC04000142Y",
+      "produc": "BPB-048-DD59205SC",
+      "subgrupo": "Rodamientos Esp.Agricolas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "3088ic04000111k||b&p-040-5205-2rs": {
+      "item": "3088IC04000111K",
+      "produc": "B&P-040-5205-2RS",
+      "subgrupo": "Rod. Varios",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "3088ic06000138v||b&p-047-ft-205-h": {
+      "item": "3088IC06000138V",
+      "produc": "B&P-047-FT-205-H",
+      "subgrupo": "AUTOCENTRANTES",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "3088ic06000138v||b&p-047-fts-206-4g": {
+      "item": "3088IC06000138V",
+      "produc": "B&P-047-FTS-206-4G",
+      "subgrupo": "AUTOCENTRANTES",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "3088ic04000071p||b&p-041-ms09-2rstx": {
+      "item": "3088IC04000071P",
+      "produc": "B&P-041-MS09-2RSTX",
+      "subgrupo": "RODAMIENTO DE BOLAS",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "3088ic04000064r||000-053-x-32208": {
+      "item": "3088IC04000064R",
+      "produc": "000-053-X-32208",
+      "subgrupo": "CONO",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "3088ic04000048t||b&p-047-fc-209": {
+      "item": "3088IC04000048T",
+      "produc": "B&P-047-FC-209",
+      "subgrupo": "AUTOCENTRANTES",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "3088ic05000010j||bpb-047-pe209-m": {
+      "item": "3088IC05000010J",
+      "produc": "BPB-047-PE209-M",
+      "subgrupo": "Autocentrantes y Soportes",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "2088ic06000197c||b&p-048-204-kyy7": {
+      "item": "2088IC06000197C",
+      "produc": "B&P-048-204-KYY7",
+      "subgrupo": "Rodamientos Esp.Agricolas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "2088ic06000197c||bpb-047-asl207-35rr": {
+      "item": "2088IC06000197C",
+      "produc": "BPB-047-ASL207-35RR",
+      "subgrupo": "Autocentrantes y Soportes",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "2088ic06000197c||bpb-055-gu-353040": {
+      "item": "2088IC06000197C",
+      "produc": "BPB-055-GU-353040",
+      "subgrupo": "Accesorios para Engranajes",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "2088ic06000198d||b&p-001-or205-g": {
+      "item": "2088IC06000198D",
+      "produc": "B&P-001-OR205-G",
+      "subgrupo": "ARO EXTERIOR",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "2088ic06000183u||b&p-048-bb205krp2": {
+      "item": "2088IC06000183U",
+      "produc": "B&P-048-BB205KRP2",
+      "subgrupo": "Rodamientos Esp.Agricolas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "2088sira000050f||b&p-048-ag-1235-b": {
+      "item": "2088SIRA000050F",
+      "produc": "B&P-048-AG-1235-B",
+      "subgrupo": "Rodamientos Esp.Agricolas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "2088ic06000163s||b&p-004-211-dbl-08": {
+      "item": "2088IC06000163S",
+      "produc": "B&P-004-211-DBL-08",
+      "subgrupo": "SELLOS",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "2088ic06000163s||b&p-004-dtr2047-tpl": {
+      "item": "2088IC06000163S",
+      "produc": "B&P-004-DTR2047-TPL",
+      "subgrupo": "SELLOS",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "2088ic06000163s||bpb-048-204kyy2": {
+      "item": "2088IC06000163S",
+      "produc": "BPB-048-204KYY2",
+      "subgrupo": "Rodamientos Esp.Agricolas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "2088ic04000207p||000-053-x-30212": {
+      "item": "2088IC04000207P",
+      "produc": "000-053-X-30212",
+      "subgrupo": "CONO",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "2088ic06000142p||bpb-037-bp-12011-bd2": {
+      "item": "2088IC06000142P",
+      "produc": "BPB-037-BP-12011-BD2",
+      "subgrupo": "Varios",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "2088ic05000106y||b&p-041-ls10-2rstx": {
+      "item": "2088IC05000106Y",
+      "produc": "B&P-041-LS10-2RSTX",
+      "subgrupo": "RODAMIENTO DE BOLAS",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "2088ic05000106y||b&p-041-ms10-2rstx": {
+      "item": "2088IC05000106Y",
+      "produc": "B&P-041-MS10-2RSTX",
+      "subgrupo": "RODAMIENTO DE BOLAS",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "2088ic04000143y||bpb-033-asa50-1h-ree": {
+      "item": "2088IC04000143Y",
+      "produc": "BPB-033-ASA50-1H-REE",
+      "subgrupo": "Cadenas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "2088ic04000105m||bpb-033-asa40-1-reel": {
+      "item": "2088IC04000105M",
+      "produc": "BPB-033-ASA40-1-REEL",
+      "subgrupo": "Cadenas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "2088ic04000105m||bpb-033-asa80-2-reel": {
+      "item": "2088IC04000105M",
+      "produc": "BPB-033-ASA80-2-REEL",
+      "subgrupo": "Cadenas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "2088ic06000048u||b&p-048-fdecl211-55": {
+      "item": "2088IC06000048U",
+      "produc": "B&P-048-FDECL211-55",
+      "subgrupo": "Rodamientos Esp.Agricolas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "a000300003150||bpb-047-fd-205-a1": {
+      "item": "A000300003150",
+      "produc": "BPB-047-FD-205-A1",
+      "subgrupo": "Autocentrantes y Soportes",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "a000300003135||bpb-047-fd-205-a1": {
+      "item": "A000300003135",
+      "produc": "BPB-047-FD-205-A1",
+      "subgrupo": "Autocentrantes y Soportes",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "a000300003120||bpb-047-f-205-a1": {
+      "item": "A000300003120",
+      "produc": "BPB-047-F-205-A1",
+      "subgrupo": "Autocentrantes y Soportes",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "2088ic05000025y||b&p-047-f-205-h": {
+      "item": "2088IC05000025Y",
+      "produc": "B&P-047-F-205-H",
+      "subgrupo": "AUTOCENTRANTES",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "2088ic05000025y||b&p-047-fts-205-ha": {
+      "item": "2088IC05000025Y",
+      "produc": "B&P-047-FTS-205-HA",
+      "subgrupo": "AUTOCENTRANTES",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "a000300003080||bpb-047-f-205-a1": {
+      "item": "A000300003080",
+      "produc": "BPB-047-F-205-A1",
+      "subgrupo": "Autocentrantes y Soportes",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "a000300003056||bpb-047-f-205-a1": {
+      "item": "A000300003056",
+      "produc": "BPB-047-F-205-A1",
+      "subgrupo": "Autocentrantes y Soportes",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "a000300003033||bpb-047-f-211-a1": {
+      "item": "A000300003033",
+      "produc": "BPB-047-F-211-A1",
+      "subgrupo": "Autocentrantes y Soportes",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "a000400013527||bpb-059-gu-2047": {
+      "item": "A000400013527",
+      "produc": "BPB-059-GU-2047",
+      "subgrupo": "MAZAS - Term y Ptes.Pzas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "1088ic04000177u||bpb-056-eng353040chs": {
+      "item": "1088IC04000177U",
+      "produc": "BPB-056-ENG353040CHS",
+      "subgrupo": "CRUCETAS Y ENGRANAJES",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "1088ic04000173z||b&p-001-or207-g": {
+      "item": "1088IC04000173Z",
+      "produc": "B&P-001-OR207-G",
+      "subgrupo": "ARO EXTERIOR",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "a000300003011||bpb-047-f-205-a1": {
+      "item": "A000300003011",
+      "produc": "BPB-047-F-205-A1",
+      "subgrupo": "Autocentrantes y Soportes",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar7112||bpb-048-205-krrb2": {
+      "item": "AR7112",
+      "produc": "BPB-048-205-KRRB2",
+      "subgrupo": "Rodamientos Esp.Agricolas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "a000300002992||bpb-047-f-206-a1": {
+      "item": "A000300002992",
+      "produc": "BPB-047-F-206-A1",
+      "subgrupo": "Autocentrantes y Soportes",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "a000300002992||bpb-047-f-211-a1": {
+      "item": "A000300002992",
+      "produc": "BPB-047-F-211-A1",
+      "subgrupo": "Autocentrantes y Soportes",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "a000300002992||bpb-047-fts-205-a1": {
+      "item": "A000300002992",
+      "produc": "BPB-047-FTS-205-A1",
+      "subgrupo": "Autocentrantes y Soportes",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "1088ic04000156r||b&p-048-5203-kyy9": {
+      "item": "1088IC04000156R",
+      "produc": "B&P-048-5203-KYY9",
+      "subgrupo": "Rodamientos Esp.Agricolas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "a000300002969||bpb-047-f-205-a1": {
+      "item": "A000300002969",
+      "produc": "BPB-047-F-205-A1",
+      "subgrupo": "Autocentrantes y Soportes",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "a000300002969||bpb-047-f-211-a1": {
+      "item": "A000300002969",
+      "produc": "BPB-047-F-211-A1",
+      "subgrupo": "Autocentrantes y Soportes",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "1088ic05000124n||b&p-005-tdx010": {
+      "item": "1088IC05000124N",
+      "produc": "B&P-005-TDX010",
+      "subgrupo": "CANASTO",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "a000300002894||bpb-047-f-205-a1": {
+      "item": "A000300002894",
+      "produc": "BPB-047-F-205-A1",
+      "subgrupo": "Autocentrantes y Soportes",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "a000300002894||bpb-047-fd-205-a1": {
+      "item": "A000300002894",
+      "produc": "BPB-047-FD-205-A1",
+      "subgrupo": "Autocentrantes y Soportes",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "1088ic04000130j||b&p-047-ha-208": {
+      "item": "1088IC04000130J",
+      "produc": "B&P-047-HA-208",
+      "subgrupo": "AUTOCENTRANTES",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "a000300002875||bpb-047-fts-205-a1": {
+      "item": "A000300002875",
+      "produc": "BPB-047-FTS-205-A1",
+      "subgrupo": "Autocentrantes y Soportes",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "a000300002875||bpb-047-pe-208-a1": {
+      "item": "A000300002875",
+      "produc": "BPB-047-PE-208-A1",
+      "subgrupo": "Autocentrantes y Soportes",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "a000300002850||bpb-047-fts-205-a1": {
+      "item": "A000300002850",
+      "produc": "BPB-047-FTS-205-A1",
+      "subgrupo": "Autocentrantes y Soportes",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "a000300002858||bpb-047-fts-205-a1": {
+      "item": "A000300002858",
+      "produc": "BPB-047-FTS-205-A1",
+      "subgrupo": "Autocentrantes y Soportes",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "a000300020653||bpb-047-p-209-l": {
+      "item": "A000300020653",
+      "produc": "BPB-047-P-209-L",
+      "subgrupo": "Autocentrantes y Soportes",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "a000300002782||bpb-047-f-211-a1": {
+      "item": "A000300002782",
+      "produc": "BPB-047-F-211-A1",
+      "subgrupo": "Autocentrantes y Soportes",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "1088ic05000055z||b&p-004-206-rw-08": {
+      "item": "1088IC05000055Z",
+      "produc": "B&P-004-206-RW-08",
+      "subgrupo": "SELLOS",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "1088ic04000026n||b&p-010-loc207-35": {
+      "item": "1088IC04000026N",
+      "produc": "B&P-010-LOC207-35",
+      "subgrupo": "LOC",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "0088ic05000038z||bpb-033-asa-80-2": {
+      "item": "0088IC05000038Z",
+      "produc": "BPB-033-ASA-80-2",
+      "subgrupo": "Cadenas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "0088ic06000057s||000-054-tcy205": {
+      "item": "0088IC06000057S",
+      "produc": "000-054-TCY205",
+      "subgrupo": "CUBETA",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "0088ic06000052n||b&p-047-pe-211": {
+      "item": "0088IC06000052N",
+      "produc": "B&P-047-PE-211",
+      "subgrupo": "AUTOCENTRANTES",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "0088ic06000052n||bpb-047-sab207-35lg": {
+      "item": "0088IC06000052N",
+      "produc": "BPB-047-SAB207-35LG",
+      "subgrupo": "Autocentrantes y Soportes",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "0088ic06000038r||b&p-048-ag-1235-ppz9": {
+      "item": "0088IC06000038R",
+      "produc": "B&P-048-AG-1235-PPZ9",
+      "subgrupo": "Rodamientos Esp.Agricolas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "0088ic06000017y||bpb-041-62210-2rs": {
+      "item": "0088IC06000017Y",
+      "produc": "BPB-041-62210-2RS",
+      "subgrupo": "Rod. Rigidos de Bolas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "07012020||bpb-047-sab206-30lg": {
+      "item": "07012020",
+      "produc": "BPB-047-SAB206-30LG",
+      "subgrupo": "Autocentrantes y Soportes",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "9088ic06000148e||b&p-048-210krrb52": {
+      "item": "9088IC06000148E",
+      "produc": "B&P-048-210KRRB52",
+      "subgrupo": "Rodamientos Esp.Agricolas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "9088ic06000113t||b&p-048-w208krrb6": {
+      "item": "9088IC06000113T",
+      "produc": "B&P-048-W208KRRB6",
+      "subgrupo": "Rodamientos Esp.Agricolas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "a000700029548||bpb-047-uc-212-dbl": {
+      "item": "A000700029548",
+      "produc": "BPB-047-UC-212-DBL",
+      "subgrupo": "Autocentrantes y Soportes",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "9088ic06000040s||b&p-054-tdy211": {
+      "item": "9088IC06000040S",
+      "produc": "B&P-054-TDY211",
+      "subgrupo": "CUBETA",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "9088ic06000011z||b&p-047-sab-212-60dg": {
+      "item": "9088IC06000011Z",
+      "produc": "B&P-047-SAB-212-60DG",
+      "subgrupo": "AUTOCENTRANTES",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "8088ic06000220r||bpb-046-sabf209-45l": {
+      "item": "8088IC06000220R",
+      "produc": "BPB-046-SABF209-45L",
+      "subgrupo": "Soporte + Rodamiento",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "8088ic06000201z||bpb-047-sab209-45lg": {
+      "item": "8088IC06000201Z",
+      "produc": "BPB-047-SAB209-45LG",
+      "subgrupo": "Autocentrantes y Soportes",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "8088ic06000167e||b&p-010-loc210-50": {
+      "item": "8088IC06000167E",
+      "produc": "B&P-010-LOC210-50",
+      "subgrupo": "LOC",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "8088ic06000169g||b&p-003-tcx209": {
+      "item": "8088IC06000169G",
+      "produc": "B&P-003-TCX209",
+      "subgrupo": "BOLITAS",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "simi-2018-04-10||bpb-048-204-krr6": {
+      "item": "SIMI-2018-04-10",
+      "produc": "BPB-048-204-KRR6",
+      "subgrupo": "Rodamientos Esp.Agricolas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "simi-2018-01-19||bpb-047-ecl210-50lg": {
+      "item": "SIMI-2018-01-19",
+      "produc": "BPB-047-ECL210-50LG",
+      "subgrupo": "Autocentrantes y Soportes",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "simi-2017-09-23||b&p-004-204-rst-08": {
+      "item": "SIMI-2017-09-23",
+      "produc": "B&P-004-204-RST-08",
+      "subgrupo": "SELLOS",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "simi-2017-08-11||b&p-041-ls05-2rst": {
+      "item": "SIMI-2017-08-11",
+      "produc": "B&P-041-LS05-2RST",
+      "subgrupo": "RODAMIENTO DE BOLAS",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "a002200037844||bpb-048-205-krr2": {
+      "item": "A002200037844",
+      "produc": "BPB-048-205-KRR2",
+      "subgrupo": "Rodamientos Esp.Agricolas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "simi-2017-07-05||b&p-041-ms10-2rstk": {
+      "item": "SIMI-2017-07-05",
+      "produc": "B&P-041-MS10-2RSTK",
+      "subgrupo": "RODAMIENTO DE BOLAS",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "7088simi000275v||b&p-001-ls05-d": {
+      "item": "7088SIMI000275V",
+      "produc": "B&P-001-LS05-D",
+      "subgrupo": "ARO EXTERIOR",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "7088simi000275v||b&p-002-ls05-d": {
+      "item": "7088SIMI000275V",
+      "produc": "B&P-002-LS05-D",
+      "subgrupo": "ARO INTERIOR",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "7088simi000275v||b&p-005-ret/set-ls05": {
+      "item": "7088SIMI000275V",
+      "produc": "B&P-005-RET/SET-LS05",
+      "subgrupo": "CANASTO",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "7088simi000275v||bpb-053-020-dtr2047": {
+      "item": "7088SIMI000275V",
+      "produc": "BPB-053-020-DTR2047",
+      "subgrupo": "CONO",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "simi-2017-06-14||b&p-004-205-rw-08": {
+      "item": "SIMI-2017-06-14",
+      "produc": "B&P-004-205-RW-08",
+      "subgrupo": "SELLOS",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "simi-2017-06-14||b&p-005-cage206-17": {
+      "item": "SIMI-2017-06-14",
+      "produc": "B&P-005-CAGE206-17",
+      "subgrupo": "CANASTO",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "simi-2017-05-08||b&p-010-loc209-45": {
+      "item": "SIMI-2017-05-08",
+      "produc": "B&P-010-LOC209-45",
+      "subgrupo": "LOC",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "simi-2017-06-08||b&p-004-204-kyy7": {
+      "item": "SIMI-2017-06-08",
+      "produc": "B&P-004-204-KYY7",
+      "subgrupo": "SELLOS",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "simi-2017-04-03||b&p-003-ball-7/16": {
+      "item": "SIMI-2017-04-03",
+      "produc": "B&P-003-Ball-7/16",
+      "subgrupo": "BOLITAS",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "simi-2017-04-03||b&p-004-208-tpl-08": {
+      "item": "SIMI-2017-04-03",
+      "produc": "B&P-004-208-TPL-08",
+      "subgrupo": "SELLOS",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "a002200034117||pee-047-hc-211-55mm": {
+      "item": "A002200034117",
+      "produc": "PEE-047-HC-211-55MM",
+      "subgrupo": "Autocentrantes y Soportes",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "a000700019984||pee-047-hc-211-55mm": {
+      "item": "A000700019984",
+      "produc": "PEE-047-HC-211-55MM",
+      "subgrupo": "Autocentrantes y Soportes",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "simi-2016-10-22||b&p-001-ms04-d": {
+      "item": "SIMI-2016-10-22",
+      "produc": "B&P-001-MS04-D",
+      "subgrupo": "ARO EXTERIOR",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "7073simi001497w||b&p-004-209-dbl-08": {
+      "item": "7073SIMI001497W",
+      "produc": "B&P-004-209-DBL-08",
+      "subgrupo": "SELLOS",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "simi-2016-08-31||b&p-004-ag-1235-ppz9": {
+      "item": "SIMI-2016-08-31",
+      "produc": "B&P-004-AG-1235-PPZ9",
+      "subgrupo": "SELLOS",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "x-000-000-000||b&p-047-pe-207": {
+      "item": "X-000-000-000",
+      "produc": "B&P-047-PE-207",
+      "subgrupo": "AUTOCENTRANTES",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "simi-2016-08-31||b&p-002-ecl205-25-02": {
+      "item": "SIMI-2016-08-31",
+      "produc": "B&P-002-ECL205-25-02",
+      "subgrupo": "ARO INTERIOR",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "5088djai001123j||b&p-001-or205-01": {
+      "item": "5088DJAI001123J",
+      "produc": "B&P-001-OR205-01",
+      "subgrupo": "ARO EXTERIOR",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "4088djai002722y||b&p-001-or207-01": {
+      "item": "4088DJAI002722Y",
+      "produc": "B&P-001-OR207-01",
+      "subgrupo": "ARO EXTERIOR",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "4088djai002721n||b&p-001-or207-a1": {
+      "item": "4088DJAI002721N",
+      "produc": "B&P-001-OR207-A1",
+      "subgrupo": "ARO EXTERIOR",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "4088djai002723p||b&p-004-207-dbl-08": {
+      "item": "4088DJAI002723P",
+      "produc": "B&P-004-207-DBL-08",
+      "subgrupo": "SELLOS",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "x-000-000-000||bpb-048-5204-kpp3": {
+      "item": "X-000-000-000",
+      "produc": "BPB-048-5204-KPP3",
+      "subgrupo": "Rodamientos Esp.Agricolas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "x-000-000-000||b&p-002-ecl207-35-a2": {
+      "item": "X-000-000-000",
+      "produc": "B&P-002-ECL207-35-A2",
+      "subgrupo": "ARO INTERIOR",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "x-000-000-000||b&p-010-loc207-35": {
+      "item": "X-000-000-000",
+      "produc": "B&P-010-LOC207-35",
+      "subgrupo": "LOC",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "4088djai002720m||b&p-010-loc207-35": {
+      "item": "4088DJAI002720M",
+      "produc": "B&P-010-LOC207-35",
+      "subgrupo": "LOC",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "4088djai002727t||b&p-004-210-rst-08": {
+      "item": "4088DJAI002727T",
+      "produc": "B&P-004-210-RST-08",
+      "subgrupo": "SELLOS",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "5088djai000228y||b&p-050-3t-12080": {
+      "item": "5088DJAI000228Y",
+      "produc": "B&P-050-3T-12080",
+      "subgrupo": "Cono y cubeta",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "4088djai002725r||b&p-010-loc207-35": {
+      "item": "4088DJAI002725R",
+      "produc": "B&P-010-LOC207-35",
+      "subgrupo": "LOC",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "3088djai004178u||kg--042-22218cw33c3": {
+      "item": "3088DJAI004178U",
+      "produc": "KG--042-22218CW33C3",
+      "subgrupo": "Rod.Esfericos",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "4088djai000114h||bpb-048-ag-1235-ppz9": {
+      "item": "4088DJAI000114H",
+      "produc": "BPB-048-AG-1235-PPZ9",
+      "subgrupo": "Rodamientos Esp.Agricolas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "3088ic06000156u||b&p-054-hm-803110": {
+      "item": "3088IC06000156U",
+      "produc": "B&P-054-HM-803110",
+      "subgrupo": "CUBETA",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "2088ic06000139u||bpb-047-uc-209-dbl": {
+      "item": "2088IC06000139U",
+      "produc": "BPB-047-UC-209-DBL",
+      "subgrupo": "Autocentrantes y Soportes",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "0088ic06000102x||bpb-047-ecl207-35d1": {
+      "item": "0088IC06000102X",
+      "produc": "BPB-047-ECL207-35D1",
+      "subgrupo": "Autocentrantes y Soportes",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "2088ic06000036z||bpb-048-207-krrb12": {
+      "item": "2088IC06000036Z",
+      "produc": "BPB-048-207-KRRB12",
+      "subgrupo": "Rodamientos Esp.Agricolas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "2088ic06000036z||bpb-048-5204-kpp3": {
+      "item": "2088IC06000036Z",
+      "produc": "BPB-048-5204-KPP3",
+      "subgrupo": "Rodamientos Esp.Agricolas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "1088ic06000237s||bpb-048-uc-5209-g-45": {
+      "item": "1088IC06000237S",
+      "produc": "BPB-048-UC-5209-G-45",
+      "subgrupo": "Rodamientos Esp.Agricolas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "0017ic06000328k||bpb-047-sab209-45dg": {
+      "item": "0017IC06000328K",
+      "produc": "BPB-047-SAB209-45DG",
+      "subgrupo": "Autocentrantes y Soportes",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "1088ic06000077u||bpb-048-dtr2549-fm": {
+      "item": "1088IC06000077U",
+      "produc": "BPB-048-DTR2549-FM",
+      "subgrupo": "Rodamientos Esp.Agricolas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "1017zfe1000555d||bpb-047-acl206-30rg": {
+      "item": "1017ZFE1000555D",
+      "produc": "BPB-047-ACL206-30RG",
+      "subgrupo": "Autocentrantes y Soportes",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "1017zfe1000553b||bpb-048-5207-krrb2": {
+      "item": "1017ZFE1000553B",
+      "produc": "BPB-048-5207-KRRB2",
+      "subgrupo": "Rodamientos Esp.Agricolas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "1088ic06000096v||bpb-054-010-dtr2047": {
+      "item": "1088IC06000096V",
+      "produc": "BPB-054-010-DTR2047",
+      "subgrupo": "CUBETAS",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "1088ic06000096v||bpb-054-010-dtr2552": {
+      "item": "1088IC06000096V",
+      "produc": "BPB-054-010-DTR2552",
+      "subgrupo": "CUBETAS",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "0088ic06000118p||bpb-053-020-dtr2552": {
+      "item": "0088IC06000118P",
+      "produc": "BPB-053-020-DTR2552",
+      "subgrupo": "CONO",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "0017ic06001193l||bpb-047-uc-208-dbl": {
+      "item": "0017IC06001193L",
+      "produc": "BPB-047-UC-208-DBL",
+      "subgrupo": "Autocentrantes y Soportes",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "8017zfe1001288n||bpb-048-dtr2549-fm": {
+      "item": "8017ZFE1001288N",
+      "produc": "BPB-048-DTR2549-FM",
+      "subgrupo": "Rodamientos Esp.Agricolas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "0017zfe1000227v||bpb-047-sc-310-2rst": {
+      "item": "0017ZFE1000227V",
+      "produc": "BPB-047-SC-310-2RST",
+      "subgrupo": "Autocentrantes y Soportes",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "a000100000063||pee-048-gr-210-dbsq": {
+      "item": "A000100000063",
+      "produc": "PEE-048-GR-210-DBSQ",
+      "subgrupo": "Rodamientos Esp.Agricolas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "9017zfe1000361f||bpb-027-08-dtr2047": {
+      "item": "9017ZFE1000361F",
+      "produc": "BPB-027-08-DTR2047",
+      "subgrupo": "Sellos",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "9017zfe1000155g||bpb-053-020-dtr2552": {
+      "item": "9017ZFE1000155G",
+      "produc": "BPB-053-020-DTR2552",
+      "subgrupo": "CONO",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "8017zfe1001524g||bpb-037-b2001": {
+      "item": "8017ZFE1001524G",
+      "produc": "BPB-037-B2001",
+      "subgrupo": "Varios",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "8017zfe1001094x||bpb-040-1312": {
+      "item": "8017ZFE1001094X",
+      "produc": "BPB-040-1312",
+      "subgrupo": "Rod.Varios",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    }
+  },
+  "updated_at": "2026-03-20T13:02:21"
+}

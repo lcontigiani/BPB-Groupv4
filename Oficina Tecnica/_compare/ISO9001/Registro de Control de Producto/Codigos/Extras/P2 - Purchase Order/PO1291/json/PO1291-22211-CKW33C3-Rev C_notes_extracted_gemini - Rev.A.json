@@ -1,0 +1,65 @@
+{
+  "purchase_order": "1291",
+  "code": "22211-CKW33C3",
+  "revision": "C",
+  "date": "03/08/2023",
+  "dimensions": {
+    "thickness": {
+      "value_mm": 25,
+      "tol_plus_mm": 0,
+      "tol_minus_mm": -0.15
+    },
+    "outer_thickness": null,
+    "inner_thickness": null,
+    "outer_dia": {
+      "value_mm": 100,
+      "tol_plus_mm": 0,
+      "tol_minus_mm": -0.015
+    },
+    "inner_dia": {
+      "value_mm": 55,
+      "tol_plus_mm": 0.046,
+      "tol_minus_mm": 0
+    }
+  },
+  "radial_clearance": {
+    "class": "C3",
+    "range_um": {
+      "min": 75,
+      "max": 95
+    }
+  },
+  "axial_clearance": null,
+  "hardness_hrc": {
+    "inner_plus": 64,
+    "inner_minus": 58,
+    "outer_plus": 64,
+    "outer_minus": 58
+  },
+  "seal_torque": null,
+  "lubricant": {
+    "type": "Rust preventative oil",
+    "fill": null
+  },
+  "retainer": {
+    "material": "Steel"
+  },
+  "revision_history": [
+    {
+      "rev": "C",
+      "date": "03/08/2023",
+      "by": ""
+    },
+    {
+      "rev": "B",
+      "date": "16/06/2023",
+      "by": ""
+    },
+    {
+      "rev": "A",
+      "date": "23/03/2016",
+      "by": ""
+    }
+  ],
+  "proveedor": "195"
+}

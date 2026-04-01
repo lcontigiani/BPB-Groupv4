@@ -1,0 +1,13 @@
+{
+    "date": "19/01/2026",
+    "timestamp": "2026-01-19T13:14:42.143998",
+    "activities": [
+        {
+            "project": "Registros O.T",
+            "time": "4",
+            "description": "Hola"
+        }
+    ],
+    "user": "lcontigiani@bpbargentina.com",
+    "status": "completed"
+}

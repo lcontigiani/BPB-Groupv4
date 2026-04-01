@@ -1,0 +1,82 @@
+{
+  "purchase_order": "1071",
+  "code": "AG1235B",
+  "revision": "D",
+  "date": "25/09/2013",
+  "dimensions": {
+    "thickness": null,
+    "outer_thickness": {
+      "value_mm": 18.263,
+      "tol_plus_mm": 0,
+      "tol_minus_mm": -0.127
+    },
+    "inner_thickness": {
+      "value_mm": 19.428,
+      "tol_plus_mm": 0,
+      "tol_minus_mm": -0.127
+    },
+    "outer_dia": {
+      "value_mm": 53.086,
+      "tol_plus_mm": 0.0,
+      "tol_minus_mm": -0.013
+    },
+    "inner_dia": {
+      "value_mm": 16.13,
+      "tol_plus_mm": 0.01,
+      "tol_minus_mm": -0.12
+    }
+  },
+  "radial_clearance": {
+    "class": null,
+    "range_um": {
+      "min": 13,
+      "max": 38
+    }
+  },
+  "axial_clearance": {
+    "range_um": {
+      "min": 18,
+      "max": 54
+    }
+  },
+  "hardness_hrc": {
+    "inner_plus": 64,
+    "inner_minus": 58,
+    "outer_plus": 64,
+    "outer_minus": 58
+  },
+  "seal_torque": {
+    "low_Nm": 0.127,
+    "high_Nm": 0.169
+  },
+  "lubricant": {
+    "type": "Exxon Polyrex EM",
+    "fill": "3,2 - 4,27 gr"
+  },
+  "retainer": {
+    "material": "Nylon"
+  },
+  "revision_history": [
+    {
+      "rev": "D",
+      "date": "25/09/2013",
+      "by": ""
+    },
+    {
+      "rev": "C",
+      "date": "15/09/2011",
+      "by": ""
+    },
+    {
+      "rev": "B",
+      "date": "21/10/2010",
+      "by": ""
+    },
+    {
+      "rev": "A",
+      "date": "01/12/2007",
+      "by": ""
+    }
+  ],
+  "proveedor": "103"
+}

@@ -1,0 +1,35 @@
+{
+  "purchase_order": "1068",
+  "code": "F-209",
+  "revision": "A",
+  "date": "23/03/2016",
+  "dimensions": {
+    "thickness": {
+      "value_mm": 38,
+      "tol_plus_mm": 0.3,
+      "tol_minus_mm": -0.3
+    },
+    "outer_thickness": null,
+    "inner_thickness": null,
+    "outer_dia": {
+      "value_mm": 85,
+      "tol_plus_mm": 0.01,
+      "tol_minus_mm": -0.025
+    },
+    "inner_dia": null
+  },
+  "radial_clearance": null,
+  "axial_clearance": null,
+  "hardness_hrc": null,
+  "seal_torque": null,
+  "lubricant": null,
+  "retainer": null,
+  "revision_history": [
+    {
+      "rev": "A",
+      "date": "23/03/2016",
+      "by": ""
+    }
+  ],
+  "proveedor": "440"
+}

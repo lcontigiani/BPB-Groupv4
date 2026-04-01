@@ -1,0 +1,24 @@
+# Comandos principales (copiar/pegar en CMD). Funcionan desde cualquier PC con acceso a la red.
+
+# Paso 1) Procesar ingresos diarios (lee XLSX o CSV en Auxiliares/Ingresos, genera resumen en in process)
+pushd "\\BPBSRV03\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Codigos" && python procesar_ingresos.py && popd
+
+# Paso 2) Tomar el último resumen y copiar PDFs por PO
+pushd "\\BPBSRV03\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Codigos" && python step2_fetch_pdfs.py --config "\\BPBSRV03\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Codigos\config.yaml" && popd
+
+# Paso 3) Generar json + aux_matches por cada PDF en las carpetas PO
+#   - Crea/actualiza json en POxxxx/json
+#   - Crea csv_Auxiliar/aux_matches.csv con coincidencias en R016-01
+#   - Actualiza índices Auxiliar en Auxiliares/indices_auxiliar
+pushd "\\BPBSRV03\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Codigos" && python step3_prepare_outputs.py --config "\\BPBSRV03\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Codigos\config.yaml" && popd
+
+# (Opcional) Exportar hojas Auxiliar de R016-01 a CSV para coincidencias
+pushd "\\BPBSRV03\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Codigos" && python export_auxiliar_csv.py --root "\\192.168.0.55\utn\REGISTROS" --out "\\BPBSRV03\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Auxiliares\indices_auxiliar" && popd
+
+# Prueba individual (un PDF en Codigos/Pruebas): genera json + aux_matches + csv solo para ese archivo
+pushd "\\BPBSRV03\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Codigos" && python step3_pruebas_single.py && popd
+# (opcional) si quieres apuntar a un archivo concreto en Pruebas:
+# pushd "\\BPBSRV03\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Codigos" && python step3_pruebas_single.py --pdf "\\BPBSRV03\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Codigos\Pruebas\\NOMBRE_DEL_ARCHIVO.pdf" && popd
+
+# (modo anterior de ingresos si se requiere usar automation)
+# pushd "\\BPBSRV03\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Codigos" && python automation.py --config "\\BPBSRV03\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Codigos\config.yaml" --once && popd

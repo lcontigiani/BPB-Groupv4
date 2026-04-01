@@ -1,0 +1,21 @@
+﻿Fecha;Hora;Token;ProyectoFinal;Tiempo;Registro;Observaciones
+26/01/2026;17:23:05;e5394502;Panel de Control O.T;7,5 Horas;"Lleve a cabo modificaciones para mejorar su optimización y lograr su funcionamiento para el día de prueba.
+Por otro lado, inicie el desarrollo del Panel de ""ISO 9001"".";
+26/01/2026;17:23:05;e5394502;Registros de Control de Calidad;1 Horas;He realizado el registro de algunos rodamientos cónicos solicitados por Calidad (32011,32014,32212,30207);
+27/01/2026;17:11:38;9107fd60;Panel de Control O.T;8 Horas;"Se llevaron a cabo mejoras solicitas por Luciano Cochis en estadísticas del sistema.
+Ademas, se continuo el desarrollo del sistema ISO 9001 integrado al Panel de Control, iniciando con R019-01 (Datos de Entrada).";
+27/01/2026;17:11:38;9107fd60;Sistema de Costos;0,5 Horas;Charla de Eliseo para revisar avances y determinar modificaciones pertinentes (costos de importación discriminados) para un futuro análisis en la semana del 02/01/2026.;
+28/01/2026;17:17:50;f495fcd3;Registros de Control de Calidad;3 Horas;Se completaron los registros de los dias 18/11/25, 16/05/25, 30/10/25, 14/01/26, 16/01/26, 19/01/26,  22/01/26.;
+28/01/2026;17:17:50;f495fcd3;Sistema de Costos;3 Horas;Se llevaron a cabo los cambios solicitados por Eliseo, destacando el costo de importación en cada producto. Aun queda entrar en profundidad.;
+28/01/2026;17:17:50;f495fcd3;Panel de Control O.T;1 Horas;Se inicio el análisis de P019 para su restructuración ante la automatización e inserción en pagina web.;
+28/01/2026;17:17:50;f495fcd3;Otros;1 Horas;Organización del día y planificación de mejoras futuras;
+29/01/2026;17:33:38;b7f587eb;Cuerpo de Siembra;5,5 Horas;"Se ha desarrollado el costeo del cuerpo en su versión ""Mix"" utilizando Listado Maestro. Aun queda pendiente charla con Tomas para revisar aristas.";
+29/01/2026;17:33:38;b7f587eb;Panel de Control O.T;3 Horas;"Se llevaron a cabo arreglo de detalles solicitados por Luciano, además de sumar nueva métrica ""Horas Extras Acumulado"".";
+30/01/2026;16:23:40;a19ab56a;Panel de Control O.T;4 Horas;"Se perfección el registro impreso sumando nueva grafica de Area. Se sumo funcionalidad ""Agregar Proyecto"". Se arreglaron bugs.";
+30/01/2026;16:23:40;a19ab56a;Cuerpo de Siembra;4 Horas;Se consiguió el valor del cuerpo de siembra MIX (Aprox 1400 USD) (Se tuvieron que aproximar valores por falta de cotizaciones).;
+02/02/2026;17:21:26;90160cf1;Panel de Control O.T;9 Horas;Se desarrollo un sistema que permite conocer la cantidad de carga optima en un pallet y contenedor.;
+03/02/2026;17:18:29;0523f3af;Panel de Control O.T;8,5 Horas;Se continuo con el desarrollo del sistema de logística que permite la optimización de una carga en pallets o contenedores.;
+04/02/2026;17:04:34;18d2d69f;Panel de Control O.T;8,5 Horas;"Se continuo el trabajo realizado sobre el panel ""Calculo de Cubitaje"" de los 2 anteriores días.";
+05/02/2026;17:19:20;54dc2ac7;Panel de Control O.T;5,5 Horas;Se finalizo el sistema de calculo logístico para pallet y contenedores. Queda al pendiente de revisión y mejoras ya previstas.;
+05/02/2026;17:19:20;54dc2ac7;Cuerpo de Siembra;2,5 Horas;Se calcularon costos de variaciones de los cuerpos, teniendo en cuenta (MIX, CHINA) en versiones (Acero, Nodular). Además se calculo el numero de cuerpos que pueden ubicarse en un contenedor (126 o 189 dependiendo si incluye sistema de regulación ensamblado).;
+05/02/2026;17:19:21;54dc2ac7;Otros;0,5 Horas;Charlas de organización de situación respecto a cuerpos de siembra con Nicolás Boetsch;

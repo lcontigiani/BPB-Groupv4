@@ -1,0 +1,63 @@
+{
+  "purchase_order": "1071",
+  "code": "204-JY3",
+  "revision": "B",
+  "date": "03/12/2014",
+  "dimensions": {
+    "thickness": {
+      "value_mm": 18.669,
+      "tol_plus_mm": 0.0,
+      "tol_minus_mm": -0.12
+    },
+    "outer_thickness": null,
+    "inner_thickness": null,
+    "outer_dia": {
+      "value_mm": 45.225,
+      "tol_plus_mm": 0.0,
+      "tol_minus_mm": -0.013
+    },
+    "inner_dia": {
+      "value_mm": 16.053,
+      "tol_plus_mm": 0.0,
+      "tol_minus_mm": -0.06
+    }
+  },
+  "radial_clearance": {
+    "class": null,
+    "range_um": {
+      "min": 36,
+      "max": 52
+    }
+  },
+  "axial_clearance": null,
+  "hardness_hrc": {
+    "inner_plus": 64,
+    "inner_minus": 58,
+    "outer_plus": 64,
+    "outer_minus": 58
+  },
+  "seal_torque": {
+    "low_Nm": 0.1,
+    "high_Nm": 0.16
+  },
+  "lubricant": {
+    "type": "Polyrex EM",
+    "fill": "60% - 80%"
+  },
+  "retainer": {
+    "material": "Nylon"
+  },
+  "revision_history": [
+    {
+      "rev": "B",
+      "date": "03/12/2014",
+      "by": ""
+    },
+    {
+      "rev": "A",
+      "date": "07/10/2014",
+      "by": ""
+    }
+  ],
+  "proveedor": "103"
+}

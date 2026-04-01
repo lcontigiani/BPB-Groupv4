@@ -1,0 +1,29 @@
+{
+  "purchase_order": "PO#1068",
+  "code": "440-F-206",
+  "revision": "A",
+  "date": "23/03/2016",
+  "dimensions": {
+    "thickness": {
+      "value_mm": 31,
+      "tol_plus_mm": 0.3,
+      "tol_minus_mm": -0.3
+    },
+    "outer_dia": {
+      "value_mm": 62,
+      "tol_plus_mm": 0.009,
+      "tol_minus_mm": -0.021
+    },
+    "inner_dia": null
+  },
+  "radial_clearance": null,
+  "axial_clearance": null,
+  "hardness_hrc": null,
+  "revision_history": [
+    {
+      "rev": "A",
+      "date": "23/03/2016",
+      "by": ""
+    }
+  ]
+}

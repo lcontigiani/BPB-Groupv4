@@ -1,0 +1,80 @@
+﻿Fecha;Hora;Token;ProyectoFinal;Tiempo;Registro;Observaciones
+26/01/2026;17:23:05;e5394502;Panel de Control O.T;7,5 Horas;"Lleve a cabo modificaciones para mejorar su optimización y lograr su funcionamiento para el día de prueba.
+Por otro lado, inicie el desarrollo del Panel de ""ISO 9001"".";
+26/01/2026;17:23:05;e5394502;Registros de Control de Calidad;1 Horas;He realizado el registro de algunos rodamientos cónicos solicitados por Calidad (32011,32014,32212,30207);
+27/01/2026;17:11:38;9107fd60;Panel de Control O.T;8 Horas;"Se llevaron a cabo mejoras solicitas por Luciano Cochis en estadísticas del sistema.
+Ademas, se continuo el desarrollo del sistema ISO 9001 integrado al Panel de Control, iniciando con R019-01 (Datos de Entrada).";
+27/01/2026;17:11:38;9107fd60;Sistema de Costos;0,5 Horas;Charla de Eliseo para revisar avances y determinar modificaciones pertinentes (costos de importación discriminados) para un futuro análisis en la semana del 02/01/2026.;
+28/01/2026;17:17:50;f495fcd3;Registros de Control de Calidad;3 Horas;Se completaron los registros de los dias 18/11/25, 16/05/25, 30/10/25, 14/01/26, 16/01/26, 19/01/26,  22/01/26.;
+28/01/2026;17:17:50;f495fcd3;Sistema de Costos;3 Horas;Se llevaron a cabo los cambios solicitados por Eliseo, destacando el costo de importación en cada producto. Aun queda entrar en profundidad.;
+28/01/2026;17:17:50;f495fcd3;Panel de Control O.T;1 Horas;Se inicio el análisis de P019 para su restructuración ante la automatización e inserción en pagina web.;
+28/01/2026;17:17:50;f495fcd3;Otros;1 Horas;Organización del día y planificación de mejoras futuras;
+29/01/2026;17:33:38;b7f587eb;Cuerpo de Siembra;5,5 Horas;"Se ha desarrollado el costeo del cuerpo en su versión ""Mix"" utilizando Listado Maestro. Aun queda pendiente charla con Tomas para revisar aristas.";
+29/01/2026;17:33:38;b7f587eb;Panel de Control O.T;3 Horas;"Se llevaron a cabo arreglo de detalles solicitados por Luciano, además de sumar nueva métrica ""Horas Extras Acumulado"".";
+30/01/2026;16:23:40;a19ab56a;Panel de Control O.T;4 Horas;"Se perfección el registro impreso sumando nueva grafica de Area. Se sumo funcionalidad ""Agregar Proyecto"". Se arreglaron bugs.";
+30/01/2026;16:23:40;a19ab56a;Cuerpo de Siembra;4 Horas;Se consiguió el valor del cuerpo de siembra MIX (Aprox 1400 USD) (Se tuvieron que aproximar valores por falta de cotizaciones).;
+02/02/2026;17:21:26;90160cf1;Panel de Control O.T;9 Horas;Se desarrollo un sistema que permite conocer la cantidad de carga optima en un pallet y contenedor.;
+03/02/2026;17:18:29;0523f3af;Panel de Control O.T;8,5 Horas;Se continuo con el desarrollo del sistema de logística que permite la optimización de una carga en pallets o contenedores.;
+04/02/2026;17:04:34;18d2d69f;Panel de Control O.T;8,5 Horas;"Se continuo el trabajo realizado sobre el panel ""Calculo de Cubitaje"" de los 2 anteriores días.";
+05/02/2026;17:19:20;54dc2ac7;Panel de Control O.T;5,5 Horas;Se finalizo el sistema de calculo logístico para pallet y contenedores. Queda al pendiente de revisión y mejoras ya previstas.;
+05/02/2026;17:19:20;54dc2ac7;Cuerpo de Siembra;2,5 Horas;Se calcularon costos de variaciones de los cuerpos, teniendo en cuenta (MIX, CHINA) en versiones (Acero, Nodular). Además se calculo el numero de cuerpos que pueden ubicarse en un contenedor (126 o 189 dependiendo si incluye sistema de regulación ensamblado).;
+05/02/2026;17:19:21;54dc2ac7;Otros;0,5 Horas;Charlas de organización de situación respecto a cuerpos de siembra con Nicolás Boetsch;
+06/02/2026;08:34:04;d7bd7a48;Panel de Control O.T;8 Horas;Se inicio el desarrollo del sistema ISO 9001, con el objetivo de mejorar el funcionamiento y la carga de información de los registros.;
+09/02/2026;08:17:17;4341bc5a;Panel de Control O.T;9 Horas;Se continuo trabajando en el sistema de ISO9001, llegando a finalizar (R019-1/2/3). En el día siguiente se finalizara R019-04.;
+10/02/2026;17:19:31;5a897704;Panel de Control O.T;8,5 Horas;Se termino el sistema de ISO 9001 dentro del panel. Queda pendiente su integracion al sistema main para ajustar sus detalles;[Modificado el 11/02 11:31];
+11/02/2026;17:25:28;01f900a3;Panel de Control O.T;8,5 Horas;Sistema ISO 9001 implementado. Faltan detalles.;
+12/02/2026;17:05:57;0863abc1;Panel de Control O.T;7 Horas;Se corrigieron errores de sistema. También retome el sistema de Registro de calidad, puliendo detalles y sumando variaciones posibles encontradas durante los últimos registros.;
+12/02/2026;17:05:58;0863abc1;Registros de Control de Calidad;1,5 Horas;Se realizaron registros de las PO841, PO1041 y PO1171. (5 productos);
+13/02/2026;16:08:17;780d2404;Panel de Control O.T;7 Horas;"Se avanzo en el sistema de registros automáticos. Se encuentra en funcionamiento ante casos simplificados. Es necesario implementar detección de modificaciones.
+Ademas, se empezo el desarrollo de un sistema de cotizaciones para simplificar su formulación, registro y automatización posterior.";
+13/02/2026;16:08:17;780d2404;Registros de Control de Calidad;1,5 Horas;Se analizo un caso planteado de calidad, donde un producto ingreso con una orden errónea. Se corrigió el registro y se analizo la planimetría de las partes.;
+18/02/2026;17:20:18;f4e0ec98;Registros de Control de Calidad;3 Horas;Se realizaron registro de 10 productos, en PO 1053, 1072, 1077, 164 y 165. Se encontro un problema en un B&P-033-ASA180-1H-PT el cual no coincidía su numero de PO, pero PO#01 y era PO#02. Se llego a la conclusion de que esta parte fue comprada sin plano y fue completado el registro bajo plano de producto.;
+18/02/2026;17:20:18;f4e0ec98;Cuerpo de Siembra;3 Horas;Se analizo la implementación de mejoras en el sistema de costeo, PLM, ERP, BOM y CPQ. Estos sistemas permitirán mejorar la organización del proyecto y poder dar respuestas mas rápidas y acertadas. En los próximos días se continuara con este proyecto.;
+18/02/2026;17:20:18;f4e0ec98;Panel de Control O.T;2 Horas;Se finalizo el sistema de cotizaciones, permitiendo tener acceso a las planillas de maquinas y sus costo/hora. Queda analizar su funcionamiento en la próxima oportunidad.;
+19/02/2026;17:15:58;4533c161;Cuerpo de Siembra;9 Horas;Se inicio el desarrollo del sistema para organización del cuerpo de siembra (PLM, EMP, BOM). Actualmente se puede cargar todos los productos y armar un BOM de cada versión. Queda pendiente sección EMP.;
+20/02/2026;16:24:10;530688ca;Cuerpo de Siembra;7,5 Horas;Se continuo con el sistema propio para organización de cuerpo de siembra. Hoy se tuvo unos problemas relacionados a cargar archivos CAD que ralentizaron el avance.;
+20/02/2026;16:24:11;530688ca;Capacitaciones;0,75 Horas;Juan Ferro nos capacito sobre la linea automática de ensamble.;
+23/02/2026;18:04:05;bf78f333;Registros de Control de Calidad;1 Horas;Se realizo el registro de productos de las PO 1304,1303 y 1091;
+23/02/2026;18:04:06;bf78f333;Orden de Compra;1 Horas;Se genero el plano de 2 ordenes pendientes;
+23/02/2026;18:04:06;bf78f333;Cuerpo de Siembra;5 Horas;Se continuo trabajando en el sistema de organizacion del cuerpo de siembra en pagina web.;
+24/02/2026;17:26:49;047fc0e8;Cuerpo de Siembra;9 Horas;Se continuo desarrollando el sistema de organizacion. Se avanzo sobre el sistema de materias primas.;
+25/02/2026;17:40:30;60abc776;Cuerpo de Siembra;9 Horas;Se logro llegar a la versión 1.0 del sistema de gestión de proyectos. El día viernes se cargara la información del cuerpo de siembra para ver sus resultados e implementar mejoras ante fallos que surjan.;
+27/02/2026;16:42:53;93744c34;Cuerpo de Siembra;9 Horas;Se pulieron detalles del sistema de organización de proyectos y se inicio a cargar información del cuerpo de siembra;
+02/03/2026;17:47:57;b3bfa74e;Cuerpo de Siembra;8,5 Horas;Se empezó a completar la información del cuerpo dentro del sistema.;
+03/03/2026;17:47:32;f9b755c7;Cuerpo de Siembra;9 Horas;Se continuo ingresando la informacion del cuerpo al sistema, generando el BOM maestro.;
+04/03/2026;17:28:35;50629419;Cuerpo de Siembra;9 Horas;Se continuo el desarrollo del sistema sumando información del cuerpo. Se completo el diagrama BOM y se continuara con el ERP de costos.;
+05/03/2026;17:25:52;c491480d;Cuerpo de Siembra;9 Horas;Se continuo desarrollando el sistema de organización de proyectos mientras se cargaba información del cuerpo;
+06/03/2026;17:20:49;c4ba7968;Orden de Compra;0,75 Horas;Se realizaron las ordenes de compra  963 y 1324.;
+06/03/2026;17:20:49;c4ba7968;Cuerpo de Siembra;8 Horas;"Se continuo trabajando en el sistema de organización de proyectos, especialmente enfocándome en el cuerpo de siembra.
+Además, se desarrollo un Manual de Planimetría pendiente de aprobación.";
+09/03/2026;17:17:31;d56f3156;Soporte a Area Comercial;8,5 Horas;Se desarrollo un calculo de rentabilidad de un embarque de engranajes;[Modificado el 09/03 17:20]
+10/03/2026;18:05:33;a59bbdc9;Registros de Control de Calidad;0,5 Horas;Registro realizado de PO 1054.;
+10/03/2026;18:05:33;a59bbdc9;Panel de Control O.T;8,5 Horas;Se solucionaron desperfectos del sistema y se continuo mejorando el sistema de organizacion de proyectos. Se empiezan a generar las primeras versiones de cada cuerpo.;
+11/03/2026;17:25:31;a3d7f8a7;Panel de Control O.T;4 Horas;Se termino el sistema de Cotizaciones, permitiendo tener un punto de conexión de toda la información;
+11/03/2026;17:25:31;a3d7f8a7;Cuerpo de Siembra;4,5 Horas;Se cargo información del cuerpo de siembra al sistema, cargando costos.;
+12/03/2026;17:10:07;255eb9be;Panel de Control O.T;5 Horas;Se finalizo el sistema de Cotizaciones. Ademas, se arreglaron fallas del sistema.;
+12/03/2026;17:10:07;255eb9be;Control Diario Calidad;3 Horas;"Se inicio el desarrollo de este sistema. Adriana me compartió el archivo necesario para el sistema. Ya se valido que bitrix puede manejar el archivo.
+Mañana su pulirá el sistema.";
+13/03/2026;16:23:24;45ff3c53;Panel de Control O.T;4,5 Horas;Se pulieron pedidos del sistema de cotizacion solicitados por A.Alberto.;
+13/03/2026;16:23:25;45ff3c53;Control Diario Calidad;4 Horas;Se inicio el desarrollo del sistema dentro de la pagina de Oficina Tecnica, para facilitar el desarrollo y la utilizacion del sistema para Calidad;
+16/03/2026;17:43:22;2abd9384;Control Diario Calidad;7,5 Horas;Se avanzo con el desarrollo del sistema para mejorar el registro de Calidad. Se desarrollo el panel de estadisticas y queda pendiente charlar con calidad mejoras;
+16/03/2026;17:43:22;2abd9384;Otros;1 Horas;Se hizo una revisión del manual de planimetría del cuerpo de siembra, sumando las versiones opcionales.;
+17/03/2026;17:07:24;00d8858a;Control Diario Calidad;5 Horas;Se finalizo el sistema de Control Diario de Calidad.;
+17/03/2026;17:07:24;00d8858a;Panel de Control O.T;3 Horas;Se implementaron mejoras al sistema de cotización;
+18/03/2026;17:14:36;61730055;Cuerpo de Siembra;2 Horas;"Contemplación de la sembradora.
+Arreglo de detalles en la información del cuerpo y envió de información a A. Moreira";
+18/03/2026;17:14:36;61730055;Proyecto VW;6,5 Horas;Se inicio el desarrollo del informe del proyecto para tener la información ordenada, además de encontrar errores.;
+19/03/2026;17:18:18;8310490c;Proyecto VW;8 Horas;Se continuo con el informe del proyecto, detectando problemas en el layout del proyecto y arreglándolos.;
+19/03/2026;17:18:18;8310490c;Registros de Control de Calidad;0,5 Horas;Se realizo el registro de la PO 1080, 1087, 1303.;
+20/03/2026;16:35:21;c1b94d3d;Registros de Control de Calidad;0,75 Horas;Se corrigieron errores previos de la carga del día anterior.;
+20/03/2026;16:35:21;c1b94d3d;Proyecto VW;8 Horas;Se continuo el informe del proyecto, encontrando una elevada carga de gastos administrativos indebida. Además se renovó el análisis de Stock.;
+23/03/2026;17:14:27;0cb56839;Proyecto VW;8,5 Horas;Se continuo el informe del proyecto. Se detectaron desperfectos en la distribucion de costos indirectos y fueron solucionados.;
+25/03/2026;17:15:47;6c83e1fc;Proyecto VW;9 Horas;Se finalizo la primer version preliminar del informe. Se lograron arreglar problemas, detectando una reducción de 2M en el proyecto;
+26/03/2026;18:27:52;202cbdd8;Proyecto VW;4 Horas;Se hicieron mejoras relacionadas al layout. Se desarrollo un diagrama de flujo que revelo problemas de en ubicación del área de calidad que lleva a replantear el armado.;
+26/03/2026;18:27:53;202cbdd8;Panel de Control O.T;4 Horas;Se llevaron a cabo mejoras del sistema de calculo de cubitaje para soportar bandejas, pudiendo llevar a simulacion el proyecto VW.;
+26/03/2026;18:27:53;202cbdd8;Otros;1 Horas;Se realizo un plano de Hangar para Juan Ferro;
+27/03/2026;17:04:56;502390eb;Proyecto VW;5,5 Horas;"Se termino el nuevo Layout del proyecto, notando que las mejoras ahorran 85 metros de movimiento de material (2 minutos por lote).
+Tambien se descubrio que el calculo de cantidad de piezas por Kanban era incorrecto por limitante de peso, por lo cual se calculo la cantidad nueva por bandeja y queda pendiente el calculo de capacidad respecto a demanda diaria.";
+27/03/2026;17:04:56;502390eb;Panel de Control O.T;2,5 Horas;Se sumo la posibilidad de imprimir reportes del calculo de cubitaje. También se arreglaron problemas de rendimiento.;
+27/03/2026;17:04:56;502390eb;Registros de Control de Calidad;1,5 Horas;Se completo registro de calidad PO 1277, 1278, 927,;
+27/03/2026;17:04:57;502390eb;Otros;0,5 Horas;Capacitacion a Agustin Fareleira sobre sistema de cotizaciones.;

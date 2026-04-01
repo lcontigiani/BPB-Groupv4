@@ -1,0 +1,130 @@
+
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\.gitignore
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Actividad\Codigos\config\activity_mailer_profiles.json
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Actividad\Codigos\config\destinatarios.csv
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Actividad\Codigos\config\glosario_proyectos.log
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Actividad\Codigos\data\activity_mailer_state.json
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Actividad\Codigos\data\base_datos_respuestas.csv
+	  			\\BPBSRV03\lcontigiani\Oficina Tecnica\Registro de Actividad\Codigos\data\responses\d7bd7a48_fbeaz_bpbargentina.com_38.txt
+	  			\\BPBSRV03\lcontigiani\Oficina Tecnica\Registro de Actividad\Codigos\data\respuestas_csv\Franco Beaz.csv
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Actividad\Codigos\data\respuestas_csv\Agustin Alberto.csv
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Actividad\Codigos\data\respuestas_csv\Agustin Fareleira.csv
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Actividad\Codigos\data\respuestas_csv\Cesar Torigian.csv
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Actividad\Codigos\data\respuestas_csv\David Martin.csv
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Actividad\Codigos\data\respuestas_csv\Franco Baez.csv
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Actividad\Codigos\data\respuestas_csv\Lorenzo Contigiani.csv
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Actividad\Codigos\data\respuestas_csv\Tomas Colacilli.csv
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Actividad\Codigos\logs\activity_mailer.log
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Auxiliares\Ingresos\Ingresos diarios.csv
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Auxiliares\Ingresos\resumen_all.csv
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Auxiliares\Ingresos\resumen_temp.csv
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Codigos\debug_force.txt
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Codigos\Dashboard_PO\app.py
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Codigos\Dashboard_PO\global_debug_startup.log
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Codigos\Dashboard_PO\static\script.js
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Codigos\Dashboard_PO\static\style.css
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Codigos\Dashboard_PO\static\data\clientes_v2.csv
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Codigos\Dashboard_PO\static\data\clientes_v2.json
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Codigos\Dashboard_PO\templates\index.html
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Codigos\Usuarios\audit_log.json
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Codigos\Usuarios\users.json
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Datos\notifications.json
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\P2 - Purchase Order\En progreso\PO1291\approval_info.json
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\P2 - Purchase Order\En progreso\PO1291\aux_targets.json
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\P2 - Purchase Order\En progreso\PO1291\PO1291-1206-TN-C3 - Rev.B.pdf
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\P2 - Purchase Order\En progreso\PO1291\PO1291-1208-TN-C3 - Rev C.pdf
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\P2 - Purchase Order\En progreso\PO1291\PO1291-1209-TN-C3-Rev.E.pdf
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\P2 - Purchase Order\En progreso\PO1291\PO1291-22210-CW33C3 - Rev B.pdf
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\P2 - Purchase Order\En progreso\PO1291\PO1291-22211-CKW33C3-Rev C.pdf
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\P2 - Purchase Order\En progreso\PO1291\PO1291-22211-CW33C3 - Rev C.pdf
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\P2 - Purchase Order\En progreso\PO1291\PO1291-22213-CW33C3 - Rev B.pdf
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\P2 - Purchase Order\En progreso\PO1291\PO1291-51107- Rev.B.pdf
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\P2 - Purchase Order\En progreso\PO1291\PO1291-51118 -Rev A.pdf
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\P2 - Purchase Order\En progreso\PO1291\PO1291-51205.pdf
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\P2 - Purchase Order\En progreso\PO1291\PO1291-51310-Rev B.pdf
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\P2 - Purchase Order\En progreso\PO1291\_trace_approval.txt
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\P2 - Purchase Order\En progreso\PO1291\csv\PO1291-1206-TN-C3 - Rev.B.csv
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\P2 - Purchase Order\En progreso\PO1291\csv\PO1291-1208-TN-C3 - Rev C.csv
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\P2 - Purchase Order\En progreso\PO1291\csv\PO1291-1209-TN-C3-Rev.E.csv
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\P2 - Purchase Order\En progreso\PO1291\csv\PO1291-22210-CW33C3 - Rev B.csv
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\P2 - Purchase Order\En progreso\PO1291\csv\PO1291-22211-CKW33C3-Rev C.csv
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\P2 - Purchase Order\En progreso\PO1291\csv\PO1291-22211-CW33C3 - Rev C.csv
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\P2 - Purchase Order\En progreso\PO1291\csv\PO1291-22213-CW33C3 - Rev B.csv
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\P2 - Purchase Order\En progreso\PO1291\csv\PO1291-51107- Rev.B.csv
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\P2 - Purchase Order\En progreso\PO1291\csv\PO1291-51118 -Rev A.csv
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\P2 - Purchase Order\En progreso\PO1291\csv\PO1291-51205.csv
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\P2 - Purchase Order\En progreso\PO1291\csv\PO1291-51310-Rev B.csv
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\P2 - Purchase Order\En progreso\PO1291\csv_Auxiliar\aux_matches.csv
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\P2 - Purchase Order\En progreso\PO1291\json\PO1291-1206-TN-C3 - Rev.B_notes_extracted_gemini.json
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\P2 - Purchase Order\En progreso\PO1291\json\PO1291-1208-TN-C3 - Rev C_notes_extracted_gemini.json
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\P2 - Purchase Order\En progreso\PO1291\json\PO1291-1209-TN-C3-Rev.E_notes_extracted_gemini.json
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\P2 - Purchase Order\En progreso\PO1291\json\PO1291-22210-CW33C3 - Rev B_notes_extracted_gemini.json
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\P2 - Purchase Order\En progreso\PO1291\json\PO1291-22211-CKW33C3-Rev C_notes_extracted_gemini.json
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\P2 - Purchase Order\En progreso\PO1291\json\PO1291-22211-CW33C3 - Rev C_notes_extracted_gemini.json
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\P2 - Purchase Order\En progreso\PO1291\json\PO1291-22213-CW33C3 - Rev B_notes_extracted_gemini.json
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\P2 - Purchase Order\En progreso\PO1291\json\PO1291-51107- Rev.B_notes_extracted_gemini.json
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\P2 - Purchase Order\En progreso\PO1291\json\PO1291-51118 -Rev A_notes_extracted_gemini.json
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\P2 - Purchase Order\En progreso\PO1291\json\PO1291-51205_notes_extracted_gemini.json
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\P2 - Purchase Order\En progreso\PO1291\json\PO1291-51310-Rev B_notes_extracted_gemini.json
+	  			\\BPBSRV03\lcontigiani\Oficina Tecnica\Registro de ISO 9001\R019-01-Modelo.docx
+	  			\\BPBSRV03\lcontigiani\Oficina Tecnica\Registro de ISO 9001\R019-02-Modelo.xlsm
+	  			\\BPBSRV03\lcontigiani\Oficina Tecnica\Registro de ISO 9001\R019-03 - Listado de Dise¤os y Desarrollos- Rev2.xlsm
+	  			\\BPBSRV03\lcontigiani\Oficina Tecnica\Registro de ISO 9001\R019-04-Modelo.mpp
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de ISO 9001\Codigos\R019-01\Clientes V2.xlsx
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de ISO 9001\Codigos\R019-01\fill_r01901.py
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de ISO 9001\Codigos\R019-01\payload_template.json
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de ISO 9001\Codigos\R019-01\__pycache__\fill_r01901.cpython-314.pyc
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de ISO 9001\Codigos\R019-02\fill_r01902.py
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de ISO 9001\Codigos\R019-02\__pycache__\fill_r01902.cpython-314.pyc
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de ISO 9001\Codigos\R019-03\fill_r01903.py
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de ISO 9001\Codigos\R019-03\__pycache__\fill_r01903.cpython-314.pyc
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de ISO 9001\Codigos\R019-04\fill_r01904.py
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de ISO 9001\R019-01\R019-01-DATOS DE ENTRADA-BP-26001.docx
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de ISO 9001\R019-01\R019-01-DATOS DE ENTRADA-BP-26002.docx
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de ISO 9001\R019-01\R019-01-DATOS DE ENTRADA-BP-26003.docx
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de ISO 9001\R019-01\R019-01-DATOS DE ENTRADA-BP-26004.docx
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de ISO 9001\R019-01\R019-01-DATOS DE ENTRADA-BP-26005.docx
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de ISO 9001\R019-01\R019-01-DATOS DE ENTRADA-BP-26006.docx
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de ISO 9001\R019-01\R019-01-DATOS DE ENTRADA-BP-26007.docx
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de ISO 9001\R019-01\R019-01-DATOS DE ENTRADA-BP-26008.docx
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de ISO 9001\R019-01\R019-01-DATOS DE ENTRADA-BP-26009.docx
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de ISO 9001\R019-01\R019-01-DATOS DE ENTRADA-BP-26010.docx
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de ISO 9001\R019-01\R019-01-DATOS DE ENTRADA-BP-26011.docx
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de ISO 9001\R019-01\R019-01-DATOS DE ENTRADA-BP-26012.docx
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de ISO 9001\R019-01\R019-01-DATOS DE ENTRADA-BP-26013.docx
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de ISO 9001\R019-01\R019-01-DATOS DE ENTRADA-BP-26014.docx
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de ISO 9001\R019-01\R019-01-DATOS DE ENTRADA-BP-26015.docx
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de ISO 9001\R019-01\R019-01-DATOS DE ENTRADA-BP-26016.docx
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de ISO 9001\R019-01\R019-01-DATOS DE ENTRADA-BP-26017.docx
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de ISO 9001\R019-01\R019-01-DATOS DE ENTRADA-BP-26018.docx
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de ISO 9001\R019-01\R019-01-DATOS DE ENTRADA-BP-26019.docx
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de ISO 9001\R019-01\R019-01-DATOS DE ENTRADA-BP-26020.docx
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de ISO 9001\R019-01\R019-01-DATOS DE ENTRADA-BP-26021.docx
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de ISO 9001\R019-01\R019-01-DATOS DE ENTRADA-BP-26022.docx
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de ISO 9001\R019-01\R019-01-Modelo.docx
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de ISO 9001\R019-02\R019-02 Rev03 - BP-26008.xlsm
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de ISO 9001\R019-02\R019-02 Rev03 - BP-26009.xlsm
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de ISO 9001\R019-02\R019-02 Rev03 - BP-26010.xlsm
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de ISO 9001\R019-02\R019-02 Rev03 - BP-26011.xlsm
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de ISO 9001\R019-02\R019-02 Rev03 - BP-26012.xlsm
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de ISO 9001\R019-02\R019-02 Rev03 - BP-26013.xlsm
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de ISO 9001\R019-02\R019-02 Rev03 - BP-26014.xlsm
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de ISO 9001\R019-02\R019-02 Rev03 - BP-26015.xlsm
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de ISO 9001\R019-02\R019-02 Rev03 - BP-26016.xlsm
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de ISO 9001\R019-02\R019-02 Rev03 - BP-26017.xlsm
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de ISO 9001\R019-02\R019-02 Rev03 - BP-26018.xlsm
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de ISO 9001\R019-02\R019-02 Rev03 - BP-26019.xlsm
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de ISO 9001\R019-02\R019-02 Rev03 - BP-26020.xlsm
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de ISO 9001\R019-02\R019-02 Rev03 - BP-26021.xlsm
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de ISO 9001\R019-02\R019-02 Rev03 - BP-26022.xlsm
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de ISO 9001\R019-02\R019-02-Modelo.xlsm
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de ISO 9001\R019-03\R019-03 - Modelo.xlsm
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de ISO 9001\R019-04\R019-04 - BP-26013.mpp
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de ISO 9001\R019-04\R019-04 - BP-26014.mpp
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de ISO 9001\R019-04\R019-04 - BP-26015.mpp
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de ISO 9001\R019-04\R019-04 - BP-26017.mpp
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de ISO 9001\R019-04\R019-04 - BP-26019.mpp
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de ISO 9001\R019-04\R019-04 - BP-26020.mpp
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de ISO 9001\R019-04\R019-04 - BP-26021.mpp
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de ISO 9001\R019-04\R019-04 - BP-26022.mpp
+	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de ISO 9001\R019-04\R019-04-Modelo.mpp

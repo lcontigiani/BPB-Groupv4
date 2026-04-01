@@ -1,0 +1,35 @@
+{
+  "active_profile": "test",
+  "profiles": {
+    "test": {
+      "description": "Perfil de pruebas Lorenzo + Luciano",
+      "recipients": [
+        {
+          "name": "Lorenzo Contigiani",
+          "email": "lcontigiani@bpbargentina.com"
+        },
+        {
+          "name": "Luciano Cochis",
+          "email": "lcochis@bpbargentina.com"
+        }
+      ]
+    },
+    "ad-hoc": {
+      "description": "Envio ad-hoc a Agustin F y Agustin A",
+      "recipients": [
+        {
+          "name": "Agustin Fareleira",
+          "email": "afareleira@bpbargentina.com"
+        },
+        {
+          "name": "Agustin Alberto",
+          "email": "aalberto@bpbargentina.com"
+        }
+      ]
+    },
+    "real": {
+      "description": "Perfil real (usa destinatarios.csv)",
+      "use_csv": true
+    }
+  }
+}

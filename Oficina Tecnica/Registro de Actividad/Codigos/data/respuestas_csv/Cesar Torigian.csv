@@ -1,0 +1,38 @@
+﻿Fecha;Hora;Token;ProyectoFinal;Tiempo;Registro;Observaciones
+26/01/2026;17:35:08;e5394502;SimpliseedtyS2;8,5 Horas;Desarrollo de funda e impresión de prueba.;
+27/01/2026;17:13:29;9107fd60;SimpliseedtyS2;6 Horas;Ultimando detalles de Funda para posterior fabricación.;
+28/01/2026;17:25:39;f495fcd3;SimpliseedtyS2;8 Horas;Modificando funda doble para que Daniel pruebe los sensores.;
+29/01/2026;17:54:40;b7f587eb;Grabado Laser;1 Horas;Puesta a punto de laser para grabado de mazas;
+29/01/2026;17:54:40;b7f587eb;SimpliseedtyS2;7,5 Horas;Etapa final de funda doble para prueba de sensor y posterior impresión de muestra.;
+30/01/2026;16:09:20;a19ab56a;SimpliseedtyS2;7 Horas;Se completo el diseño de la funda doble y se envió a imprimir.;
+02/02/2026;17:41:44;90160cf1;Soporte al area Diseno Grafico;1 Horas;Reparación de software SketchUp PC personal de Angela.;
+02/02/2026;17:41:44;90160cf1;SimpliseedtyS2;6,5 Horas;"01- Armado y puesta a punto de funda para prueba de sensores.
+02- Capacitación para el armado de carcasas.";
+03/02/2026;17:10:39;0523f3af;SimpliseedtyS2;8 Horas;"01-Armado de carcasas para prueba de sensor doble
+02-Últimos detalles en funda doble para simpliseedty con espada larga.";
+06/02/2026;16:18:17;d7bd7a48;SimpliseedtyS2;7,5 Horas;verificación cuerpo - dosificador;
+10/02/2026;17:19:26;5a897704;SimpliseedtyS2;8 Horas;;
+09/02/2026;17:20:02;4341bc5a;SimpliseedtyS2;8 Horas;;
+11/02/2026;17:12:55;01f900a3;SimpliseedtyS1;5 Horas;Armado Simpliseedty;
+11/02/2026;17:12:56;01f900a3;Impresoras 3D;3 Horas;Pieza para imprimir 3d Mantenimiento.;
+12/02/2026;17:20:10;0863abc1;SimpliseedtyS1;8,5 Horas;Puesta en marcha Simpliseedty S1;
+13/02/2026;16:25:41;780d2404;SimpliseedtyS1;7,5 Horas;Puesta a punto Simpliseedty.;
+18/02/2026;17:20:57;f4e0ec98;SimpliseedtyS1;8 Horas;Armado Simpliseedty.;
+19/02/2026;17:19:44;4533c161;SimpliseedtyS1;8 Horas;Prueba y mejoras para funcionamiento optimo.;
+20/02/2026;16:15:12;530688ca;SimpliseedtyS1;7 Horas;Prueba y puesta a punto.;
+24/02/2026;12:45:12;047fc0e8;SimpliseedtyS1;8 Horas;Puesta a punto de dosificador para visita.;
+25/02/2026;17:07:37;60abc776;SimpliseedtyS1;8 Horas;Puesta en funcionamiento del dosificador para la visita y prueba del sensor.;
+26/02/2026;17:17:36;76d60fa2;SimpliseedtyS1;8 Horas;Últimos detalles del diseño del sensor y puesta a punto del enrasador.;
+02/03/2026;09:00:49;b3bfa74e;SimpliseedtyS1;8 Horas;Diseño bajada de semilla tolva.;
+04/03/2026;17:13:32;50629419;SimpliseedtyS1;8 Horas;Prueba de acople para alivio de presión de aire.;
+05/03/2026;09:08:08;c491480d;Grabado Laser;2 Horas;Grabado de celdas de carga.;
+05/03/2026;09:08:08;c491480d;SimpliseedtyS1;6 Horas;Prueba de mejoras para aliviar la presión de aire dentro de la carcasa.;
+06/03/2026;16:26:27;c4ba7968;SimpliseedtyS1;7 Horas;Prueba de alivio de presión aire. variantes varias.;
+10/03/2026;17:21:13;a59bbdc9;SimpliseedtyS1;7 Horas;Impresión de piezas para prueba de alivio de presión de aire.;
+11/03/2026;17:07:11;a3d7f8a7;SimpliseedtyS1;7 Horas;Pruebas para solucionar el problema de alivio de presión.;
+12/03/2026;17:20:14;255eb9be;SimpliseedtyS1;8 Horas;Pruebas varias para mejorar el alivio de presión.;
+19/03/2026;17:18:06;8310490c;SimpliseedtyS1;8,5 Horas;Fabricación e impresión 3D de acople para alivio de presión.;
+20/03/2026;16:17:55;c1b94d3d;SimpliseedtyS1;7,5 Horas;"Posicionamiento del dosificador sobre el cuerpo simulando desgaste de los discos.
+Impresión de acople de tolva para alivio de presión interna.";
+25/03/2026;17:29:12;6c83e1fc;SimpliseedtyS1;7 Horas;Prueba de acople para alivio de presión interna de aire. No funcionó.;
+27/03/2026;16:03:35;502390eb;SimpliseedtyS1;7,5 Horas;Pruebas varias para eliminar la diferencia de presión neumática.;

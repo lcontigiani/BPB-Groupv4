@@ -1,0 +1,29 @@
+{
+  "purchase_order": "1068",
+  "code": "440-F-208",
+  "revision": "A",
+  "date": "21/12/2021",
+  "dimensions": {
+    "thickness": {
+      "value_mm": 21,
+      "tol_plus_mm": 0.5,
+      "tol_minus_mm": -0.5
+    },
+    "outer_dia": {
+      "value_mm": 80,
+      "tol_plus_mm": 0.009,
+      "tol_minus_mm": -0.021
+    },
+    "inner_dia": null
+  },
+  "radial_clearance": null,
+  "axial_clearance": null,
+  "hardness_hrc": null,
+  "revision_history": [
+    {
+      "rev": "A",
+      "date": "23/03/2016",
+      "by": ""
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--_MODULUS=E+tJzzDm3uNi9jne3KfX4dcLdIA/vRKIQYqGyZDSLmFu+x1WpAzx/fCa+km3u3XcUjYE+l0KBKZEYjwxHBGHZobN/Be1iSov+3evdkYfExHx8xdkdRW+cYtSLX6vYzVrbZqLGGT6c1YC7Dp8MB/7BAKJL/5wgWyfwSxfVcuMxRM=-->
+<!--_SIG=QH3IaYvmeYj/NM5Mp/nagaWHfV7RWT6l0FOycw4/Hiafe77iC2pfX/TgI7Lj1KyuA8X4JxdMhr+CMniHh5tDfkTM2M2/O8SAJk2I5NKEBUWGPAg3Nx/ne8/cWUbQ4Xr2ZTn2yYAwD4QjwPS0n083tKbqMBThZGLQtpNyt7F+kE8=-->
+<Package Id="Proof.ca-es" Type="MSI" Path="Proof.MSI" Version="1.0" ProductCode="{90160000-001F-0403-1000-0000000FF1CE}" MSIVersion="16.0.4266.1001" ProductLanguage="1027" Platform="x64">
+	<Feature Id="SpellingAndGrammarFilesExp2_1027" Cost="1444900">
+		<OptionRef Id="SpellingAndGrammarFiles_1027"/>
+	</Feature>
+	<Feature Id="OCR_1027" Cost="0">
+		<OptionRef Id="OCR_1027"/>
+	</Feature>
+	<Feature Id="HyphenationFiles_1027" Cost="520400">
+		<OptionRef Id="HyphenationFiles_1027"/>
+	</Feature>
+	<Feature Id="Gimme_OnDemandData" Cost="0">
+		<OptionRef Id="Gimme_OnDemandData"/>
+	</Feature>
+	<Feature Id="MsoInstalledPackagesScopedIntl_1027" Cost="0">
+		<OptionRef Id="AlwaysInstalled"/>
+	</Feature>
+	<Feature Id="SetupXmlFiles" Cost="234">
+		<OptionRef Id="AlwaysInstalled"/>
+	</Feature>
+	<Feature Id="SetupControllerFiles" Cost="234">
+		<OptionRef Id="AlwaysInstalled"/>
+	</Feature>
+	<Feature Id="ThesaurusFiles_1027" Cost="2398408">
+		<OptionRef Id="ThesaurusFiles_1027"/>
+	</Feature>
+</Package>

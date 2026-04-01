@@ -1,0 +1,81 @@
+{
+  "purchase_order": 1071,
+  "code": "AG-1235-PPZ9",
+  "revision": "G",
+  "date": "09/12/2021",
+  "dimensions": {
+    "thickness": {
+      "value_mm": 29.2,
+      "tol_plus_mm": 0.0,
+      "tol_minus_mm": -0.127
+    },
+    "outer_thickness": {
+      "value_mm": 3.5,
+      "tol_plus_mm": 0.05,
+      "tol_minus_mm": -0.05
+    },
+    "inner_thickness": {
+      "value_mm": 19.34,
+      "tol_plus_mm": 0.0,
+      "tol_minus_mm": -0.127
+    },
+    "outer_dia": {
+      "value_mm": 53.086,
+      "tol_plus_mm": 0.0,
+      "tol_minus_mm": -0.013
+    },
+    "inner_dia": {
+      "value_mm": 14.46,
+      "tol_plus_mm": 0.0,
+      "tol_minus_mm": -0.127
+    }
+  },
+  "radial_clearance": {
+    "class": null,
+    "range_um": {
+      "min": 13,
+      "max": 38
+    }
+  },
+  "axial_clearance": {
+    "range_um": {
+      "min": 18,
+      "max": 54
+    }
+  },
+  "hardness_hrc": {
+    "inner_plus": 64,
+    "inner_minus": 58,
+    "outer_plus": 64,
+    "outer_minus": 58
+  },
+  "seal_torque": {
+    "low_Nm": 0.127,
+    "high_Nm": 0.169
+  },
+  "lubricant": {
+    "type": "Exxon Polyrex EM",
+    "fill": "60% - 80% (4,8 - 6,4 gr)"
+  },
+  "retainer": {
+    "material": "Nylon"
+  },
+  "revision_history": [
+    {
+      "rev": "G",
+      "date": "09/12/2021",
+      "by": "H.PIGLIACAMPI"
+    },
+    {
+      "rev": "F",
+      "date": "20/05/2020",
+      "by": ""
+    },
+    {
+      "rev": "E",
+      "date": "17/03/2020",
+      "by": ""
+    }
+  ],
+  "proveedor": "103"
+}

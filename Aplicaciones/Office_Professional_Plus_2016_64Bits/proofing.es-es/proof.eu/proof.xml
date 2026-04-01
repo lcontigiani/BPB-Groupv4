@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--_MODULUS=bspRb5EX5B0HE5fifRGNP8mUCe4VgSw7AcOxxxSN3syPM1cz+HIrgRSA9f5lDhUlj9udq2ZJb52j5+gZ8Ig+OsCn5lpLeFdhOzd/o5BK5wFTDYTBuJ5xx7E7JJ+rOwySGPx3nwQ/I7Ihkbt9RFNuVDdaTZ4yyNMbKgM+dXSqpAs=-->
+<!--_SIG=k0hPou5u8cO7qWsr/VNiIfv1CDT08EHnfyWTM15PfzGuo0IR3SJ8GDQpITmXwj+JL+sfoikCqhiQW2kM4MEV86fOgS4sGzZkuGUmy6dervSMmkmrHFEGsvNvrAYZPaLIx9Mh3bC8VoRLlSQ0DBg/XEY+UTGF7Eac1GKarI0pbXw=-->
+<Package Id="Proof.eu-es" Type="MSI" Path="Proof.MSI" Version="1.0" ProductCode="{90160000-001F-042D-1000-0000000FF1CE}" MSIVersion="16.0.4266.1001" ProductLanguage="1069" Platform="x64">
+	<Feature Id="Gimme_OnDemandData" Cost="0">
+		<OptionRef Id="Gimme_OnDemandData"/>
+	</Feature>
+	<Feature Id="SetupXmlFiles" Cost="234">
+		<OptionRef Id="AlwaysInstalled"/>
+	</Feature>
+	<Feature Id="SpellingAndGrammarFilesExp2_1069" Cost="838938">
+		<OptionRef Id="SpellingAndGrammarFiles_1069"/>
+	</Feature>
+	<Feature Id="MsoInstalledPackagesScopedIntl_1069" Cost="0">
+		<OptionRef Id="AlwaysInstalled"/>
+	</Feature>
+	<Feature Id="SetupControllerFiles" Cost="234">
+		<OptionRef Id="AlwaysInstalled"/>
+	</Feature>
+	<Feature Id="HyphenationFiles_1069" Cost="352464">
+		<OptionRef Id="HyphenationFiles_1069"/>
+	</Feature>
+</Package>

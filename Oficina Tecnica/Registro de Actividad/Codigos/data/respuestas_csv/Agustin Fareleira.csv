@@ -1,0 +1,84 @@
+﻿Fecha;Hora;Token;ProyectoFinal;Tiempo;Registro;Observaciones
+26/01/2026;17:12:31;e5394502;Cuerpo de Siembra;9 Horas;"Comprobar el funcionamiento y puesta a punto de los herramentales para guardapolvos y tapas del cuerpo de siembra. 
+Corte de desarrollos de chapa en corte por agua para prueba de matrices.
+Armado de DXF. para enviar a cortar chapas para producción de tapas y guardapolvos.";
+27/01/2026;08:10:31;9107fd60;Cuerpo de Siembra;8,5 Horas;"Pedido de cotizacion de chapas para tapas y guardapolvos en cuerpo de siembra.
+Desarmado de cuerpo de siembra para cambio de piezas.";
+28/01/2026;09:01:19;f495fcd3;Cuerpo de Siembra;8,5 Horas;Tareas varias, montaje y armado de subconjuntos.;
+29/01/2026;17:22:50;b7f587eb;Cuerpo de Siembra;8,5 Horas;Mecanizados en torno paralelo de sistema de regulacion de rueda tapadora;
+30/01/2026;08:07:55;a19ab56a;Cuerpo de Siembra;7,5 Horas;"Fabricación de dispositivo para reproceso de desarrollo de chapa.
+Mecanizados de chapa por sobre material.";
+02/02/2026;17:20:00;90160cf1;Cuerpo de Siembra;7,5 Horas;Mecanizados de piezas en taladro de banco y armado de subconjuntos.;
+02/02/2026;17:20:00;90160cf1;Ensayos;1 Horas;Ensayo de rodamiento en torno por torque alto.;
+03/02/2026;17:16:12;0523f3af;Cuerpo de Siembra;9 Horas;"Mecanizado de tope brazo rueda niveladora izquierdo y derecho. 
+Colocación de retenes en maza rueda pisagrano.";
+04/02/2026;17:15:53;18d2d69f;Cuerpo de Siembra;7 Horas;"Mecanizado de piezas para rueda pisagrano
+Puesta de retenes en sistema de regulación";
+04/02/2026;17:15:53;18d2d69f;Ensayos;1,5 Horas;Ensayo de rotación de rodamiento SAB211-55DG por toque alto.;
+05/02/2026;08:09:03;54dc2ac7;Cuerpo de Siembra;10 Horas;Mecanizados de partes y ensamble de cuerpos de siembra para cliente ascanelli;[Modificado el 09/02 08:10]
+06/02/2026;08:10:24;d7bd7a48;Cuerpo de Siembra;9 Horas;Ensamble de cuerpos de siembra de para cliente Ascanelli;
+09/02/2026;08:10:16;4341bc5a;Cuerpo de Siembra;8,5 Horas;Ensamble de los últimos dos cuerpos de siembra para ascanelli, con adaptación de barre rastrojo de Martin Till.;
+10/02/2026;17:19:36;5a897704;Cuerpo de Siembra;9 Horas;Mecanizado y ensamble de cuerpo de siembra con barre rastrojo de Martin Till y sensor de carga, para ascanelli.;
+11/02/2026;08:08:46;01f900a3;Cuerpo de Siembra;3,5 Horas;Armado de subconjunto de anclaje para dosificador;
+11/02/2026;08:08:47;01f900a3;Planimetría;5,5 Horas;Planimetría de sist. tensor para cliente chalero;
+12/02/2026;17:18:53;0863abc1;BP;9 Horas;Planimetría de partes de registro con rotulas para cliente chalero. (BP-26001);
+13/02/2026;16:16:01;780d2404;Otros;3,5 Horas;Se cambio el  código de producto en los planos del engranaje DS3075C25CHSH, a DS3075H25CHS por pedido de Dario Losano.;
+13/02/2026;16:16:01;780d2404;SimpliseedtyS1;1,5 Horas;Mecanizado y armado de subconjuntos para el ensamblaje final de dosificador.;
+13/02/2026;16:16:02;780d2404;Lider Rolamentos;3 Horas;Planimetría para pedir cotización de producto en china, rodamiento UK215;
+18/02/2026;08:15:10;f4e0ec98;Lider Rolamentos;9 Horas;Se llevo el rodamiento UK215 a Calidad para que hagan el relevamiento e informe correspondiente (Ayude en el despiece de el rodamiento). También se avanzo con los planos para la cotización.;
+19/02/2026;17:16:53;4533c161;Lider Rolamentos;9 Horas;Planimetría  de rodamiento UK215-75RS para pedir cotización en china;
+20/02/2026;08:11:08;530688ca;Lider Rolamentos;7,5 Horas;Se envió el plano final para pedir cotización a china, y se puede dar por finalizada la tarea;
+20/02/2026;08:11:08;530688ca;Capacitaciones;0,5 Horas;Capacitación sobre la linea de ensamblaje 6205;
+23/02/2026;17:15:33;bf78f333;Orden de Compra;9 Horas;Se realizaron ordenes de compra y control de las mismas, numeros de orden PO1321/PO1106/PO961/PO962/PO1322/PO1107/PO1108 en esta ultima orden quedan algunos 5 planos por hacer.;
+24/02/2026;17:14:46;047fc0e8;SimpliseedtyS1;8 Horas;Mecanizado y ensamble de partes en dosificador. También se ordeno y limpio la oficina donde se trabaja con los dosificadores.;
+24/02/2026;17:14:47;047fc0e8;Orden de Compra;1 Horas;Se termino de confeccionar orden de compra PO1108;
+25/02/2026;17:21:54;60abc776;Planimetría;5 Horas;Se estuvo corrigiendo errores en planos, calidad nos indica mediante la pagina Keep.;
+25/02/2026;17:21:54;60abc776;Calidad;3 Horas;Veronica me llamo por un problema en el soporte F-209-A porque el escote quedaba chico para el rodamiento SAB5209-3. Por lo que estuve viendo registros de retrabajo y ordenes de mecanizado.;
+25/02/2026;17:21:55;60abc776;Orden de Compra;1 Horas;Se enviaron todos los planos a las ordenes de compra y se cerraron la tareas.;
+26/02/2026;17:25:55;76d60fa2;Calidad;4,5 Horas;Se corto un rodamiento agrícola, en resina para ver sello.;
+26/02/2026;17:25:55;76d60fa2;Cuerpo de Siembra;3,5 Horas;"Corte en maquina de agua, discos de 44mm en chapa de 1/2"" para camellón.";
+26/02/2026;17:25:55;76d60fa2;Orden de Compra;1 Horas;Se agrego el marking y acabado superficial a planos de orden 1323 (Engranajes ascanelli);
+27/02/2026;16:18:36;93744c34;Orden de Compra;8 Horas;Se contestaron mails y  modificaron planos por requerimiento de la fabrica de las ordenes  962/1321/1322. También se empezó a trabajar sobre las ordenes 1110/1111.;
+02/03/2026;17:18:48;b3bfa74e;Orden de Compra;6,5 Horas;Se enviaron ordenes de compra PO1109/PO1110/PO1111. También se estuvo trabajando sobre un comentario de la fabrica CZDT, sobre el producto HK-3038.;
+02/03/2026;17:18:49;b3bfa74e;Mazas Agricolas Varias;2,5 Horas;Se trabajo en Conjunto entrada sin fin barredor. Se avanzo sobre el modelado de los 3D;
+03/03/2026;17:16:55;f9b755c7;Mazas Agricolas Varias;9 Horas;Modelado de piezas 3D y armado del ensamble. Se le consulto a Ascanelli sobre medidas de la maza, estamos esperando respuesta para seguir avanzando.;
+04/03/2026;17:17:15;50629419;Mazas Agricolas Varias;8 Horas;Se comenzó con la planimetría de las piezas que están completas, falta hablar con Ascanelli para que nos pasen medidas que necesitamos para continuar con el modelado.;
+04/03/2026;17:17:15;50629419;Registro para Producción Local;1 Horas;Se realizaron planillas de prensado de sellos, registro de control de llenado de grasa y registro de medicion de juego. Rodamientos: DTR3062-FM y MS04-2RST;
+05/03/2026;17:16:58;c491480d;Planimetría;5 Horas;Se estuvo armando set de planos de DTR para pedir cotización en china.;
+05/03/2026;17:16:58;c491480d;Calidad;2 Horas;Se controlo el BP-25004 con Verónica. (Polea de John Deere);
+05/03/2026;17:16:59;c491480d;Mazas Agricolas Varias;2 Horas;Hable con ingeniería Ascanelli para pedir cotas faltantes. No nos dieron una respuesta, ya que estan ocupados con ExpoAgro;
+06/03/2026;16:18:07;c4ba7968;Planimetría;3 Horas;Se modificaron los planos de los rodamientos HK-3038/NK2930/HK2830 de la PO1321;
+06/03/2026;16:18:07;c4ba7968;Corte por Agua;3 Horas;Corte de pieza para extremo de camellon. Se corto a muy baja velocidad por eso el tiempo.;
+06/03/2026;16:18:07;c4ba7968;Cuerpo de Siembra;2 Horas;Armado de cuerpo de siembra para Expoagro;
+09/03/2026;17:15:24;d56f3156;Cuerpo de Siembra;5,5 Horas;Mecanizado y armado de cuerpo de siembra para Expoagro. Se ordeno el taller de tornería porque Joaquín lo solicito.;
+09/03/2026;17:15:24;d56f3156;Calidad;2 Horas;Franco me enseño a utilizar el perfilómetro. Se relevaron los perfiles del rodamiento BT2B 306037/AG;
+09/03/2026;17:15:24;d56f3156;B&P Motorsport;1,5 Horas;Se comenzó con el relevamiento de la palanca de cambios del karting;
+10/03/2026;17:15:01;a59bbdc9;Calidad;5 Horas;Se relevo la palanca de cambios del Karting. Franco me enseño a utilizar funciones basicas y guardar puntos en la maquina de coordenadas;
+10/03/2026;17:15:01;a59bbdc9;B&P Motorsport;4 Horas;Se continuo con el diseño de la palanca de karting.;
+11/03/2026;17:12:07;a3d7f8a7;B&P Motorsport;5 Horas;Se termino el modelado de la palanca de cambios del Karting. Se comenzó con el modelado de la pieza adaptada a procesos BPB;
+11/03/2026;17:12:07;a3d7f8a7;Calidad;4 Horas;Se desarmo el rodamiento BT2B 306037/AG para relevar el sello y slinger. Tambien se midio el perfil del cono y se midio el volumen de grasa.;
+12/03/2026;17:22:54;255eb9be;Calidad;4 Horas;Se midio la pista del rodamiento. Tambien se midio la ranura donde apoya el reten en perfilometro. El rodamiento esta en resina.;
+12/03/2026;17:22:54;255eb9be;Ensayos;1 Horas;Se le a Agustin Alberto sobre el ensayo de rodamientos en torno. Se puso a prueba el rodamiento 207KRRB12;
+12/03/2026;17:22:54;255eb9be;Planimetría;4 Horas;Se continuo con la planimetria del rodamiento BT2B 306037/AG;
+13/03/2026;16:20:31;45ff3c53;Planimetría;4 Horas;Se termino de definir y dibujar el diseño del sello en el rodamiento BT2B 306037/AG.;
+13/03/2026;16:20:32;45ff3c53;Calidad;4 Horas;Se corto el rodamiento que estaba en resina para ver el apoyo del sello. Falta terminar de lijar las caras;
+16/03/2026;17:12:46;2abd9384;B&P Motorsport;6,5 Horas;Se hizo modelado de la palanca de cambios de fabricación BPB. Estuve calculando interferencias para el clavado del buje y rodamiento.;
+16/03/2026;17:12:46;2abd9384;Planimetría;2,5 Horas;Se controlaron planos de soportes de fabrica GXTY, no se llego a completar la actividad.;
+17/03/2026;17:22:34;00d8858a;Planimetría;1 Horas;Se controlaron planos de soporte fabrica GXTY con catalogo;
+17/03/2026;17:22:35;00d8858a;Calidad;3,5 Horas;Se termino de pulir en lijadora de banda el rodamiento BT2B 306037/AG que estaba en resina;
+17/03/2026;17:22:35;00d8858a;Calidad;4,5 Horas;Se comenzó con el dispositivo de control para soporte FT206;
+18/03/2026;17:20:00;61730055;Cuerpo de Siembra;1 Horas;Contemplación de la sembradora de Ascanelli;
+18/03/2026;17:20:01;61730055;Calidad;4,5 Horas;Se modelo dispositivo de control para soporte FT206. Se hicieron cálculos de interferencia porque se estaba planteando hacerlo de acero. Por cuestiones de tiempo de mecanizado, se decidió hacer en impresora 3D para agilizar el control.;
+18/03/2026;17:20:01;61730055;Otros;3,5 Horas;Por pedido de Alejandro Moreira, se hizo búsqueda de orden de compra #146 del sello 6005 RST. Se relevaron medidas generales con una muestra, mañana se cortara un sello y se relevaran medidas en proyector de perfiles.;
+19/03/2026;17:19:07;8310490c;BP;1 Horas;Se mecanizo un punzon para desarmar la cadena BP-26004 de fiat, tambien desclavamos los eslabones.;
+19/03/2026;17:19:07;8310490c;Calidad;4,5 Horas;Se corto el sello del 6005 RST para ver en proyecto de perfiles y corroborar con el plano. Tambien arme los soportes FT 206 con los rodamientos y se probaron en el dispositivo de control.;
+19/03/2026;17:19:08;8310490c;B&P Motorsport;3,5 Horas;Planimetria de la palanca de cambios del karting para produccion local.;
+20/03/2026;08:11:25;c1b94d3d;Cuerpo de Siembra;8 Horas;Agregamos arandelas  de compensación en tubo de bajada del dosificador, en sembradora Ascanelli.;
+23/03/2026;17:20:52;0cb56839;Cuerpo de Siembra;0,5 Horas;Acomodamos el rascador entre discos del penúltimo cuerpo, que quedo pendiente del viernes;
+23/03/2026;17:20:52;0cb56839;Planimetría;8,5 Horas;Se hizo planimetria del sello LS05-RST-08, cambio de tolerancias en el BP-25004 del cono. También se asistió a diseño grafico.;[Modificado el 25/03 14:10]
+25/03/2026;17:20:09;6c83e1fc;Maquina de tierra;4 Horas;Se avanzo con dispositivo para probar maza roscada en maquina de tierra;
+25/03/2026;17:20:09;6c83e1fc;Calidad;3 Horas;Diseño de soporte para control de rodamiento F 209, se dejo imprimiendo en impresora 3D;
+25/03/2026;17:20:09;6c83e1fc;Otros;2 Horas;Se definieron tolerancias en rodamiento LS05-RST, ordenamos la oficina,;
+26/03/2026;17:14:21;202cbdd8;Calidad;2 Horas;Armado de soportes F 209 para prueba en dispositivo de control en impresión de plástico.;
+26/03/2026;17:14:21;202cbdd8;Orden de Compra;5,5 Horas;Se hicieron las ordenes de compra 1112/965. Si hicieron planos de la rotulas nuevas y otras se actualizo el rotulo.;
+26/03/2026;17:14:21;202cbdd8;Maquina de tierra;1,5 Horas;Se vacío la batea con tierra para cambiar los soportes viejos, también se planteo una idea de dispositivo para tomar la maza roscada.;

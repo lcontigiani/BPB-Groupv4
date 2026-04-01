@@ -1,0 +1,54 @@
+{
+  "purchase_order": "1291",
+  "code": "51107",
+  "revision": "B",
+  "date": "14/05/2024",
+  "dimensions": {
+    "thickness": {
+      "value_mm": 12,
+      "tol_plus_mm": 0.02,
+      "tol_minus_mm": -0.25
+    },
+    "outer_thickness": null,
+    "inner_thickness": null,
+    "outer_dia": {
+      "value_mm": 52,
+      "tol_plus_mm": 0,
+      "tol_minus_mm": -0.019
+    },
+    "inner_dia": {
+      "value_mm": 35,
+      "tol_plus_mm": 0,
+      "tol_minus_mm": -0.01
+    }
+  },
+  "radial_clearance": null,
+  "axial_clearance": null,
+  "hardness_hrc": {
+    "inner_plus": 64,
+    "inner_minus": 58,
+    "outer_plus": 64,
+    "outer_minus": 58
+  },
+  "seal_torque": null,
+  "lubricant": {
+    "type": "Oil",
+    "fill": "Rust preventative oiled"
+  },
+  "retainer": {
+    "material": "Steel"
+  },
+  "revision_history": [
+    {
+      "rev": "B",
+      "date": "14/05/2024",
+      "by": "T.B, L.C"
+    },
+    {
+      "rev": "A",
+      "date": "05/08/2022",
+      "by": "B.B, L.C"
+    }
+  ],
+  "proveedor": "195"
+}

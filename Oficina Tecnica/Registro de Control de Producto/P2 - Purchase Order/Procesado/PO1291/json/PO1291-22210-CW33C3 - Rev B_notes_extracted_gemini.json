@@ -1,0 +1,62 @@
+{
+  "purchase_order": "1291",
+  "code": "22210-CW33C3",
+  "revision": "B",
+  "date": "29/05/2025",
+  "dimensions": {
+    "thickness": {
+      "value_mm": 23,
+      "tol_plus_mm": 0,
+      "tol_minus_mm": -0.12
+    },
+    "outer_thickness": null,
+    "inner_thickness": null,
+    "outer_dia": {
+      "value_mm": 90,
+      "tol_plus_mm": 0,
+      "tol_minus_mm": -0.015
+    },
+    "inner_dia": {
+      "value_mm": 50,
+      "tol_plus_mm": 0,
+      "tol_minus_mm": -0.012
+    }
+  },
+  "radial_clearance": {
+    "class": "C3",
+    "range_um": {
+      "min": 55,
+      "max": 75
+    }
+  },
+  "axial_clearance": null,
+  "hardness_hrc": {
+    "inner_plus": 64,
+    "inner_minus": 58,
+    "outer_plus": 64,
+    "outer_minus": 58
+  },
+  "seal_torque": null,
+  "lubricant": null,
+  "retainer": {
+    "material": "Steel"
+  },
+  "revision_history": [
+    {
+      "rev": "A",
+      "date": "23/03/2016",
+      "by": ""
+    },
+    {
+      "rev": "B",
+      "date": "21/05/2025",
+      "by": ""
+    },
+    {
+      "rev": "PO",
+      "date": "29/05/2025",
+      "by": "A.FARELEIRA"
+    }
+  ],
+  "proveedor": "195"
+}

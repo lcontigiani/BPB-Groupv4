@@ -1,0 +1,3 @@
+En la pantalla de descarga marcar:
+ - ADD Python 3.14 to Path
+ - Dar privilegios

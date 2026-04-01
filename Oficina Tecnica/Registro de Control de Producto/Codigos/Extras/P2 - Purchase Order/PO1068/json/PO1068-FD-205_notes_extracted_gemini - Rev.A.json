@@ -1,0 +1,39 @@
+{
+  "purchase_order": "1068",
+  "code": "FD-205",
+  "revision": "A",
+  "date": "23/03/2016",
+  "dimensions": {
+    "thickness": {
+      "value_mm": 17.5,
+      "tol_plus_mm": 0.2,
+      "tol_minus_mm": 0.2
+    },
+    "outer_thickness": null,
+    "inner_thickness": null,
+    "outer_dia": {
+      "value_mm": 54.0,
+      "tol_plus_mm": 0.3,
+      "tol_minus_mm": 0.3
+    },
+    "inner_dia": {
+      "value_mm": 52.0,
+      "tol_plus_mm": 0.009,
+      "tol_minus_mm": -0.021
+    }
+  },
+  "radial_clearance": null,
+  "axial_clearance": null,
+  "hardness_hrc": null,
+  "seal_torque": null,
+  "lubricant": null,
+  "retainer": null,
+  "revision_history": [
+    {
+      "rev": "A",
+      "date": "23/03/2016",
+      "by": ""
+    }
+  ],
+  "proveedor": "440"
+}

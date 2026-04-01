@@ -1,0 +1,24 @@
+10:14:54 - [BACKGROUND] === START Approval for PO1291 by lcontigiani@bpbargentina.com ===
+10:14:54 - [BACKGROUND] Step 1: Requesting move to \\BPBSRV03\lcontigiani\Oficina Tecnica\Registro de Control de Producto\P2 - Purchase Order\Procesado\PO1291
+10:14:54 - [BACKGROUND] Moving now...
+10:14:54 - [BACKGROUND] Folder moved successfully.
+10:14:54 - [BACKGROUND] Step 2: Metadata created.
+10:14:54 - [BACKGROUND] Step 3: Updating Excels (Batch Process)...
+10:15:35 - [BACKGROUND] Step 3: Excel updates finished.
+10:15:35 - [BACKGROUND] === FINISHED Approval for PO1291 ===
+10:18:01 - [BACKGROUND] === START Approval for PO1291 by lcontigiani@bpbargentina.com ===
+10:18:01 - [BACKGROUND] Step 1: Requesting move to \\BPBSRV03\lcontigiani\Oficina Tecnica\Registro de Control de Producto\P2 - Purchase Order\Procesado\PO1291
+10:18:01 - [BACKGROUND] Moving now...
+10:18:01 - [BACKGROUND] Folder moved successfully.
+10:18:01 - [BACKGROUND] Step 2: Metadata created.
+10:18:01 - [BACKGROUND] Step 3: Updating Excels (Batch Process)...
+10:18:52 - [BACKGROUND] Step 3: Excel updates finished.
+10:18:52 - [BACKGROUND] === FINISHED Approval for PO1291 ===
+16:15:44 - [BACKGROUND] === START Approval for PO1291 by lcontigiani@bpbargentina.com ===
+16:15:44 - [BACKGROUND] Step 1: Requesting move to \\BPBSRV03\lcontigiani\Oficina Tecnica\Registro de Control de Producto\P2 - Purchase Order\Procesado\PO1291
+16:15:44 - [BACKGROUND] Moving now...
+16:15:44 - [BACKGROUND] Folder moved successfully.
+16:15:45 - [BACKGROUND] Step 2: Metadata created.
+16:15:45 - [BACKGROUND] Step 3: Updating Excels (Batch Process)...
+16:16:28 - [BACKGROUND] Step 3: Excel updates finished.
+16:16:28 - [BACKGROUND] === FINISHED Approval for PO1291 ===

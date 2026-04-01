@@ -1,0 +1,33 @@
+{
+  "purchase_order": "1068",
+  "code": "FC-206",
+  "revision": "A",
+  "date": "23/03/2016",
+  "dimensions": {
+    "thickness": {
+      "value_mm": 31,
+      "tol_plus_mm": 0.3,
+      "tol_minus_mm": -0.3
+    },
+    "outer_dia": {
+      "value_mm": 125,
+      "tol_plus_mm": 0.5,
+      "tol_minus_mm": -0.5
+    },
+    "inner_dia": {
+      "value_mm": 62,
+      "tol_plus_mm": 0.009,
+      "tol_minus_mm": -0.021
+    }
+  },
+  "radial_clearance": null,
+  "axial_clearance": null,
+  "hardness_hrc": null,
+  "revision_history": [
+    {
+      "rev": "A",
+      "date": "23/03/2016",
+      "by": ""
+    }
+  ]
+}

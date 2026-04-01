@@ -1,0 +1,59 @@
+﻿# Configuración mejorada para Procesamiento de Registros BPB
+incoming_dir: "P1 - Registros Solicitados"
+processed_dir: "P1 - Registros Solicitados\\in process"
+failed_dir: "P1 - Registros Solicitados\\failed"
+output_root: "P2 - Purchase Order"
+batch_prefix: "Registro"
+
+# Configuración de Archivos Maestros y Auxiliares
+register_root_dir: "\\\\192.168.0.55\\utn\\REGISTROS\\R016-01"
+# register_root_dir is kept absolute as it seems to point to a different server (192.168.0.55). 
+# If this is also accessible locally via VPN or needs to be mocked, we might need more info, 
+# but for now we assume this specific external resource is always there or not the main blocker.
+# Actually, the user requirement implies "everything" should work from desktop.
+# If 192.168.0.55 is not available from desktop, this feature might fail.
+# However, the user specifically mentioned "BPBSRV03" paths. I will focus on those.
+
+register_file_prefix: "R016-01"
+register_password: "bpb"
+product_pdf_dir: "\\\\192.168.0.55\\Oficina Tecnica\\PLANOS\\BPB FACTORY PRINTS"
+# Same for product_pdf_dir.
+
+formula_csv: "Auxiliares\\Formula de Produccion\\TC Formulas de Produccion.csv"
+
+pdf_parsing:
+  max_pages: 5
+  ocr_enabled: true
+
+  # Patrón específico para productos (prefijos conocidos) evitando ruido genérico
+  product_code_patterns:
+    - "(?i)(?:B&P|BPB|FIJ)-[A-Z0-9&\\s-]{5,}"
+
+  # Solo si aparece OC explícito
+  order_patterns:
+    - "(?i)OC\\s*[:\\-]?\\s*(\\d{1,8})"
+
+openai:
+  enabled: false
+  model: "gpt-4o-mini"
+  temperature: 0.0
+  api_key_env: "OPENAI_API_KEY"
+  max_text_chars: 8000
+  system_prompt: >
+    Eres un experto en extracción de datos tabulares. El texto provisto es una tabla con este orden exacto de columnas:
+    1.Emp, 2.Comp, 3.Numero, 4.Fecha, 5.Producto, 6.Cantidad, 7.Depo, 8.Ubicacion, 9.Observac, 10.Proveed, 11.Usuario, 12.OC, 13.CodOC.
+
+    INSTRUCCIONES DE EXTRACCIÓN:
+    - Debes ignorar la columna 3 (Numero).
+    - Debes ignorar la columna 4 (Fecha).
+    - El "Producto" está en la columna 5.
+    - La "OC" (Orden de Compra) es EXCLUSIVAMENTE la columna 12 (penúltima).
+    - Si la columna 12 es "0" o está vacía, repórtala como "Sin OC".
+    - El resultado debe ser un CSV con el formato: Codigo;PO
+
+    EJEMPLO DE FILTRADO CORRECTO:
+    Para la línea que tiene "7088" y "1291", el código es "B&P-040-51310" y la PO es "1291".
+
+logging:
+  file: "Codigos\\automation.log"
+  level: "INFO"

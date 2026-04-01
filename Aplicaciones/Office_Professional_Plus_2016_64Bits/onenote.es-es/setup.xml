@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--_MODULUS=wcoD65STU0B6Wz9QGmMTJmWzhA4qwoT3QfN1PJ4pcAPB+ymKUrGyrxZei4uVyS7PIjyUvXY+ibpGFI3gK9fzgDqjx9osxDAH545weOCKr6dHF+TO7nkN/4uZK7jl8K3mqv07bKX+vVLbSRap2lrzr85wS+fkERwWStF0n+9vt5A=-->
+<!--_SIG=nE8bRgHviGXTSss8y7n5YESAHM6RyWsZw+cIJlp8KyTGjXZoq7kcuKlzMAcYUKK4LF0+KePh6siaTe/UOVu7x9R153JqtKLQhFTzf3iN14vorqj+8zE2rRdZjHa4NigIsglNUK3O3yjGRGwy+t55A9vRBekYyoOkERa1A68+wHU=-->
+<Setup Id="OneNote.es-es" Type="AddOn" Keyword="OneNoteMUI" Culture="es-es">
+	<Option Id="AlwaysInstalled" DefaultState="Local" DisallowAbsent="yes" DisallowAdvertise="yes" Hidden="yes"/>
+	<Option Id="Gimme_OnDemandData" DefaultState="Local" DisallowAbsent="yes" DisallowAdvertise="yes" Hidden="yes"/>
+	<Option Id="ProductFiles" DefaultState="Local" DisallowAbsent="yes" DisallowAdvertise="no">
+		<Option Id="OneNoteFiles" DefaultState="Local" DisallowAbsent="no" DisallowAdvertise="no">
+			<Option Id="OneNoteHelpFiles" DefaultState="FollowParent" DisallowAbsent="yes" DisallowAdvertise="no" Hidden="yes"/>
+			<Option Id="OneNoteToAddIns" DefaultState="Local" DisallowAbsent="no" DisallowAdvertise="yes">
+				<Option Id="OneNoteToIEAddin" DefaultState="Local" DisallowAbsent="no" DisallowAdvertise="yes"/>
+			</Option>
+		</Option>
+		<Option Id="OneNoteToLinkedNotesIntl" DefaultState="Absent" DisallowAbsent="no" DisallowAdvertise="yes" Hidden="yes">
+			<OptionDependency Lead="OneNoteFiles"/>
+		</Option>
+	</Option>
+	<PackageRef Path="OneNoteMUI.xml"/>
+	<LocalCache DownloadCode="{90160000-00A1-0C0A-1000-0000000FF1CE}" SkuComponentDirectory="OneNote.es-es">
+		<File Id="OneNoteMUI.xml" MD5="D994BBFE341387D34A5EE0EEA77D7EE0" Size="0" RelativeCachePath="OneNoteMUI.xml" RelativeSourcePath="OneNoteMUI.xml"/>
+		<File Id="OneNoteMUI.msi" MD5="8A3378BD0B2F67622598214CF8CA7375" Size="3051520" RelativeCachePath="OneNoteMUI.msi" RelativeSourcePath="OneNoteMUI.msi"/>
+		<File Id="OnoteLR.cab" MD5="EA5D4F79584F60E6184994AFEDB8727E" Size="8430016" RelativeCachePath="OnoteLR.cab" RelativeSourcePath="OnoteLR.cab"/>
+		<File Id="Setup.xml" MD5="" Size="" RelativeCachePath="Setup.xml" RelativeSourcePath="Setup.xml"/>
+	</LocalCache>
+</Setup>

@@ -1,0 +1,61 @@
+{
+  "purchase_order": "1071",
+  "code": "BB203KRR2FD",
+  "revision": "A",
+  "date": "23/03/2016",
+  "dimensions": {
+    "thickness": null,
+    "outer_thickness": {
+      "value_mm": 18.288,
+      "tol_plus_mm": 0.0,
+      "tol_minus_mm": -0.12
+    },
+    "inner_thickness": {
+      "value_mm": 12.0,
+      "tol_plus_mm": 0.0,
+      "tol_minus_mm": -0.12
+    },
+    "outer_dia": {
+      "value_mm": 40.0,
+      "tol_plus_mm": 0.0,
+      "tol_minus_mm": -0.011
+    },
+    "inner_dia": {
+      "value_mm": 16.256,
+      "tol_plus_mm": 0.0,
+      "tol_minus_mm": -0.127
+    }
+  },
+  "radial_clearance": null,
+  "axial_clearance": {
+    "range_um": {
+      "min": 10,
+      "max": 51
+    }
+  },
+  "hardness_hrc": {
+    "inner_plus": 64,
+    "inner_minus": 58,
+    "outer_plus": 64,
+    "outer_minus": 58
+  },
+  "seal_torque": {
+    "low_Nm": 0.071,
+    "high_Nm": 0.106
+  },
+  "lubricant": {
+    "type": "Polyrex EM",
+    "fill": "1.7 - 2.2 gr"
+  },
+  "retainer": {
+    "material": "Steel"
+  },
+  "revision_history": [
+    {
+      "rev": "A",
+      "date": "23/03/2016",
+      "by": ""
+    }
+  ],
+  "proveedor": "103"
+}

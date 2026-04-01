@@ -1,0 +1,15 @@
+/* CAPS LOCK ICON */
+.caps-lock-icon {
+    position: absolute;
+    right: 40px;
+    /* Space for the eye icon (typically ~30px) + margin */
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    /* Helps align the SVG internally */
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    /* Let clicks pass through if needed */
+    z-index: 10;
+}

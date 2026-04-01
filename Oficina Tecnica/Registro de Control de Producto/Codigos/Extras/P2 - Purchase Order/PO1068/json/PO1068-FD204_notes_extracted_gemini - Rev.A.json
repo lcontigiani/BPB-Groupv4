@@ -1,0 +1,42 @@
+{
+  "purchase_order": "1068",
+  "code": "FD-204",
+  "revision": "A",
+  "date": "23/03/2016",
+  "dimensions": {
+    "thickness": {
+      "value_mm": 9.5,
+      "tol_plus_mm": 0.5,
+      "tol_minus_mm": -0.5
+    },
+    "outer_thickness": null,
+    "inner_thickness": null,
+    "outer_dia": {
+      "value_mm": 49.0,
+      "tol_plus_mm": 0.3,
+      "tol_minus_mm": -0.3
+    },
+    "inner_dia": {
+      "value_mm": 47.0,
+      "tol_plus_mm": 0.007,
+      "tol_minus_mm": -0.018
+    }
+  },
+  "radial_clearance": null,
+  "axial_clearance": null,
+  "hardness_hrc": null,
+  "seal_torque": null,
+  "lubricant": {
+    "type": "Rust Preventative oil",
+    "fill": null
+  },
+  "retainer": null,
+  "revision_history": [
+    {
+      "rev": "A",
+      "date": "23/03/2016",
+      "by": ""
+    }
+  ],
+  "proveedor": "440"
+}

@@ -1,0 +1,11 @@
+Proyecto: Integración simple
+Tiempo destinado: 1h
+Descripción: Probé el endpoint y documenté hallazgos.
+
+Proyecto: Centro de Consultas
+Tiempo destinado: 2 horas
+Descripción:
+
+Proyecto: O.T
+Tiempo destinado: 30 minutos
+Descripción:  Mucho trabajoooooooooooooooooooooo.

@@ -1,0 +1,33 @@
+{
+  "purchase_order": "1068",
+  "code": "440-FC-208",
+  "revision": "A",
+  "date": "23/03/2016",
+  "dimensions": {
+    "thickness": {
+      "value_mm": 36.0,
+      "tol_plus_mm": 0.3,
+      "tol_minus_mm": -0.3
+    },
+    "outer_dia": {
+      "value_mm": 86.0,
+      "tol_plus_mm": 0.2,
+      "tol_minus_mm": -0.2
+    },
+    "inner_dia": {
+      "value_mm": 100.0,
+      "tol_plus_mm": 0.0,
+      "tol_minus_mm": -0.054
+    }
+  },
+  "radial_clearance": null,
+  "axial_clearance": null,
+  "hardness_hrc": null,
+  "revision_history": [
+    {
+      "rev": "A",
+      "date": "23/03/2016",
+      "by": ""
+    }
+  ]
+}

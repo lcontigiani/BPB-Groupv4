@@ -1,0 +1,4 @@
+Control Parameter,Value,Tolerance,Result
+Diameter,10.15,+/- 0.5,OK
+Length,101.0,+/- 1.0,OK
+Hardness,45 HRC,Min 40,OK

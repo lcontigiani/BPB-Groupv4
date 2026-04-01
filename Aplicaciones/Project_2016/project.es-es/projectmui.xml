@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--_MODULUS=XdEshu2rHOChWhccwuQ4zr4deffsHqSCdkQ3zHt5nPCxsAicLTuDCoB6t0fh5be+WIKXUT1ZD1pxJFofSoKLUiMqXN9aa1FmKQ6ihXuwOs7tgPWeHOIUY9bWEYCo3B9KIdW4s7Ejlwjh7/XfvpNyC7qlMdUpXMfcbq+1C9UwAYQ=-->
+<!--_SIG=wTUfw8vBTyL1ANQtzptHWLNu6Q0UHCUjgjSfujI8ddXpqJHihnIfBMzYGYO9Cb9Ul2gmaBJ9qOgoVnBi7+vxECzpVPNJtYArTCZUoi2iDR1V2LzxuYR2nv6FUmpMksULMKtIzXWxlxJsG2wwNsEVDmHq6GXCyngihf/ENlq+9zI=-->
+<Package Id="ProjectMUI.es-es" Type="MSI" Path="ProjectMUI.MSI" Version="1.0" ProductCode="{90160000-00B4-0C0A-1000-0000000FF1CE}" MSIVersion="16.0.4266.1001" ProductLanguage="3082" Platform="x64">
+	<Feature Id="ProjectCommonIntl_3082" Cost="4591816">
+		<OptionRef Id="PROJECTFiles"/>
+	</Feature>
+	<Feature Id="PROJECTNonBootFilesIntl_3082" Cost="5140976">
+		<OptionRef Id="PROJECTFiles"/>
+	</Feature>
+	<Feature Id="Gimme_OnDemandData" Cost="0">
+		<OptionRef Id="Gimme_OnDemandData"/>
+	</Feature>
+	<Feature Id="ProjectHelpFilesIntl_3082" Cost="369237">
+		<OptionRef Id="ProjectHelpFiles"/>
+	</Feature>
+	<Feature Id="SetupXmlFiles" Cost="468">
+		<OptionRef Id="AlwaysInstalled"/>
+	</Feature>
+	<Feature Id="MsoInstalledPackagesScopedIntl_3082" Cost="0">
+		<OptionRef Id="AlwaysInstalled"/>
+	</Feature>
+	<Feature Id="PROJECTFilesIntl_3082" Cost="308844">
+		<OptionRef Id="PROJECTFiles"/>
+	</Feature>
+	<Feature Id="ProjectStdHelpFilesIntl_3082" Cost="369825">
+		<OptionRef Id="ProjectStdHelpFiles"/>
+	</Feature>
+	<Feature Id="SetupControllerFiles" Cost="468">
+		<OptionRef Id="AlwaysInstalled"/>
+	</Feature>
+	<Feature Id="ProjectTemplatesIntl_3082" Cost="341894">
+		<OptionRef Id="ProjectTemplates"/>
+	</Feature>
+</Package>

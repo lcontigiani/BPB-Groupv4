@@ -1,0 +1,150 @@
+Option Explicit
+
+Private Const MULTI_RANGE As String = "C10:C25"
+Private Const SEP As String = " - "
+Private Const CALC_START_ROW As Long = 13
+
+Private OldValue As String
+Private OldAddr As String
+Private valorAnterior As Variant
+
+Private Sub Worksheet_SelectionChange(ByVal Target As Range)
+    On Error GoTo salir
+    If Target.CountLarge = 1 Then
+        valorAnterior = Target.Value
+    Else
+        valorAnterior = vbNullString
+    End If
+
+    Dim zona As Range
+    Set zona = Intersect(Target, Me.Range(MULTI_RANGE))
+    If zona Is Nothing Then
+        OldValue = vbNullString
+        OldAddr = vbNullString
+    Else
+        OldValue = CStr(Target.Value)
+        OldAddr = Target.Address(False, False)
+    End If
+
+    If Target.CountLarge = 1 Then
+        If Me.ProtectContents And Target.Locked Then
+            Application.EnableEvents = False
+            MsgBox "Esta celda está protegida y no puede modificarse.", vbExclamation
+            Me.Range("A1").Select
+            Application.EnableEvents = True
+        End If
+    End If
+salir:
+    Application.EnableEvents = True
+End Sub
+
+Private Sub Worksheet_Change(ByVal Target As Range)
+    On Error GoTo salir
+
+    ' Control de firmas (BorrarFirma/Firmando deben existir)
+    If Not Firmando Then
+        If Target.CountLarge = 1 Then
+            Dim cambioReal As Boolean
+            If IsError(Target.Value) Or IsError(valorAnterior) Then
+                If IsError(Target.Value) And IsError(valorAnterior) Then
+                    Dim sNew As String, sOld As String
+                    On Error Resume Next
+                    sNew = Target.Text
+                    sOld = CStr(valorAnterior)
+                    On Error GoTo 0
+                    cambioReal = (sNew <> sOld)
+                Else
+                    cambioReal = True
+                End If
+            Else
+                cambioReal = (CStr(Target.Value) <> CStr(valorAnterior))
+            End If
+
+            If cambioReal Then
+                Application.EnableEvents = False
+                BorrarFirma Me
+                Application.EnableEvents = True
+            End If
+        End If
+    End If
+
+    ' Multi-select
+    Dim zona2 As Range
+    Set zona2 = Intersect(Target, Me.Range(MULTI_RANGE))
+    If Not zona2 Is Nothing Then
+        If Target.CountLarge > 1 Then GoTo continuar
+        If Not Me.ProtectContents Then GoTo continuar
+        If Not HasValidationList(Target) Then GoTo continuar
+
+        Application.EnableEvents = False
+        Dim elegido As String
+        elegido = CStr(Target.Value)
+        Dim previo As String
+        If Target.Address(False, False) = OldAddr Then
+            previo = OldValue
+        Else
+            previo = CStr(Target.Value)
+        End If
+        Target.Value = ToggleValue(previo, elegido, SEP)
+        OldValue = CStr(Target.Value)
+        OldAddr = Target.Address(False, False)
+        Application.EnableEvents = True
+    End If
+
+continuar:
+  ' Recalcula solo la fila editada (DB/DC) manteniendo fórmulas y agregando dependencias de la fila
+If Target.Row >= CALC_START_ROW Then
+    Dim maxCol As Long
+    maxCol = Me.Cells(10, Me.Columns.Count).End(xlToLeft).Column
+    If Target.Column <= maxCol And Target.Column < Me.Range("CZ1").Column Then
+        Application.EnableEvents = False
+        Dim depRange As String
+        depRange = Me.Range(Me.Cells(Target.Row, 1), Me.Cells(Target.Row, maxCol + 2)).Address(False, False)
+        Me.Cells(Target.Row, "DB").Formula = "=IF($CZ" & Target.Row & "="""",TotalMinorista(" & depRange & "),TotalMinorista(" & depRange & ")*$CZ" & Target.Row & ")"
+        Me.Cells(Target.Row, "DC").Formula = "=IF($DA" & Target.Row & "="""",TotalMayorista(" & depRange & "),TotalMayorista(" & depRange & ")*$DA" & Target.Row & ")"
+        Application.EnableEvents = True
+
+    End If
+End If
+
+
+salir:
+    Application.EnableEvents = True
+End Sub
+
+Private Function HasValidationList(r As Range) As Boolean
+    On Error Resume Next
+    HasValidationList = (r.Validation.Type = xlValidateList)
+    On Error GoTo 0
+End Function
+
+Private Function ToggleValue(previo As String, elegido As String, delim As String) As String
+    Dim arr() As String, i As Long
+    Dim tmp As String, existe As Boolean
+
+    If Len(elegido) = 0 Then
+        ToggleValue = previo
+        Exit Function
+    End If
+    If Len(previo) = 0 Then
+        ToggleValue = elegido
+        Exit Function
+    End If
+
+    arr = Split(previo, delim)
+    For i = LBound(arr) To UBound(arr)
+        If Trim$(arr(i)) = elegido Then existe = True
+    Next i
+
+    If existe Then
+        For i = LBound(arr) To UBound(arr)
+            If Trim$(arr(i)) <> elegido And Len(Trim$(arr(i))) > 0 Then
+                If Len(tmp) > 0 Then tmp = tmp & delim
+                tmp = tmp & Trim$(arr(i))
+            End If
+        Next i
+        ToggleValue = tmp
+    Else
+        ToggleValue = previo & delim & elegido
+    End If
+End Function

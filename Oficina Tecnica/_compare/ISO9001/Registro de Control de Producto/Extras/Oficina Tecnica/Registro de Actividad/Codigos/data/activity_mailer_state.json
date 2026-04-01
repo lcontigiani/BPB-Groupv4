@@ -1,0 +1,690 @@
+{
+  "campaigns": [
+    {
+      "date": "2026-01-23",
+      "sent_at": "2026-01-23T13:03:32",
+      "subject": "Registro de Actividad Diario 23/01/26",
+      "token": "270eb9ba",
+      "recipients": [
+        "aalberto@bpbargentina.com"
+      ],
+      "responses": {
+        "aalberto@bpbargentina.com": {
+          "from": "aalberto@bpbargentina.com",
+          "from_name": "aalberto@bpbargentina.com",
+          "subject": "Re: Registro de Actividad Diario 23/01/26",
+          "date": "2026-01-23 13:07:19",
+          "received_at": "2026-01-23T13:07:19.357652",
+          "snippet": "Proyecto: Orden de Compra\nTiempo: 3\nDesc: kjbrfjha\n---\nProyecto: Corte por Agua\nTiempo: 1\nDesc: arwegeawrg\n---\n",
+          "body": "Proyecto: Orden de Compra\nTiempo: 3\nDesc: kjbrfjha\n---\nProyecto: Corte por Agua\nTiempo: 1\nDesc: arwegeawrg\n---\n",
+          "uid": 0,
+          "saved_path": "WEB_APP_APPROVAL"
+        }
+      }
+    },
+    {
+      "date": "2026-01-23",
+      "sent_at": "2026-01-23T12:07:22",
+      "subject": "Registro de Actividad Diario 23/01/26",
+      "token": "62d0cbe0",
+      "recipients": [
+        "lcontigiani@bpbargentina.com"
+      ],
+      "responses": {
+        "lcontigiani@bpbargentina.com": {
+          "from": "lcontigiani@bpbargentina.com",
+          "from_name": "Lorenzo Contigiani",
+          "subject": "Re: Registro de Actividad Diario 23/01/26",
+          "date": "2026-01-23 12:08:12",
+          "received_at": "2026-01-23T12:08:12.763922",
+          "snippet": "Proyecto: SimpliseedtyS1\nTiempo: 8\nDesc: Holaaa  mucho gusto\n---\nProyecto: Corte por Laser\nTiempo: 0.25\nDesc: \n---\n",
+          "body": "Proyecto: SimpliseedtyS1\nTiempo: 8\nDesc: Holaaa  mucho gusto\n---\nProyecto: Corte por Laser\nTiempo: 0.25\nDesc: \n---\n",
+          "uid": 0,
+          "saved_path": "WEB_APP_APPROVAL"
+        }
+      }
+    },
+    {
+      "date": "2026-01-23",
+      "sent_at": "2026-01-23T08:15:18",
+      "subject": "Registro de Actividad Diario 23/01/26",
+      "token": "ae4f4146",
+      "recipients": [
+        "lcontigiani@bpbargentina.com"
+      ],
+      "responses": {
+        "lcontigiani@bpbargentina.com": {
+          "from": "lcontigiani@bpbargentina.com",
+          "from_name": "Lorenzo Contigiani",
+          "subject": "Re: Registro de Actividad Diario 23/01/26",
+          "date": "2026-01-23 11:54:47",
+          "received_at": "2026-01-23T11:54:47.220087",
+          "snippet": "Proyecto: Dosificador Mani en Caja\nTiempo: 7.5\nDesc: Dosi de mani en caja\n---\nProyecto: Cadena Bonder\nTiempo: 0.75\nDesc: Bonderrrr\n---\n",
+          "body": "Proyecto: Dosificador Mani en Caja\nTiempo: 7.5\nDesc: Dosi de mani en caja\n---\nProyecto: Cadena Bonder\nTiempo: 0.75\nDesc: Bonderrrr\n---\n",
+          "uid": 0,
+          "saved_path": "WEB_APP_APPROVAL"
+        }
+      }
+    },
+    {
+      "date": "2026-01-22",
+      "sent_at": "2026-01-22T17:40:33",
+      "subject": "Registro de Actividad Diario 22/01/26",
+      "token": "f08d541a",
+      "recipients": [
+        "lcontigiani@bpbargentina.com"
+      ],
+      "responses": {
+        "lcontigiani@bpbargentina.com": {
+          "from": "lcontigiani@bpbargentina.com",
+          "from_name": "Lorenzo Contigiani",
+          "subject": "Re: Registro de Actividad Diario 22/01/26",
+          "date": "2026-01-22 17:46:37",
+          "received_at": "2026-01-22T17:46:37.822423",
+          "snippet": "Proyecto: SimpliseedtyS1\nTiempo destinado: 9 Horas\nDescripci?n: \n----------------\nProyecto: Maquina de tierra\nTiempo destinado: 7.5 Horas\nDescripci?n: ",
+          "body": "Proyecto: SimpliseedtyS1\nTiempo destinado: 9 Horas\nDescripci?n: \n----------------\nProyecto: Maquina de tierra\nTiempo destinado: 7.5 Horas\nDescripci?n: ",
+          "uid": 0,
+          "saved_path": "WEB_SUBMISSION"
+        }
+      }
+    },
+    {
+      "date": "2026-01-22",
+      "sent_at": "2026-01-22T17:21:43",
+      "subject": "Registro de Actividad Diario 22/01/26",
+      "token": "b41e2d7f",
+      "recipients": [
+        "lcontigiani@bpbargentina.com"
+      ],
+      "responses": {
+        "lcontigiani@bpbargentina.com": {
+          "from": "lcontigiani@bpbargentina.com",
+          "from_name": "Lorenzo Contigiani",
+          "subject": "Re: Registro de Actividad Diario 22/01/26",
+          "date": "2026-01-22 17:38:14",
+          "received_at": "2026-01-22T17:38:14.949507",
+          "snippet": "Proyecto: Caja Electrica\nTiempo destinado: 0.75 Horas\nDescripci?n: 1111\n----------------\nProyecto: Martin Till\nTiempo destinado: 9.5 Horas\nDescripci?n: 33232323\n----------------\nProyecto: SimpliseedtyS1\nTiempo destinado: 4 Horas\nDescripci?n: ",
+          "body": "Proyecto: Caja Electrica\nTiempo destinado: 0.75 Horas\nDescripci?n: 1111\n----------------\nProyecto: Martin Till\nTiempo destinado: 9.5 Horas\nDescripci?n: 33232323\n----------------\nProyecto: SimpliseedtyS1\nTiempo destinado: 4 Horas\nDescripci?n: ",
+          "uid": 0,
+          "saved_path": "WEB_SUBMISSION"
+        }
+      }
+    },
+    {
+      "date": "2026-01-22",
+      "sent_at": "2026-01-22T16:28:06",
+      "subject": "Registro de Actividad Diario 22/01/26",
+      "token": "44d4c183",
+      "recipients": [
+        "lcontigiani@bpbargentina.com"
+      ],
+      "responses": {
+        "lcontigiani@bpbargentina.com": {
+          "from": "lcontigiani@bpbargentina.com",
+          "from_name": "Lorenzo Contigiani",
+          "subject": "Re: Registro de Actividad Diario 22/01/26",
+          "date": "2026-01-22 17:20:51",
+          "received_at": "2026-01-22T17:20:51.765591",
+          "snippet": "Proyecto: sds\nTiempo destinado: 3 Horas\nDescripci?n: ",
+          "body": "Proyecto: sds\nTiempo destinado: 3 Horas\nDescripci?n: ",
+          "uid": 0,
+          "saved_path": "WEB_SUBMISSION"
+        }
+      }
+    },
+    {
+      "date": "2026-01-21",
+      "sent_at": "2026-01-21T17:43:30",
+      "subject": "Registro de Actividad Diario 21/01/26",
+      "token": "c0337198",
+      "recipients": [
+        "aalberto@bpbargentina.com"
+      ],
+      "responses": {
+        "aalberto@bpbargentina.com": {
+          "from": "aalberto@bpbargentina.com",
+          "from_name": "Agustin Alberto",
+          "subject": "Re: Registro de Actividad Diario 21/01/26",
+          "date": "2026-01-21 17:48:03",
+          "received_at": "2026-01-21T17:48:04.226105",
+          "snippet": "Proyecto: Cuerpo de Siembra\nTiempo destinado: 0.5 Horas\nDescripci?n: \n----------------\nProyecto: Grabado Laser\nTiempo destinado: 1 Horas\nDescripci?n: ",
+          "body": "Proyecto: Cuerpo de Siembra\nTiempo destinado: 0.5 Horas\nDescripci?n: \n----------------\nProyecto: Grabado Laser\nTiempo destinado: 1 Horas\nDescripci?n: ",
+          "uid": 0,
+          "saved_path": "WEB_SUBMISSION"
+        }
+      }
+    },
+    {
+      "date": "2026-01-21",
+      "sent_at": "2026-01-21T17:37:19",
+      "subject": "Registro de Actividad Diario 21/01/26",
+      "token": "cdc25f51",
+      "recipients": [
+        "aalberto@bpbargentina.com"
+      ],
+      "responses": {
+        "aalberto@bpbargentina.com": {
+          "from": "aalberto@bpbargentina.com",
+          "from_name": "aalberto@bpbargentina.com",
+          "subject": "Re: Registro de Actividad Diario 21/01/26",
+          "date": "2026-01-21 17:38:06",
+          "received_at": "2026-01-21T17:38:07.324754",
+          "snippet": "Proyecto: Martin Till\nTiempo destinado: 0.5 Horas\nDescripci?n: sdsdsds\n----------------\nProyecto: Maquina de tierra\nTiempo destinado: 8.5 Horas\nDescripci?n: sddsd\n----------------\nProyecto: Corte por Hilo\nTiempo destinado: 0.5 Horas\nDescripci?n: ",
+          "body": "Proyecto: Martin Till\nTiempo destinado: 0.5 Horas\nDescripci?n: sdsdsds\n----------------\nProyecto: Maquina de tierra\nTiempo destinado: 8.5 Horas\nDescripci?n: sddsd\n----------------\nProyecto: Corte por Hilo\nTiempo destinado: 0.5 Horas\nDescripci?n: ",
+          "uid": 0,
+          "saved_path": "WEB_SUBMISSION"
+        }
+      }
+    },
+    {
+      "date": "2026-01-21",
+      "sent_at": "2026-01-21T17:31:45",
+      "subject": "Registro de Actividad Diario 21/01/26",
+      "token": "dace1471",
+      "recipients": [
+        "lcontigiani@bpbargentina.com"
+      ],
+      "responses": {
+        "lcontigiani@bpbargentina.com": {
+          "from": "lcontigiani@bpbargentina.com",
+          "from_name": "Lorenzo Contigiani",
+          "subject": "Re: Registro de Actividad Diario 21/01/26",
+          "date": "2026-01-21 17:33:16",
+          "received_at": "2026-01-21T17:33:17.090282",
+          "snippet": "Proyecto: Corte por Hilo\nTiempo destinado: 0.5 Horas\nDescripci?n: ssss\n----------------\nProyecto: Corte por Agua\nTiempo destinado: 0.75 Horas\nDescripci?n: sdsdsdsds\n----------------\nProyecto: Proyecto VW\nTiempo destinado: 8.5 Horas\nDescripci?n: dsdsds",
+          "body": "Proyecto: Corte por Hilo\nTiempo destinado: 0.5 Horas\nDescripci?n: ssss\n----------------\nProyecto: Corte por Agua\nTiempo destinado: 0.75 Horas\nDescripci?n: sdsdsdsds\n----------------\nProyecto: Proyecto VW\nTiempo destinado: 8.5 Horas\nDescripci?n: dsdsds",
+          "uid": 0,
+          "saved_path": "WEB_SUBMISSION"
+        }
+      }
+    },
+    {
+      "date": "2026-01-21",
+      "sent_at": "2026-01-21T17:21:25",
+      "subject": "Registro de Actividad Diario 21/01/26",
+      "token": "538f79eb",
+      "recipients": [
+        "lcochis@bpbargentina.com"
+      ],
+      "responses": {}
+    },
+    {
+      "date": "2026-01-21",
+      "sent_at": "2026-01-21T17:05:38",
+      "subject": "Registro de Actividad Diario 21/01/26",
+      "token": "0a338915",
+      "recipients": [
+        "lcochis@bpbargentina.com"
+      ],
+      "responses": {
+        "lcochis@bpbargentina.com": {
+          "from": "lcochis@bpbargentina.com",
+          "from_name": "Luciano Cochis",
+          "subject": "Re: Registro de Actividad Diario 21/01/26",
+          "date": "2026-01-22 16:23:26",
+          "received_at": "2026-01-22T16:23:27.208760",
+          "snippet": "Proyecto: Caja Electrica\nTiempo destinado: 4.5 Horas\nDescripci?n: rt\n----------------\nProyecto: Maquina de tierra\nTiempo destinado: 0.5 Horas\nDescripci?n: fr\n----------------\nProyecto: Dosificador Mani en Caja\nTiempo destinado: 0.5 Horas\nDescripci?n: ll",
+          "body": "Proyecto: Caja Electrica\nTiempo destinado: 4.5 Horas\nDescripci?n: rt\n----------------\nProyecto: Maquina de tierra\nTiempo destinado: 0.5 Horas\nDescripci?n: fr\n----------------\nProyecto: Dosificador Mani en Caja\nTiempo destinado: 0.5 Horas\nDescripci?n: ll",
+          "uid": 0,
+          "saved_path": "WEB_SUBMISSION"
+        }
+      }
+    },
+    {
+      "date": "2026-01-21",
+      "sent_at": "2026-01-21T16:59:02",
+      "subject": "Registro de Actividad Diario 21/01/26",
+      "token": "cdb83bd2",
+      "recipients": [
+        "lcontigiani@bpbargentina.com",
+        "lcochis@bpbargentina.com"
+      ],
+      "responses": {
+        "lcontigiani@bpbargentina.com": {
+          "from": "lcontigiani@bpbargentina.com",
+          "from_name": "Lorenzo Contigiani",
+          "subject": "Re: Registro de Actividad Diario 21/01/26",
+          "date": "2026-01-21 17:04:36",
+          "received_at": "2026-01-21T17:04:36.447139",
+          "snippet": "Proyecto: Caja Electrica\nTiempo destinado: 0.25 Horas\nDescripci?n: aaaaa\n----------------\nProyecto: Proyecto VW\nTiempo destinado: 10 Horas\nDescripci?n: fffff\n----------------\nProyecto: Corte por Laser\nTiempo destinado: 0.75 Horas\nDescripci?n: dsdsdsdsd",
+          "body": "Proyecto: Caja Electrica\nTiempo destinado: 0.25 Horas\nDescripci?n: aaaaa\n----------------\nProyecto: Proyecto VW\nTiempo destinado: 10 Horas\nDescripci?n: fffff\n----------------\nProyecto: Corte por Laser\nTiempo destinado: 0.75 Horas\nDescripci?n: dsdsdsdsd",
+          "uid": 0,
+          "saved_path": "WEB_SUBMISSION"
+        }
+      }
+    },
+    {
+      "date": "2026-01-21",
+      "sent_at": "2026-01-21T08:26:49",
+      "subject": "Registro de Actividad Diario 21/01/26",
+      "token": "857cd93c",
+      "recipients": [
+        "lcontigiani@bpbargentina.com"
+      ],
+      "responses": {
+        "lcontigiani@bpbargentina.com": {
+          "from": "lcontigiani@bpbargentina.com",
+          "from_name": "Lorenzo Contigiani",
+          "subject": "Re: Registro de Actividad Diario 21/01/26",
+          "date": "2026-01-21 16:56:39",
+          "received_at": "2026-01-21T16:56:39.171260",
+          "snippet": "Proyecto: Registros O.T\nTiempo destinado: 0.75 Horas\nDescripci?n: Prueba 1",
+          "body": "Proyecto: Registros O.T\nTiempo destinado: 0.75 Horas\nDescripci?n: Prueba 1",
+          "uid": 0,
+          "saved_path": "WEB_SUBMISSION"
+        }
+      }
+    },
+    {
+      "date": "2026-01-20",
+      "sent_at": "2026-01-20T17:50:50",
+      "subject": "Registro de Actividad Diario 20/01/26",
+      "token": "15aa7838",
+      "recipients": [
+        "lcontigiani@bpbargentina.com"
+      ],
+      "responses": {
+        "lcontigiani@bpbargentina.com": {
+          "from": "lcontigiani@bpbargentina.com",
+          "from_name": "Lorenzo Contigiani",
+          "subject": "Re: Registro de Actividad Diario 20/01/26",
+          "date": "2026-01-20 17:53:00",
+          "received_at": "2026-01-20T17:53:00.500391",
+          "snippet": "Proyecto: Registros O.T\nTiempo destinado: 6,5 Horas\nDescripción: asas",
+          "body": "Proyecto: Registros O.T\nTiempo destinado: 6,5 Horas\nDescripción: asas",
+          "uid": 0,
+          "saved_path": "WEB_SUBMISSION"
+        }
+      }
+    },
+    {
+      "date": "2026-01-20",
+      "sent_at": "2026-01-20T17:00:08",
+      "subject": "Registro de Actividad Diario 20/01/26",
+      "token": "4fea9ca6",
+      "recipients": [
+        "lcontigiani@bpbargentina.com",
+        "lcochis@bpbargentina.com"
+      ],
+      "responses": {
+        "lcochis@bpbargentina.com": {
+          "from": "lcochis@bpbargentina.com",
+          "from_name": "lcochis@bpbargentina.com",
+          "subject": "Re: Registro de Actividad Diario 20/01/26",
+          "date": "2026-01-20 17:10:04",
+          "received_at": "2026-01-20T17:10:04.058664",
+          "snippet": "Proyecto: Cuerpo de Siembra\nTiempo destinado: 1 Horas\nDescripción: Adaptaciones para tapado sembradora Ascanelli",
+          "body": "Proyecto: Cuerpo de Siembra\nTiempo destinado: 1 Horas\nDescripción: Adaptaciones para tapado sembradora Ascanelli",
+          "uid": 0,
+          "saved_path": "WEB_SUBMISSION"
+        },
+        "lcontigiani@bpbargentina.com": {
+          "from": "lcontigiani@bpbargentina.com",
+          "from_name": "Lorenzo Contigiani",
+          "subject": "Re: Registro de Actividad Diario 20/01/26",
+          "date": "2026-01-20 17:29:55",
+          "received_at": "2026-01-20T17:29:55.601044",
+          "snippet": "Proyecto: Registros O.T\nTiempo destinado: 10 Horas\nDescripción: Hola",
+          "body": "Proyecto: Registros O.T\nTiempo destinado: 10 Horas\nDescripción: Hola",
+          "uid": 0,
+          "saved_path": "WEB_SUBMISSION"
+        }
+      }
+    },
+    {
+      "date": "2026-01-19",
+      "sent_at": "2026-01-19T17:00:19",
+      "subject": "Registro de Actividad Diario 19/01/26",
+      "token": "80e68b94",
+      "recipients": [
+        "lcontigiani@bpbargentina.com"
+      ],
+      "responses": {
+        "lcontigiani@bpbargentina.com": {
+          "from": "lcontigiani@bpbargentina.com",
+          "from_name": "Lorenzo Contigiani",
+          "subject": "Re: Registro de Actividad Diario 19/01/26",
+          "date": "Tue, 20 Jan 2026 08:44:31 -0300",
+          "received_at": "2026-01-20T08:45:06",
+          "snippet": "Proyecto: Registos O.T\nTiempo destinado: 2 horas\nDescripción: Prueba 15",
+          "body": "Proyecto: Registos O.T\nTiempo destinado: 2 horas\nDescripción: Prueba 15",
+          "uid": 36,
+          "saved_path": "\\\\BPBSRV03\\lcontigiani\\Oficina Tecnica\\Registro de Actividad\\Codigos\\data\\responses\\80e68b94_lcontigiani_bpbargentina.com_36.txt"
+        }
+      }
+    },
+    {
+      "date": "2026-01-16",
+      "sent_at": "2026-01-16T16:00:04",
+      "subject": "Registro de Actividad Diario 16/01/26",
+      "token": "0ecf33a6",
+      "recipients": [
+        "lcontigiani@bpbargentina.com"
+      ],
+      "responses": {
+        "lcontigiani@bpbargentina.com": {
+          "from": "lcontigiani@bpbargentina.com",
+          "from_name": "Lorenzo Contigiani",
+          "subject": "Re: Registro de Actividad Diario 16/01/26",
+          "date": "2026-01-20 14:25:49",
+          "received_at": "2026-01-20T14:25:49.336372",
+          "snippet": "Proyecto: Caja Electrica\nTiempo destinado: 9 Horas\nDescripción: aasasas",
+          "body": "Proyecto: Caja Electrica\nTiempo destinado: 9 Horas\nDescripción: aasasas",
+          "uid": 0,
+          "saved_path": "WEB_SUBMISSION"
+        }
+      }
+    },
+    {
+      "date": "2026-01-15",
+      "sent_at": "2026-01-15T17:00:03",
+      "subject": "Registro de Actividad Diario 15/01/26",
+      "token": "297f06d9",
+      "recipients": [
+        "lcontigiani@bpbargentina.com"
+      ],
+      "responses": {
+        "lcontigiani@bpbargentina.com": {
+          "from": "lcontigiani@bpbargentina.com",
+          "from_name": "Lorenzo Contigiani",
+          "subject": "Re: Registro de Actividad Diario 15/01/26",
+          "date": "2026-01-20 14:36:36",
+          "received_at": "2026-01-20T14:36:36.182417",
+          "snippet": "Proyecto: aasasasa\nTiempo destinado: 0,5 Horas\nDescripción: asasas",
+          "body": "Proyecto: aasasasa\nTiempo destinado: 0,5 Horas\nDescripción: asasas",
+          "uid": 0,
+          "saved_path": "WEB_SUBMISSION"
+        }
+      }
+    },
+    {
+      "date": "2026-01-14",
+      "sent_at": "2026-01-14T17:00:08",
+      "subject": "Registro de Actividad Diario 14/01/26",
+      "token": "179f5aab",
+      "recipients": [
+        "lcontigiani@bpbargentina.com"
+      ],
+      "responses": {
+        "lcontigiani@bpbargentina.com": {
+          "from": "lcontigiani@bpbargentina.com",
+          "from_name": "Lorenzo Contigiani",
+          "subject": "Re: Registro de Actividad Diario 14/01/26",
+          "date": "2026-01-20 14:37:23",
+          "received_at": "2026-01-20T14:37:23.502915",
+          "snippet": "Proyecto: sdsdsd\nTiempo destinado: 0,75 Horas\nDescripción: sdsdsds",
+          "body": "Proyecto: sdsdsd\nTiempo destinado: 0,75 Horas\nDescripción: sdsdsds",
+          "uid": 0,
+          "saved_path": "WEB_SUBMISSION"
+        }
+      }
+    },
+    {
+      "date": "2026-01-13",
+      "sent_at": "2026-01-13T17:00:23",
+      "subject": "Registro de Actividad Diario 13/01/26",
+      "token": "e870b259",
+      "recipients": [
+        "lcontigiani@bpbargentina.com"
+      ],
+      "responses": {
+        "lcontigiani@bpbargentina.com": {
+          "from": "lcontigiani@bpbargentina.com",
+          "from_name": "Lorenzo Contigiani",
+          "subject": "Re: Registro de Actividad Diario 13/01/26",
+          "date": "2026-01-20 14:37:55",
+          "received_at": "2026-01-20T14:37:55.914035",
+          "snippet": "Proyecto: sdsds\nTiempo destinado: 0,5 Horas\nDescripción: sdsd",
+          "body": "Proyecto: sdsds\nTiempo destinado: 0,5 Horas\nDescripción: sdsd",
+          "uid": 0,
+          "saved_path": "WEB_SUBMISSION"
+        }
+      }
+    },
+    {
+      "date": "2026-01-12",
+      "sent_at": "2026-01-12T17:00:01",
+      "subject": "Registro de Actividad Diario 12/01/26",
+      "token": "26749df5",
+      "recipients": [
+        "lcontigiani@bpbargentina.com"
+      ],
+      "responses": {
+        "lcontigiani@bpbargentina.com": {
+          "from": "lcontigiani@bpbargentina.com",
+          "from_name": "Lorenzo Contigiani",
+          "subject": "Re: Registro de Actividad Diario 12/01/26",
+          "date": "2026-01-20 14:39:25",
+          "received_at": "2026-01-20T14:39:25.497775",
+          "snippet": "Proyecto: sdsd\nTiempo destinado: 3,5 Horas\nDescripción: sdsd",
+          "body": "Proyecto: sdsd\nTiempo destinado: 3,5 Horas\nDescripción: sdsd",
+          "uid": 0,
+          "saved_path": "WEB_SUBMISSION"
+        }
+      }
+    },
+    {
+      "date": "2026-01-09",
+      "sent_at": "2026-01-09T16:00:17",
+      "subject": "Registro de Actividad Diario 09/01/26",
+      "token": "360cbbf8",
+      "recipients": [
+        "lcontigiani@bpbargentina.com"
+      ],
+      "responses": {
+        "lcontigiani@bpbargentina.com": {
+          "from": "lcontigiani@bpbargentina.com",
+          "from_name": "Lorenzo Contigiani",
+          "subject": "Re: Registro de Actividad Diario 09/01/26",
+          "date": "2026-01-20 14:41:33",
+          "received_at": "2026-01-20T14:41:33.154604",
+          "snippet": "Proyecto: dsdsds\nTiempo destinado: 0,25 Horas\nDescripción: ",
+          "body": "Proyecto: dsdsds\nTiempo destinado: 0,25 Horas\nDescripción: ",
+          "uid": 0,
+          "saved_path": "WEB_SUBMISSION"
+        }
+      }
+    },
+    {
+      "date": "2026-01-08",
+      "sent_at": "2026-01-08T17:00:27",
+      "subject": "Registro de Actividad Diario 08/01/26",
+      "token": "c136fa18",
+      "recipients": [
+        "lcontigiani@bpbargentina.com"
+      ],
+      "responses": {
+        "lcontigiani@bpbargentina.com": {
+          "from": "lcontigiani@bpbargentina.com",
+          "from_name": "Lorenzo Contigiani",
+          "subject": "Re: Registro de Actividad Diario 08/01/26",
+          "date": "2026-01-20 14:45:22",
+          "received_at": "2026-01-20T14:45:22.899170",
+          "snippet": "Proyecto: Cuerpo de Siembra\nTiempo destinado: 5 Horas\nDescripción: ",
+          "body": "Proyecto: Cuerpo de Siembra\nTiempo destinado: 5 Horas\nDescripción: ",
+          "uid": 0,
+          "saved_path": "WEB_SUBMISSION"
+        }
+      }
+    },
+    {
+      "date": "2026-01-07",
+      "sent_at": "2026-01-07T17:00:07",
+      "subject": "Registro de Actividad Diario 07/01/26",
+      "token": "f438c2be",
+      "recipients": [
+        "lcontigiani@bpbargentina.com"
+      ],
+      "responses": {
+        "lcontigiani@bpbargentina.com": {
+          "from": "lcontigiani@bpbargentina.com",
+          "from_name": "Lorenzo Contigiani",
+          "subject": "Re: Registro de Actividad Diario 07/01/26",
+          "date": "2026-01-20 14:47:05",
+          "received_at": "2026-01-20T14:47:05.656156",
+          "snippet": "Proyecto: SimpliseedtyS1\nTiempo destinado: 0,75 Horas\nDescripción: ",
+          "body": "Proyecto: SimpliseedtyS1\nTiempo destinado: 0,75 Horas\nDescripción: ",
+          "uid": 0,
+          "saved_path": "WEB_SUBMISSION"
+        }
+      }
+    },
+    {
+      "date": "2026-01-06",
+      "sent_at": "2026-01-06T17:00:05",
+      "subject": "Registro de Actividad Diario 06/01/26",
+      "token": "12d22398",
+      "recipients": [
+        "lcontigiani@bpbargentina.com"
+      ],
+      "responses": {}
+    },
+    {
+      "date": "2026-01-05",
+      "sent_at": null,
+      "subject": "Re: Registro de Actividad Diario 05/01/26",
+      "token": "02e4bed5",
+      "recipients": [],
+      "responses": {
+        "lcontigiani@bpbargentina.com": {
+          "from": "lcontigiani@bpbargentina.com",
+          "from_name": "Lorenzo Contigiani",
+          "subject": "Re: Registro de Actividad Diario 05/01/26",
+          "date": "Mon, 05 Jan 2026 13:36:13 -0300",
+          "received_at": "2026-01-05T13:37:09",
+          "snippet": "Proyecto: Registro de Oficina Tecnica\nTiempo destinado: 1 hora\nDescripción: Prueba Final",
+          "body": "Proyecto: Registro de Oficina Tecnica\nTiempo destinado: 1 hora\nDescripción: Prueba Final",
+          "uid": 20,
+          "saved_path": "\\\\BPBSRV03\\lcontigiani\\Oficina Tecnica\\Registro de Actividad\\Codigos\\data\\responses\\02e4bed5_lcontigiani_bpbargentina.com_20.txt"
+        }
+      }
+    },
+    {
+      "date": "2026-01-05",
+      "sent_at": null,
+      "subject": "Re: Registro de Actividad Diario 05/01/26",
+      "token": "67d74084",
+      "recipients": [],
+      "responses": {
+        "lcontigiani@bpbargentina.com": {
+          "from": "lcontigiani@bpbargentina.com",
+          "from_name": "Lorenzo Contigiani",
+          "subject": "Re: Registro de Actividad Diario 05/01/26",
+          "date": "Mon, 05 Jan 2026 15:34:14 -0300",
+          "received_at": "2026-01-05T15:35:35",
+          "snippet": "Proyecto: Registro de Oficina Tecnica\nTiempo destinado: 1 hora\nDescripción: Prueba numero 1001",
+          "body": "Proyecto: Registro de Oficina Tecnica\nTiempo destinado: 1 hora\nDescripción: Prueba numero 1001",
+          "uid": 33,
+          "saved_path": "\\\\BPBSRV03\\lcontigiani\\Oficina Tecnica\\Registro de Actividad\\Codigos\\data\\responses\\67d74084_lcontigiani_bpbargentina.com_33.txt"
+        }
+      }
+    },
+    {
+      "date": "2026-01-05",
+      "sent_at": null,
+      "subject": "Re: Registro de Actividad Diario 05/01/26",
+      "token": "23cdc019",
+      "recipients": [],
+      "responses": {
+        "lcontigiani@bpbargentina.com": {
+          "from": "lcontigiani@bpbargentina.com",
+          "from_name": "Lorenzo Contigiani",
+          "subject": "Re: Registro de Actividad Diario 05/01/26",
+          "date": "Mon, 05 Jan 2026 17:38:02 -0300",
+          "received_at": "2026-01-05T17:39:02",
+          "snippet": "Proyecto: Registros\nTiempo destinado: 2 horas\nDescripción: Arreglando problemas.\n\n\nProyecto: Mate y mas mate\nTiempo destinado: 4 horas\nDescripción:",
+          "body": "Proyecto: Registros\nTiempo destinado: 2 horas\nDescripción: Arreglando problemas.\n\n\nProyecto: Mate y mas mate\nTiempo destinado: 4 horas\nDescripción:",
+          "uid": 35,
+          "saved_path": "\\\\BPBSRV03\\lcontigiani\\Oficina Tecnica\\Registro de Actividad\\Codigos\\data\\responses\\23cdc019_lcontigiani_bpbargentina.com_35.txt"
+        }
+      }
+    },
+    {
+      "date": "2025-12-19",
+      "sent_at": null,
+      "subject": "Re: Registro de Actividad Diario 19/12/25",
+      "token": "c2b05593",
+      "recipients": [],
+      "responses": {
+        "lcontigiani@bpbargentina.com": {
+          "from": "lcontigiani@bpbargentina.com",
+          "from_name": "Lorenzo Contigiani",
+          "subject": "Re: Registro de Actividad Diario 19/12/25",
+          "date": "Fri, 19 Dec 2025 09:38:20 -0300",
+          "received_at": "2025-12-19T09:38:27",
+          "snippet": "Proyecto: Prueba mil\nTiempo destinado: 5 horas\nDescripción: Estuve mucho con esto y con aquello.\n\nProyecto: Otros\nTiempo destinado: 30 minutos\nDescripción: Estuve mucho con esto y con aquello. y mas con aquello",
+          "body": "Proyecto: Prueba mil\nTiempo destinado: 5 horas\nDescripción: Estuve mucho con esto y con aquello.\n\nProyecto: Otros\nTiempo destinado: 30 minutos\nDescripción: Estuve mucho con esto y con aquello. y mas con aquello",
+          "uid": 977,
+          "saved_path": "\\\\BPBSRV03\\lcontigiani\\Oficina Tecnica\\Registro de Actividad\\Codigos\\responses\\c2b05593_lcontigiani_bpbargentina.com_977.txt"
+        }
+      }
+    },
+    {
+      "date": "2025-12-19",
+      "sent_at": null,
+      "subject": "Re: Registro de Actividad Diario 19/12/25",
+      "token": "27ebafe7",
+      "recipients": [],
+      "responses": {
+        "dmartin@bpbargentina.com": {
+          "from": "dmartin@bpbargentina.com",
+          "from_name": "David Martin Aimar",
+          "subject": "Re: Registro de Actividad Diario 19/12/25",
+          "date": "Fri, 19 Dec 2025 10:04:24 -0300",
+          "received_at": "2025-12-19T10:05:37",
+          "snippet": "Proyecto: Caja eléctrica 2\nTiempo destinado: 8\nDescripción: Desarrollo de caja de 1 motor\n\nProyecto: Otros\nTiempo destinado: 15 min\nDescripción: Planillas de prensado de sellos\n\n*David Martin - Oficina Técnica en BPB Group*\nCelular: +549 3467 52-1576 | Líneas rotativas: 0353 4648100\nAv. Larrabure 2250 | Villa María, Córdoba | bpbargentina.com",
+          "body": "Proyecto: Caja eléctrica 2\nTiempo destinado: 8\nDescripción: Desarrollo de caja de 1 motor\n\nProyecto: Otros\nTiempo destinado: 15 min\nDescripción: Planillas de prensado de sellos\n\n*David Martin - Oficina Técnica en BPB Group*\nCelular: +549 3467 52-1576 | Líneas rotativas: 0353 4648100\nAv. Larrabure 2250 | Villa María, Córdoba | bpbargentina.com",
+          "uid": 979,
+          "saved_path": "\\\\BPBSRV03\\lcontigiani\\Oficina Tecnica\\Registro de Actividad\\Codigos\\responses\\27ebafe7_dmartin_bpbargentina.com_979.txt"
+        }
+      }
+    }
+  ],
+  "imap": {
+    "last_uid": 1012,
+    "seen_uids": [
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      958,
+      959,
+      960,
+      961,
+      962,
+      963,
+      964,
+      966,
+      967,
+      968,
+      969,
+      970,
+      971,
+      972,
+      973,
+      974,
+      976,
+      977,
+      978,
+      979,
+      982,
+      983
+    ]
+  }
+}

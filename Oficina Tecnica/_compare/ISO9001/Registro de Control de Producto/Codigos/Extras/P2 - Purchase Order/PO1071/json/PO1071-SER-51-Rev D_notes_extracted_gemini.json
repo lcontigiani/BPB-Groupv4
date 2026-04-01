@@ -1,0 +1,49 @@
+{
+  "purchase_order": "1071",
+  "code": "100-SER-51",
+  "revision": "D",
+  "date": "02/06/2025",
+  "dimensions": {
+    "thickness": {
+      "value_mm": 28.58,
+      "tol_plus_mm": 0.04,
+      "tol_minus_mm": -0.04
+    },
+    "outer_dia": {
+      "value_mm": 140.0,
+      "tol_plus_mm": 0.0,
+      "tol_minus_mm": -0.018
+    },
+    "inner_dia": {
+      "value_mm": 80.96,
+      "tol_plus_mm": 0.024,
+      "tol_minus_mm": 0.005
+    }
+  },
+  "radial_clearance": {
+    "class": "C3",
+    "range_um": {
+      "min": 30,
+      "max": 58
+    }
+  },
+  "axial_clearance": null,
+  "hardness_hrc": {
+    "inner_plus": 62,
+    "inner_minus": 58,
+    "outer_plus": 62,
+    "outer_minus": 58
+  },
+  "revision_history": [
+    {
+      "rev": "D",
+      "date": "02/06/2025",
+      "by": "A.F, L.C"
+    },
+    {
+      "rev": "C",
+      "date": "15/02/2022",
+      "by": "H.P, L.C"
+    }
+  ]
+}

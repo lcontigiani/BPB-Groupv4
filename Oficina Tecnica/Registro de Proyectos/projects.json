@@ -1,0 +1,37 @@
+{
+    "projects": {
+        "1770214832769": {
+            "id": "1770214832769",
+            "name": "Panel de Control",
+            "date": "4/2/2026",
+            "status": "Activo",
+            "description": "Proyecto Activo",
+            "solids": []
+        },
+        "1770215657634": {
+            "id": "1770215657634",
+            "name": "Prueba 1",
+            "date": "4/2/2026",
+            "status": "Activo",
+            "description": "Proyecto Activo",
+            "solids": []
+        },
+        "1770216022982": {
+            "id": "1770216022982",
+            "name": "Prueba 2",
+            "date": "4/2/2026",
+            "status": "Activo",
+            "description": "Proyecto Activo",
+            "solids": [
+                {
+                    "id": "s1770217015731",
+                    "name": "PruebaSolido",
+                    "revision": "Rev.0",
+                    "filename": "TSG-CCW-0030000_Cuerpo_central_-_Rev._C.STEP",
+                    "hasFile": true,
+                    "date": "2026-02-04"
+                }
+            ]
+        }
+    }
+}

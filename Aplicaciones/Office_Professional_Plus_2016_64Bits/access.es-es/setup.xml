@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--_MODULUS=d0bWBGssHQhG8J31/nBe/KWG9jUn8ZcnVOOTuoL04Y39Xu81A8ptNNbX6I7Ut5zb0pr/eyiVHY9iwuXih81IBckF1chyLpBAspHkS6royBVurWhK5TA8GXtk3xhOMvNLDU30wESuh8UXusWWthPFmO1vdnwIwGzfUx9Qvsy60EU=-->
+<!--_SIG=mfcawX/rBfHf7zbHJvBiB1eHEMxQ87E5KsOCAFipuiI9YmTXEg1cIxw3Xs89dIhMsFWzhW2WXaV+lQz/HaitsYMjKB2xu5GnUzJHUI9Fj65FuVdxSCjLQAq8NlczfHXJh/SmAVYKcKlc9kqsCq8ZP5UYg4/ny/witzm82Gl+N5g=-->
+<Setup Id="Access.es-es" Type="AddOn" Keyword="AccessMUI" Culture="es-es">
+	<Option Id="AlwaysInstalled" DefaultState="Local" DisallowAbsent="yes" DisallowAdvertise="yes" Hidden="yes"/>
+	<Option Id="Gimme_OnDemandData" DefaultState="Local" DisallowAbsent="yes" DisallowAdvertise="yes" Hidden="yes"/>
+	<Option Id="ProductFiles" DefaultState="Local" DisallowAbsent="yes" DisallowAdvertise="no">
+		<Option Id="ACCESSFiles" DefaultState="Local" DisallowAbsent="no" DisallowAdvertise="no">
+			<Option Id="AccessHelpFiles" DefaultState="FollowParent" DisallowAbsent="yes" DisallowAdvertise="no" Hidden="yes"/>
+			<Option Id="AccessTemplatesIntl" DefaultState="Local" DisallowAbsent="no" DisallowAdvertise="yes"/>
+		</Option>
+	</Option>
+	<PackageRef Path="AccessMUI.xml"/>
+	<LocalCache DownloadCode="{90160000-0015-0C0A-1000-0000000FF1CE}" SkuComponentDirectory="Access.es-es">
+		<File Id="AccessMUI.xml" MD5="E66CF2FFC7EE4B898D6B8FA3B0E4EB9B" Size="0" RelativeCachePath="AccessMUI.xml" RelativeSourcePath="AccessMUI.xml"/>
+		<File Id="AccessMUI.msi" MD5="DA860C011D847EA7AD2C34D0B427E029" Size="3063808" RelativeCachePath="AccessMUI.msi" RelativeSourcePath="AccessMUI.msi"/>
+		<File Id="AccLR.cab" MD5="907F5A9B53BA82626E8FA3E3D57A22D2" Size="5611067" RelativeCachePath="AccLR.cab" RelativeSourcePath="AccLR.cab"/>
+		<File Id="branding.xml" MD5="D37A47547935B76B27F353B47886EBF1" Size="0" RelativeCachePath="branding.xml" RelativeSourcePath="branding.xml"/>
+		<File Id="Setup.xml" MD5="" Size="" RelativeCachePath="Setup.xml" RelativeSourcePath="Setup.xml"/>
+	</LocalCache>
+</Setup>

@@ -1,0 +1,35 @@
+{
+  "purchase_order": "1068",
+  "code": "PE-205",
+  "revision": "A",
+  "date": "23/03/2016",
+  "dimensions": {
+    "thickness": {
+      "value_mm": 36.5,
+      "tol_plus_mm": 0.15,
+      "tol_minus_mm": 0.15
+    },
+    "outer_thickness": null,
+    "inner_thickness": null,
+    "outer_dia": null,
+    "inner_dia": {
+      "value_mm": 52,
+      "tol_plus_mm": 0.009,
+      "tol_minus_mm": -0.021
+    }
+  },
+  "radial_clearance": null,
+  "axial_clearance": null,
+  "hardness_hrc": null,
+  "seal_torque": null,
+  "lubricant": null,
+  "retainer": null,
+  "revision_history": [
+    {
+      "rev": "A",
+      "date": "23/03/2016",
+      "by": ""
+    }
+  ],
+  "proveedor": "440"
+}

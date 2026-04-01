@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--_MODULUS=yQxSChTDQ4keDxitEAsKbu1IKGeUS8A0wktNZxcqYjE1QFWY9ixkCWDQRhRz9eBk+wOemlo/zW5luh/vuBhWYwc2EUT4//oLSCx3qNjDP2W3pQWgTJ3+Zwoiy5z1z7ES6LYqxN5blL6s3i947d95lLQsCFkxoVF7f5DyTA5XfU4=-->
+<!--_SIG=ra3EfOKlxYwf4yPBsAGnIaCsG1z9lVV7AuVgplAknb6EvqHJfP9SBCNu2W8AcGyQ81FWVSAi0JlaOjYBabktpu9OJDMXyODStPnDtFPhfblvOsBT2wRT7h+rx9mWhPhndLgXbzuGDcmG88N3RPcO18sSfhfG3IVY8YQ7iayq4F4=-->
+<Package Id="WordMUI.es-es" Type="MSI" Path="WordMUI.MSI" Version="1.0" ProductCode="{90160000-001B-0C0A-1000-0000000FF1CE}" MSIVersion="16.0.4266.1001" ProductLanguage="3082" Platform="x64">
+	<Feature Id="SetupControllerFiles" Cost="468">
+		<OptionRef Id="AlwaysInstalled"/>
+	</Feature>
+	<Feature Id="WORDHelpFilesIntl_3082" Cost="537491">
+		<OptionRef Id="WORDHelpFiles"/>
+	</Feature>
+	<Feature Id="WordPdfiFilesIntl_3082" Cost="13512">
+		<OptionRef Id="WordPdfi"/>
+	</Feature>
+	<Feature Id="WordDocumentPartsFilesIntl_3082" Cost="3003854">
+		<OptionRef Id="WORDFiles"/>
+	</Feature>
+	<Feature Id="MsoInstalledPackagesScopedIntl_3082" Cost="0">
+		<OptionRef Id="AlwaysInstalled"/>
+	</Feature>
+	<Feature Id="WORDDocumentTemplatesIntl_3082" Cost="8994324">
+		<OptionRef Id="WORDDocumentTemplates"/>
+	</Feature>
+	<Feature Id="WORDNonBootFilesIntl_3082" Cost="45568">
+		<OptionRef Id="WORDFiles"/>
+	</Feature>
+	<Feature Id="SetupXmlFiles" Cost="468">
+		<OptionRef Id="AlwaysInstalled"/>
+	</Feature>
+	<Feature Id="WhiteRabbitHiddenIntl_3082" Cost="82432">
+		<OptionRef Id="WhiteRabbitHidden"/>
+	</Feature>
+	<Feature Id="ExcelConverter12Intl_3082" Cost="17684568">
+		<OptionRef Id="AlwaysInstalled"/>
+	</Feature>
+	<Feature Id="WordBibliographyFilesIntl_3082" Cost="114930">
+		<OptionRef Id="WordBibliographyFiles"/>
+	</Feature>
+	<Feature Id="WORDSharedFilesIntl_3082" Cost="1302956">
+		<OptionRef Id="WORDSharedFiles"/>
+	</Feature>
+	<Feature Id="Gimme_OnDemandData" Cost="0">
+		<OptionRef Id="Gimme_OnDemandData"/>
+	</Feature>
+	<Feature Id="WordQuickFormatsFilesIntl_3082" Cost="204085">
+		<OptionRef Id="WordQuickFormatsFiles"/>
+	</Feature>
+</Package>

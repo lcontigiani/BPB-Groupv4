@@ -1,0 +1,78 @@
+{
+  "purchase_order": "1071",
+  "code": "103-204-KYY7",
+  "revision": "H",
+  "date": "26/02/2018",
+  "dimensions": {
+    "thickness": {
+      "value_mm": 19.694,
+      "tol_plus_mm": 0.0,
+      "tol_minus_mm": -0.12
+    },
+    "outer_dia": {
+      "value_mm": 47.0,
+      "tol_plus_mm": 0.0,
+      "tol_minus_mm": -0.013
+    },
+    "inner_dia": {
+      "value_mm": 28.5,
+      "tol_plus_mm": 0.0,
+      "tol_minus_mm": -0.02
+    }
+  },
+  "radial_clearance": null,
+  "axial_clearance": {
+    "range_um": {
+      "min": 36,
+      "max": 52
+    }
+  },
+  "hardness_hrc": {
+    "inner_plus": 64,
+    "inner_minus": 58,
+    "outer_plus": 64,
+    "outer_minus": 58
+  },
+  "revision_history": [
+    {
+      "rev": "H",
+      "date": "26/02/2018",
+      "by": "P.C"
+    },
+    {
+      "rev": "G",
+      "date": "27/01/2017",
+      "by": "M.M.P"
+    },
+    {
+      "rev": "F",
+      "date": "07/10/2014",
+      "by": "C.T"
+    },
+    {
+      "rev": "E",
+      "date": "04/11/2013",
+      "by": "C.T"
+    },
+    {
+      "rev": "D",
+      "date": "15/10/2013",
+      "by": "C.T"
+    },
+    {
+      "rev": "C",
+      "date": "13/09/2012",
+      "by": "C.T"
+    },
+    {
+      "rev": "B",
+      "date": "16/03/2010",
+      "by": "A.B"
+    },
+    {
+      "rev": "A",
+      "date": "16/10/2009",
+      "by": "C.T"
+    }
+  ]
+}

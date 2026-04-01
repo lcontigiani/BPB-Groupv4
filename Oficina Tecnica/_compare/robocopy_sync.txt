@@ -1,0 +1,286 @@
+
+-------------------------------------------------------------------------------
+   ROBOCOPY     ::     Herramienta para copia eficaz de archivos         
+-------------------------------------------------------------------------------
+
+  Inicio: martes, 10 de febrero de 202614:36:48
+   Origen : C:\Users\lcontigiani\Desktop\Oficina Tecnica\
+     Destino : \\BPBSRV03\lcontigiani\Oficina Tecnica\
+
+    Archivos: *.*
+	    
+ Dirs. de ejecutables: .git
+	    
+  Opciones: *.* /FFT /S /E /DCOPY:DA /COPY:DAT /XO /XJ /XA:H /R:1 /W:1 
+
+------------------------------------------------------------------------------
+
+	                   7	C:\Users\lcontigiani\Desktop\Oficina Tecnica\
+	*Directorio EXTRA      -1	\\BPBSRV03\lcontigiani\Oficina Tecnica\_compare\
+	    Nuevo arch		      95	.gitignore100%  
+	                   1	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Actividad\
+	                   4	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Actividad\Codigos\
+	                   8	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Actividad\Codigos\config\
+	  Más reciente		     702	activity_mailer_profiles.json100%  
+	  Más reciente		    1461	glosario_proyectos.log100%  
+	                   5	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Actividad\Codigos\data\
+	  Más reciente		   22653	base_datos_respuestas.csv100%  
+	                 112	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Actividad\Codigos\data\responses\
+	  *Archivo EXTRA		      35	d7bd7a48_fbeaz_bpbargentina.com_38.txt
+	                   8	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Actividad\Codigos\data\respuestas_csv\
+	  *Archivo EXTRA		    5713	Franco Beaz.csv
+	    Nuevo arch		    4593	Franco Baez.csv100%  
+	  Más reciente		    3573	Lorenzo Contigiani.csv100%  
+	                   1	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Actividad\Codigos\logs\
+	                   1	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Actividad\Codigos\__pycache__\
+	                   3	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\
+	                   0	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Auxiliares\
+	                   1	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Auxiliares\Fabricas\
+	                   2	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Auxiliares\Formula de Produccion\
+	                   0	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Auxiliares\Historial PO\
+	                  12	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Auxiliares\indices_auxiliar\
+	                   4	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Auxiliares\Ingresos\
+	  Más reciente		   31190	Ingresos diarios.csv100%  
+	  Más reciente		    9760	resumen_all.csv100%  
+	  Más reciente		    1020	resumen_temp.csv100%  
+	                  15	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Auxiliares\Registro Planillas R016-01\
+	                  33	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Codigos\
+	  Más reciente		   31107	debug_force.txt100%  
+	                   1	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Codigos\.vscode\
+	                  62	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Codigos\Dashboard_PO\
+	  Más reciente		  279415	app.py 46%   93%  100%  
+	  Más reciente		   18383	global_debug_startup.log100%  
+	                   0	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Codigos\Dashboard_PO\.agent\
+	                   1	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Codigos\Dashboard_PO\.agent\workflows\
+	                   0	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Codigos\Dashboard_PO\Datos\
+	                   1	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Codigos\Dashboard_PO\Datos\Actividades\
+	                  25	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Codigos\Dashboard_PO\libs\
+	                   0	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Codigos\Dashboard_PO\mock_data\
+	                  10	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Codigos\Dashboard_PO\mock_data\PO1291 Ejemplo\
+	                   3	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Codigos\Dashboard_PO\mock_data\PO1291 Ejemplo\csv\
+	                   1	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Codigos\Dashboard_PO\mock_data\PO1291 Real\
+	                   9	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Codigos\Dashboard_PO\mock_data\PO1292 Ejemplo\
+	                   3	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Codigos\Dashboard_PO\mock_data\PO1292 Ejemplo\csv\
+	                   9	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Codigos\Dashboard_PO\mock_data\PO1293 Ejemplo\
+	                   3	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Codigos\Dashboard_PO\mock_data\PO1293 Ejemplo\csv\
+	                   9	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Codigos\Dashboard_PO\mock_data\PO1294 Ejemplo\
+	                   3	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Codigos\Dashboard_PO\mock_data\PO1294 Ejemplo\csv\
+	                   9	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Codigos\Dashboard_PO\mock_data\PO1295 Ejemplo\
+	                   3	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Codigos\Dashboard_PO\mock_data\PO1295 Ejemplo\csv\
+	                   0	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Codigos\Dashboard_PO\Recursos B&P\
+	                   1	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Codigos\Dashboard_PO\Recursos B&P\Fondo Login\
+	                   4	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Codigos\Dashboard_PO\Recursos B&P\ISO\
+	                   5	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Codigos\Dashboard_PO\Recursos B&P\Logo Oficina Tecnica\
+	                   6	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Codigos\Dashboard_PO\Recursos B&P\Logos PNG\
+	                   6	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Codigos\Dashboard_PO\Recursos B&P\Logos VECTOR\
+	                   1	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Codigos\Dashboard_PO\Recursos B&P\Manual de marca B&P\
+	                  11	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Codigos\Dashboard_PO\static\
+	  Más reciente		  570389	script.js 45%   91%  100%  
+	  Más reciente		   69947	style.css100%  
+	                   6	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Codigos\Dashboard_PO\static\assets\
+	   Nuevo dir       2	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Codigos\Dashboard_PO\static\data\
+	    Nuevo arch		  267881	clientes_v2.csv 48%   97%  100%  
+	    Nuevo arch		  574941	clientes_v2.json 45%   91%  100%  
+	                   5	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Codigos\Dashboard_PO\static\fonts\
+	                   2	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Codigos\Dashboard_PO\static\libs\
+	                   1	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Codigos\Dashboard_PO\templates\
+	  Más reciente		  186294	index.html 70%  100%  
+	                   1	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Codigos\Dashboard_PO\uploads\
+	                   1	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Codigos\Dashboard_PO\__pycache__\
+	                   0	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Codigos\Extras\
+	                   0	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Codigos\Extras\P2 - Purchase Order\
+	                   0	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Codigos\Extras\P2 - Purchase Order\PO1068\
+	                  10	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Codigos\Extras\P2 - Purchase Order\PO1068\csv\
+	                   1	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Codigos\Extras\P2 - Purchase Order\PO1068\csv_Auxiliar\
+	                  34	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Codigos\Extras\P2 - Purchase Order\PO1068\json\
+	                   6	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Codigos\Extras\P2 - Purchase Order\PO1071\
+	                   6	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Codigos\Extras\P2 - Purchase Order\PO1071\csv\
+	                   1	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Codigos\Extras\P2 - Purchase Order\PO1071\csv_Auxiliar\
+	                  12	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Codigos\Extras\P2 - Purchase Order\PO1071\json\
+	                  11	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Codigos\Extras\P2 - Purchase Order\PO1291\
+	                  11	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Codigos\Extras\P2 - Purchase Order\PO1291\csv\
+	                   1	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Codigos\Extras\P2 - Purchase Order\PO1291\csv_Auxiliar\
+	                  22	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Codigos\Extras\P2 - Purchase Order\PO1291\json\
+	                   1	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Codigos\Pruebas\
+	                   1	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Codigos\Pruebas\csv\
+	                   1	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Codigos\Pruebas\csv_Auxiliar\
+	                   1	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Codigos\Pruebas\json\
+	                   4	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Codigos\Usuarios\
+	  Más reciente		   85794	audit_log.json100%  
+	  Más reciente		    3139	users.json100%  
+	                   0	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Codigos\Usuarios\profile_pics\
+	                  12	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Codigos\__pycache__\
+	   Nuevo dir       1	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Datos\
+	    Nuevo arch		   22280	notifications.json100%  
+	                   0	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Extras\
+	                   1	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Extras\Oficina Tecnica\
+	                   1	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Extras\Oficina Tecnica\Registro de Actividad\
+	                   4	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Extras\Oficina Tecnica\Registro de Actividad\Codigos\
+	                   8	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Extras\Oficina Tecnica\Registro de Actividad\Codigos\config\
+	                   5	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Extras\Oficina Tecnica\Registro de Actividad\Codigos\data\
+	                 112	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Extras\Oficina Tecnica\Registro de Actividad\Codigos\data\responses\
+	                   9	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Extras\Oficina Tecnica\Registro de Actividad\Codigos\data\respuestas_csv\
+	                   1	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Extras\Oficina Tecnica\Registro de Actividad\Codigos\logs\
+	                   1	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Extras\Oficina Tecnica\Registro de Actividad\Codigos\__pycache__\
+	                   4	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Extras\Oficina Tecnica\Registro de ISO 9001\
+	                   0	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Extras\Oficina Tecnica\Registro de ISO 9001\Codigos\
+	                   2	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Extras\Oficina Tecnica\Registro de ISO 9001\Codigos\R019-01\
+	                   1	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Extras\Oficina Tecnica\Registro de ISO 9001\Codigos\R019-02\
+	                   2	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Extras\Oficina Tecnica\Registro de ISO 9001\Codigos\R019-03\
+	                   4	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\Extras\Oficina Tecnica\Registro de ISO 9001\Codigos\R019-04\
+	                   3	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\git\
+	                   1	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\P0 - Comandos\
+	                   1	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\P1 - Registros Solicitados\
+	                   1	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\P1 - Registros Solicitados\Auxiliar\
+	                   0	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\P1 - Registros Solicitados\failed\
+	                   0	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\P1 - Registros Solicitados\in process\
+	                   2	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\P1 - Registros Solicitados\in process\Registro - R0003 - 2026-01-16\
+	                   1	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\P1 - Registros Solicitados\in process\Registro - R0004 - 2026-01-16\
+	                   1	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\P1 - Registros Solicitados\in process\Registro - R0005 - 2026-01-16\
+	                   1	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\P1 - Registros Solicitados\in process\Registro - R0006 - 2026-01-16\
+	                   0	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\P2 - Purchase Order\
+	                   0	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\P2 - Purchase Order\En progreso\
+	   Nuevo dir      14	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\P2 - Purchase Order\En progreso\PO1291\
+	    Nuevo arch		     593	approval_info.json100%  
+	    Nuevo arch		     702	aux_targets.json100%  
+	    Nuevo arch		  179308	PO1291-1206-TN-C3 - Rev.B.pdf 73%  100%  
+	    Nuevo arch		  182602	PO1291-1208-TN-C3 - Rev C.pdf 71%  100%  
+	    Nuevo arch		  180008	PO1291-1209-TN-C3-Rev.E.pdf 72%  100%  
+	    Nuevo arch		  177310	PO1291-22210-CW33C3 - Rev B.pdf 73%  100%  
+	    Nuevo arch		  180677	PO1291-22211-CKW33C3-Rev C.pdf 72%  100%  
+	    Nuevo arch		  182802	PO1291-22211-CW33C3 - Rev C.pdf 71%  100%  
+	    Nuevo arch		  179861	PO1291-22213-CW33C3 - Rev B.pdf 72%  100%  
+	    Nuevo arch		  247537	PO1291-51107- Rev.B.pdf 52%  100%  
+	    Nuevo arch		  247247	PO1291-51118 -Rev A.pdf 53%  100%  
+	    Nuevo arch		  246518	PO1291-51205.pdf 53%  100%  
+	    Nuevo arch		  248523	PO1291-51310-Rev B.pdf 52%  100%  
+	    Nuevo arch		    6261	_trace_approval.txt100%  
+	   Nuevo dir      11	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\P2 - Purchase Order\En progreso\PO1291\csv\
+	    Nuevo arch		     304	PO1291-1206-TN-C3 - Rev.B.csv100%  
+	    Nuevo arch		     304	PO1291-1208-TN-C3 - Rev C.csv100%  
+	    Nuevo arch		     304	PO1291-1209-TN-C3-Rev.E.csv100%  
+	    Nuevo arch		     234	PO1291-22210-CW33C3 - Rev B.csv100%  
+	    Nuevo arch		     236	PO1291-22211-CKW33C3-Rev C.csv100%  
+	    Nuevo arch		     232	PO1291-22211-CW33C3 - Rev C.csv100%  
+	    Nuevo arch		     236	PO1291-22213-CW33C3 - Rev B.csv100%  
+	    Nuevo arch		     129	PO1291-51107- Rev.B.csv100%  
+	    Nuevo arch		     129	PO1291-51118 -Rev A.csv100%  
+	    Nuevo arch		     129	PO1291-51205.csv100%  
+	    Nuevo arch		     129	PO1291-51310-Rev B.csv100%  
+	   Nuevo dir       1	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\P2 - Purchase Order\En progreso\PO1291\csv_Auxiliar\
+	    Nuevo arch		    1342	aux_matches.csv100%  
+	   Nuevo dir      11	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\P2 - Purchase Order\En progreso\PO1291\json\
+	    Nuevo arch		    1124	PO1291-1206-TN-C3 - Rev.B_notes_extracted_gemini.json100%  
+	    Nuevo arch		    1128	PO1291-1208-TN-C3 - Rev C_notes_extracted_gemini.json100%  
+	    Nuevo arch		    1233	PO1291-1209-TN-C3-Rev.E_notes_extracted_gemini.json100%  
+	    Nuevo arch		    1089	PO1291-22210-CW33C3 - Rev B_notes_extracted_gemini.json100%  
+	    Nuevo arch		    1221	PO1291-22211-CKW33C3-Rev C_notes_extracted_gemini.json100%  
+	    Nuevo arch		    1037	PO1291-22211-CW33C3 - Rev C_notes_extracted_gemini.json100%  
+	    Nuevo arch		    1128	PO1291-22213-CW33C3 - Rev B_notes_extracted_gemini.json100%  
+	    Nuevo arch		    1059	PO1291-51107- Rev.B_notes_extracted_gemini.json100%  
+	    Nuevo arch		     985	PO1291-51118 -Rev A_notes_extracted_gemini.json100%  
+	    Nuevo arch		    1065	PO1291-51205_notes_extracted_gemini.json100%  
+	    Nuevo arch		     949	PO1291-51310-Rev B_notes_extracted_gemini.json100%  
+	                   1	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\P2 - Purchase Order\Entrantes\
+	                   1	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\P2 - Purchase Order\Procesado\
+	*Directorio EXTRA      -1	\\BPBSRV03\lcontigiani\Oficina Tecnica\Registro de Control de Producto\P2 - Purchase Order\Procesado\PO1291\
+	                   3	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\P3 - Panel de Control\
+	                   2	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\P3 - Panel de Control\Archivos Necesarios\
+	                   0	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\P4 - Control Final\
+	                   0	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de ISO 9001\
+	  *Archivo EXTRA		   68795	R019-01-Modelo.docx
+	  *Archivo EXTRA		   11759	R019-02-Modelo.xlsm
+	  *Archivo EXTRA		   40949	R019-03 - Listado de Dise¤os y Desarrollos- Rev2.xlsm
+	  *Archivo EXTRA		  204800	R019-04-Modelo.mpp
+	                   0	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de ISO 9001\Codigos\
+	                   3	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de ISO 9001\Codigos\R019-01\
+	    Nuevo arch		  456884	Clientes V2.xlsx 28%   57%   86%   99%  100%  
+	  Más reciente		    4658	fill_r01901.py100%  
+	  Más reciente		    2543	payload_template.json100%  
+	   Nuevo dir       1	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de ISO 9001\Codigos\R019-01\__pycache__\
+	    Nuevo arch		    8958	fill_r01901.cpython-314.pyc100%  
+	                   1	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de ISO 9001\Codigos\R019-02\
+	  Más reciente		   14501	fill_r01902.py100%  
+	   Nuevo dir       1	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de ISO 9001\Codigos\R019-02\__pycache__\
+	    Nuevo arch		   22750	fill_r01902.cpython-314.pyc100%  
+	                   2	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de ISO 9001\Codigos\R019-03\
+	  Más reciente		   11084	fill_r01903.py100%  
+	   Nuevo dir       1	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de ISO 9001\Codigos\R019-03\__pycache__\
+	    Nuevo arch		   18078	fill_r01903.cpython-314.pyc100%  
+	                   4	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de ISO 9001\Codigos\R019-04\
+	  Más reciente		    8664	fill_r01904.py100%  
+	   Nuevo dir      23	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de ISO 9001\R019-01\
+	    Nuevo arch		   70392	R019-01-DATOS DE ENTRADA-BP-26001.docx100%  
+	    Nuevo arch		   70428	R019-01-DATOS DE ENTRADA-BP-26002.docx100%  
+	    Nuevo arch		   70411	R019-01-DATOS DE ENTRADA-BP-26003.docx100%  
+	    Nuevo arch		   70421	R019-01-DATOS DE ENTRADA-BP-26004.docx100%  
+	    Nuevo arch		   70414	R019-01-DATOS DE ENTRADA-BP-26005.docx100%  
+	    Nuevo arch		   70443	R019-01-DATOS DE ENTRADA-BP-26006.docx100%  
+	    Nuevo arch		   70421	R019-01-DATOS DE ENTRADA-BP-26007.docx100%  
+	    Nuevo arch		   70396	R019-01-DATOS DE ENTRADA-BP-26008.docx100%  
+	    Nuevo arch		   70402	R019-01-DATOS DE ENTRADA-BP-26009.docx100%  
+	    Nuevo arch		   70409	R019-01-DATOS DE ENTRADA-BP-26010.docx100%  
+	    Nuevo arch		   70400	R019-01-DATOS DE ENTRADA-BP-26011.docx100%  
+	    Nuevo arch		   70409	R019-01-DATOS DE ENTRADA-BP-26012.docx100%  
+	    Nuevo arch		   70401	R019-01-DATOS DE ENTRADA-BP-26013.docx100%  
+	    Nuevo arch		   70392	R019-01-DATOS DE ENTRADA-BP-26014.docx100%  
+	    Nuevo arch		   70423	R019-01-DATOS DE ENTRADA-BP-26015.docx100%  
+	    Nuevo arch		   70476	R019-01-DATOS DE ENTRADA-BP-26016.docx100%  
+	    Nuevo arch		   70451	R019-01-DATOS DE ENTRADA-BP-26017.docx100%  
+	    Nuevo arch		   70416	R019-01-DATOS DE ENTRADA-BP-26018.docx100%  
+	    Nuevo arch		   70425	R019-01-DATOS DE ENTRADA-BP-26019.docx100%  
+	    Nuevo arch		   70411	R019-01-DATOS DE ENTRADA-BP-26020.docx100%  
+	    Nuevo arch		   70435	R019-01-DATOS DE ENTRADA-BP-26021.docx100%  
+	    Nuevo arch		   70458	R019-01-DATOS DE ENTRADA-BP-26022.docx100%  
+	    Nuevo arch		   70241	R019-01-Modelo.docx100%  
+	   Nuevo dir      16	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de ISO 9001\R019-02\
+	    Nuevo arch		    6868	R019-02 Rev03 - BP-26008.xlsm100%  
+	    Nuevo arch		    6836	R019-02 Rev03 - BP-26009.xlsm100%  
+	    Nuevo arch		   11200	R019-02 Rev03 - BP-26010.xlsm100%  
+	    Nuevo arch		   11202	R019-02 Rev03 - BP-26011.xlsm100%  
+	    Nuevo arch		    6626	R019-02 Rev03 - BP-26012.xlsm100%  
+	    Nuevo arch		    6755	R019-02 Rev03 - BP-26013.xlsm100%  
+	    Nuevo arch		    6748	R019-02 Rev03 - BP-26014.xlsm100%  
+	    Nuevo arch		    6874	R019-02 Rev03 - BP-26015.xlsm100%  
+	    Nuevo arch		    6780	R019-02 Rev03 - BP-26016.xlsm100%  
+	    Nuevo arch		    6761	R019-02 Rev03 - BP-26017.xlsm100%  
+	    Nuevo arch		    6628	R019-02 Rev03 - BP-26018.xlsm100%  
+	    Nuevo arch		    6626	R019-02 Rev03 - BP-26019.xlsm100%  
+	    Nuevo arch		    6883	R019-02 Rev03 - BP-26020.xlsm100%  
+	    Nuevo arch		    6765	R019-02 Rev03 - BP-26021.xlsm100%  
+	    Nuevo arch		    6625	R019-02 Rev03 - BP-26022.xlsm100%  
+	    Nuevo arch		   11205	R019-02-Modelo.xlsm100%  
+	   Nuevo dir       1	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de ISO 9001\R019-03\
+	    Nuevo arch		   32060	R019-03 - Modelo.xlsm100%  
+	   Nuevo dir       9	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de ISO 9001\R019-04\
+	    Nuevo arch		  203776	R019-04 - BP-26013.mpp 64%  100%  
+	    Nuevo arch		  204800	R019-04 - BP-26014.mpp 64%  100%  
+	    Nuevo arch		  209920	R019-04 - BP-26015.mpp 62%  100%  
+	    Nuevo arch		  204800	R019-04 - BP-26017.mpp 64%  100%  
+	    Nuevo arch		  204800	R019-04 - BP-26019.mpp 64%  100%  
+	    Nuevo arch		  213504	R019-04 - BP-26020.mpp 61%  100%  
+	    Nuevo arch		  204800	R019-04 - BP-26021.mpp 64%  100%  
+	    Nuevo arch		  204800	R019-04 - BP-26022.mpp 64%  100%  
+	    Nuevo arch		  204800	R019-04-Modelo.mpp 63%   99%  100%  
+	                   1	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Proyectos\
+	                   5	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Solidos\
+	                   0	C:\Users\lcontigiani\Desktop\Oficina Tecnica\__backup_logistica_sync_20260205_112935\
+	                   0	C:\Users\lcontigiani\Desktop\Oficina Tecnica\__backup_logistica_sync_20260205_112935\Registro de Control de Producto\
+	                   0	C:\Users\lcontigiani\Desktop\Oficina Tecnica\__backup_logistica_sync_20260205_112935\Registro de Control de Producto\Codigos\
+	                   1	C:\Users\lcontigiani\Desktop\Oficina Tecnica\__backup_logistica_sync_20260205_112935\Registro de Control de Producto\Codigos\Dashboard_PO\
+	                   2	C:\Users\lcontigiani\Desktop\Oficina Tecnica\__backup_logistica_sync_20260205_112935\Registro de Control de Producto\Codigos\Dashboard_PO\static\
+	                   1	C:\Users\lcontigiani\Desktop\Oficina Tecnica\__backup_logistica_sync_20260205_112935\Registro de Control de Producto\Codigos\Dashboard_PO\templates\
+
+------------------------------------------------------------------------------
+
+               Total   Copiado   OmitidoNo coincidencia     ERROR    Extras
+Director.:       133        13       120         0         0         2
+ Archivos:       839       115       724         0         0         6
+    Bytes:  158.22 m    8.23 m  149.98 m         0         0   324.2 k
+   Tiempo:   0:00:08   0:00:04                       0:00:00   0:00:03
+
+
+Velocidad:             1780892 Bytes/s
+Velocidad:             101.903 Megabytes/min
+   Finalizado: martes, 10 de febrero de 2026 14:36:57
+

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--_MODULUS=BiZ6V/0E6qHWjn+bm/mHpkX5KJ0TwtchkPe/eHkp3q5xCod5hx/8MANgGxNnlRI7tfdsGCbHyJiyfc4Us1n7+RpqlviEDPP9OehSy6BGn8EVaJjmNnekZ6JjKBvhfploYrK6TZ7Qc/3a6Y+gTAbJap5cRpheteqfnrB8rCWnMAg=-->
+<!--_SIG=eCa8dc23aBZIDm8UdAh1Gy5N+XCAB4vruHsDz2Fdg/zH3sB+QNfnAqwuhB9VfMSezBTVRLoWpdQ6d149reDl7319UNOqn0LcZK6p0f9FcvpiLwwQAWxOJYvL1tqEQ7v1DCraxPOU3tW4eiigojlJ3wRpZ6l+H7+zlgRO7ipUfQI=-->
+<Package Id="Proofing.es-es" Type="MSI" Path="Proofing.MSI" Version="1.0" ProductCode="{90160000-002C-0C0A-1000-0000000FF1CE}" MSIVersion="16.0.4266.1001" ProductLanguage="3082" Platform="x64">
+	<Feature Id="SetupXmlFiles" Cost="468">
+		<OptionRef Id="AlwaysInstalled"/>
+	</Feature>
+	<Feature Id="MsoInstalledPackagesScopedIntl_3082" Cost="0">
+		<OptionRef Id="AlwaysInstalled"/>
+	</Feature>
+	<Feature Id="SetupControllerFiles" Cost="468">
+		<OptionRef Id="AlwaysInstalled"/>
+	</Feature>
+	<Feature Id="Gimme_OnDemandData" Cost="0">
+		<OptionRef Id="Gimme_OnDemandData"/>
+	</Feature>
+</Package>

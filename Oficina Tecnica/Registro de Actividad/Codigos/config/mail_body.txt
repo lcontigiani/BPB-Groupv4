@@ -1,0 +1,11 @@
+Buenas tardes, {Nombre}
+
+Se le solicita dejar asentado las actividades llevadas a cabo en el dia de hoy {Fecha_larga}.
+
+Ingresando a la pagina web de Oficina Tecnica, describa brevemente las actividades del dia respetando el siguiente formato:
+
+Aclaraciones:
+- Si no sabe a que proyecto hacer referencia, escribir "Otros".
+- Ante un nuevo Proyecto, Puede ingresar a "Glosario" para su creación. Notificar a L.Contigiani.
+
+Token: {Token}

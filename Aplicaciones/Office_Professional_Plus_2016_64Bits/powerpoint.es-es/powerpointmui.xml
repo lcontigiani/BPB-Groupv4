@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--_MODULUS=ZGPTB07bv8EhLPRKKWWKpqCSdOXziD8tWdAjERgntoBMulrnHSxjuulKVIefR93JA3A+KDe6nUK7zYl/U3fLCYGOiR4vAOEzaJUJOoo5pacoFVkS5Ud/yS0Wo7UDhIsd9YrxAihhnJW6awcfbwhGD8y4R9h5DbAYh7j5WJxVNk8=-->
+<!--_SIG=FgMWtjWTsOhC8Sqep5cIZwCtLupotk6IUBbJD3rFnSAxSEbkNX75BLooq4GaD3w4u4z11wON+BwzgTj/gpc/fjkvGSGitQ4XabuxFoqsodJSny+fUe7nBXRhWeSjAinLhVF/2hN+1P+qD0mNz+BvJZGThp6DIREa8H+FlXd6/l8=-->
+<Package Id="PowerPointMUI.es-es" Type="MSI" Path="PowerPointMUI.MSI" Version="1.0" ProductCode="{90160000-0018-0C0A-1000-0000000FF1CE}" MSIVersion="16.0.4266.1001" ProductLanguage="3082" Platform="x64">
+	<Feature Id="ExcelConverter12Intl_3082" Cost="17684568">
+		<OptionRef Id="AlwaysInstalled"/>
+	</Feature>
+	<Feature Id="PPTFilesIntl_3082" Cost="2111976">
+		<OptionRef Id="PPTFiles"/>
+	</Feature>
+	<Feature Id="OrgChartFilesIntl_3082" Cost="132528">
+		<OptionRef Id="OrgChartFiles"/>
+	</Feature>
+	<Feature Id="Gimme_OnDemandData" Cost="0">
+		<OptionRef Id="Gimme_OnDemandData"/>
+	</Feature>
+	<Feature Id="SetupXmlFiles" Cost="468">
+		<OptionRef Id="AlwaysInstalled"/>
+	</Feature>
+	<Feature Id="MsoInstalledPackagesScopedIntl_3082" Cost="0">
+		<OptionRef Id="AlwaysInstalled"/>
+	</Feature>
+	<Feature Id="PPTPresentationTemplatesIntl_3082" Cost="3538325">
+		<OptionRef Id="PPTPresentationTemplates"/>
+	</Feature>
+	<Feature Id="SetupControllerFiles" Cost="468">
+		<OptionRef Id="AlwaysInstalled"/>
+	</Feature>
+	<Feature Id="PPTNonBootFilesIntl_3082" Cost="144384">
+		<OptionRef Id="PPTFiles"/>
+	</Feature>
+	<Feature Id="PPTHelpFilesIntl_3082" Cost="456305">
+		<OptionRef Id="PPTHelpFiles"/>
+	</Feature>
+</Package>

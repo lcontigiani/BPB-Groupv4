@@ -1,0 +1,23 @@
+Buenas tardes,
+
+Envío datos para el ejemplo de la prueba piloto
+
+Proyecto: Dosificador S1
+Tiempo destinado: 2hs
+Descripción: Pruebas e informe de singulacion
+
+Proyecto: Cuerpo de siembra
+Tiempo destinado: 1hs
+Descripción: Patente cuerpo de siembra
+
+Proyecto: Calidad
+Tiempo destinado: 1hs
+Descripción: Reclamos, retrabajos y otras tareas
+
+Proyecto: Tareas regulares
+Tiempo destinado: 3hs
+Descripción: Control de planos, y dirección de tareas.
+
+Proyecto: Dosificador para mani
+Tiempo destinado: 1hs
+Descripción: Pruebas de semillas tratada

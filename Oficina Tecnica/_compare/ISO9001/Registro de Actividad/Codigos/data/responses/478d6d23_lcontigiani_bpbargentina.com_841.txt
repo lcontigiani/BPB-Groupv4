@@ -1,0 +1,2 @@
+Estuve trabajando en el sistema de costos para conseguir la rentabilidad de
+cada producto.

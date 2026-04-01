@@ -1,0 +1,47 @@
+{
+  "purchase_order": "1068",
+  "code": "F-213",
+  "revision": "A",
+  "date": "23/03/2016",
+  "dimensions": {
+    "thickness": {
+      "value_mm": 50,
+      "tol_plus_mm": 0.3,
+      "tol_minus_mm": -0.3
+    },
+    "outer_thickness": {
+      "value_mm": 30,
+      "tol_plus_mm": 0.8,
+      "tol_minus_mm": -0.8
+    },
+    "inner_thickness": {
+      "value_mm": 28,
+      "tol_plus_mm": 0.2,
+      "tol_minus_mm": -0.2
+    },
+    "outer_dia": {
+      "value_mm": 122,
+      "tol_plus_mm": 0.74,
+      "tol_minus_mm": 0.0
+    },
+    "inner_dia": {
+      "value_mm": 120,
+      "tol_plus_mm": 0.01,
+      "tol_minus_mm": -0.025
+    }
+  },
+  "radial_clearance": null,
+  "axial_clearance": null,
+  "hardness_hrc": null,
+  "seal_torque": null,
+  "lubricant": null,
+  "retainer": null,
+  "revision_history": [
+    {
+      "rev": "A",
+      "date": "23/03/2016",
+      "by": ""
+    }
+  ],
+  "proveedor": "440"
+}

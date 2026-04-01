@@ -1,0 +1,182 @@
+2026-01-26 10:52:07 [INFO] Activity mailer iniciado en modo loop.
+2026-01-26 11:21:56 [WARN] Otro proceso del mailer ya esta en ejecucion (lock en N:\Oficina Tecnica\Registro de Actividad\Codigos\data\activity_mailer.lock). Saliendo.
+2026-01-26 11:23:19 [INFO] Activity mailer iniciado en modo loop.
+2026-01-26 11:25:02 [INFO] Activity mailer iniciado en modo loop.
+2026-01-26 11:25:02 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['dmartin@bpbargentina.com']
+2026-01-26 11:25:05 [INFO] Email enviado correctamente.
+2026-01-26 11:25:05 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['lcochis@bpbargentina.com']
+2026-01-26 11:25:07 [INFO] Email enviado correctamente.
+2026-01-26 11:25:07 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['tcolacilli@bpbargentina.com']
+2026-01-26 11:25:09 [INFO] Email enviado correctamente.
+2026-01-26 11:25:10 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['lcontigiani@bpbargentina.com']
+2026-01-26 11:25:12 [INFO] Email enviado correctamente.
+2026-01-26 11:25:13 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['aalberto@bpbargentina.com']
+2026-01-26 11:25:15 [INFO] Email enviado correctamente.
+2026-01-26 11:25:15 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['afareleira@bpbargentina.com']
+2026-01-26 11:25:18 [INFO] Email enviado correctamente.
+2026-01-26 11:25:18 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['ctorigian@bpbargentina.com']
+2026-01-26 11:25:20 [INFO] Email enviado correctamente.
+2026-01-26 11:25:21 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['fbeaz@bpbargentina.com']
+2026-01-26 11:25:24 [INFO] Email enviado correctamente.
+2026-01-26 11:25:24 [INFO] Correo diario enviado a 8/8 destinatarios. Token e1c5a09a.
+2026-01-26 11:51:53 [WARN] Otro proceso del mailer ya esta en ejecucion (lock en L:\Oficina Tecnica\Registro de Actividad\Codigos\data\activity_mailer.lock). Saliendo.
+2026-01-26 11:52:23 [INFO] Activity mailer iniciado en modo loop.
+2026-01-26 16:05:40 [INFO] Activity mailer iniciado en modo loop.
+2026-01-26 16:52:18 [INFO] Activity mailer iniciado en modo loop.
+2026-01-26 17:00:06 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['dmartin@bpbargentina.com']
+2026-01-26 17:00:08 [INFO] Email enviado correctamente.
+2026-01-26 17:00:08 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['lcochis@bpbargentina.com']
+2026-01-26 17:00:10 [INFO] Email enviado correctamente.
+2026-01-26 17:00:11 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['tcolacilli@bpbargentina.com']
+2026-01-26 17:00:13 [INFO] Email enviado correctamente.
+2026-01-26 17:00:13 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['lcontigiani@bpbargentina.com']
+2026-01-26 17:00:16 [INFO] Email enviado correctamente.
+2026-01-26 17:00:16 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['aalberto@bpbargentina.com']
+2026-01-26 17:00:18 [INFO] Email enviado correctamente.
+2026-01-26 17:00:19 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['afareleira@bpbargentina.com']
+2026-01-26 17:00:21 [INFO] Email enviado correctamente.
+2026-01-26 17:00:21 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['ctorigian@bpbargentina.com']
+2026-01-26 17:00:23 [INFO] Email enviado correctamente.
+2026-01-26 17:00:24 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['fbeaz@bpbargentina.com']
+2026-01-26 17:00:26 [INFO] Email enviado correctamente.
+2026-01-26 17:00:26 [INFO] Correo diario enviado a 8/8 destinatarios. Token e5394502.
+2026-01-27 17:00:26 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['dmartin@bpbargentina.com']
+2026-01-27 17:00:29 [INFO] Email enviado correctamente.
+2026-01-27 17:00:29 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['lcochis@bpbargentina.com']
+2026-01-27 17:00:31 [INFO] Email enviado correctamente.
+2026-01-27 17:00:32 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['tcolacilli@bpbargentina.com']
+2026-01-27 17:00:34 [INFO] Email enviado correctamente.
+2026-01-27 17:00:34 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['lcontigiani@bpbargentina.com']
+2026-01-27 17:00:36 [INFO] Email enviado correctamente.
+2026-01-27 17:00:37 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['aalberto@bpbargentina.com']
+2026-01-27 17:00:39 [INFO] Email enviado correctamente.
+2026-01-27 17:00:39 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['afareleira@bpbargentina.com']
+2026-01-27 17:00:41 [INFO] Email enviado correctamente.
+2026-01-27 17:00:42 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['ctorigian@bpbargentina.com']
+2026-01-27 17:00:44 [INFO] Email enviado correctamente.
+2026-01-27 17:00:44 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['fbeaz@bpbargentina.com']
+2026-01-27 17:00:46 [INFO] Email enviado correctamente.
+2026-01-27 17:00:46 [INFO] Correo diario enviado a 8/8 destinatarios. Token 9107fd60.
+2026-01-28 16:32:30 [WARN] Error al revisar respuestas IMAP: command: UID => System Error
+2026-01-28 17:00:25 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['dmartin@bpbargentina.com']
+2026-01-28 17:00:28 [INFO] Email enviado correctamente.
+2026-01-28 17:00:28 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['lcochis@bpbargentina.com']
+2026-01-28 17:00:31 [INFO] Email enviado correctamente.
+2026-01-28 17:00:31 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['tcolacilli@bpbargentina.com']
+2026-01-28 17:00:34 [INFO] Email enviado correctamente.
+2026-01-28 17:00:34 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['lcontigiani@bpbargentina.com']
+2026-01-28 17:00:36 [INFO] Email enviado correctamente.
+2026-01-28 17:00:36 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['aalberto@bpbargentina.com']
+2026-01-28 17:00:39 [INFO] Email enviado correctamente.
+2026-01-28 17:00:39 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['afareleira@bpbargentina.com']
+2026-01-28 17:00:41 [INFO] Email enviado correctamente.
+2026-01-28 17:00:41 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['ctorigian@bpbargentina.com']
+2026-01-28 17:00:44 [INFO] Email enviado correctamente.
+2026-01-28 17:00:44 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['fbeaz@bpbargentina.com']
+2026-01-28 17:00:46 [INFO] Email enviado correctamente.
+2026-01-28 17:00:47 [INFO] Correo diario enviado a 8/8 destinatarios. Token f495fcd3.
+2026-01-29 15:09:42 [WARN] Error al revisar respuestas IMAP: command: UID => System Error
+2026-01-29 17:00:31 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['dmartin@bpbargentina.com']
+2026-01-29 17:00:34 [INFO] Email enviado correctamente.
+2026-01-29 17:00:34 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['lcochis@bpbargentina.com']
+2026-01-29 17:00:37 [INFO] Email enviado correctamente.
+2026-01-29 17:00:37 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['tcolacilli@bpbargentina.com']
+2026-01-29 17:00:39 [INFO] Email enviado correctamente.
+2026-01-29 17:00:39 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['lcontigiani@bpbargentina.com']
+2026-01-29 17:00:42 [INFO] Email enviado correctamente.
+2026-01-29 17:00:42 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['aalberto@bpbargentina.com']
+2026-01-29 17:00:44 [INFO] Email enviado correctamente.
+2026-01-29 17:00:45 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['afareleira@bpbargentina.com']
+2026-01-29 17:00:47 [INFO] Email enviado correctamente.
+2026-01-29 17:00:47 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['ctorigian@bpbargentina.com']
+2026-01-29 17:00:49 [INFO] Email enviado correctamente.
+2026-01-29 17:00:50 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['fbeaz@bpbargentina.com']
+2026-01-29 17:00:52 [INFO] Email enviado correctamente.
+2026-01-29 17:00:52 [INFO] Correo diario enviado a 8/8 destinatarios. Token b7f587eb.
+2026-01-30 13:38:50 [WARN] Error al revisar respuestas IMAP: command: UID => System Error
+2026-01-30 16:00:23 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['dmartin@bpbargentina.com']
+2026-01-30 16:00:25 [INFO] Email enviado correctamente.
+2026-01-30 16:00:26 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['lcochis@bpbargentina.com']
+2026-01-30 16:00:28 [INFO] Email enviado correctamente.
+2026-01-30 16:00:29 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['tcolacilli@bpbargentina.com']
+2026-01-30 16:00:32 [INFO] Email enviado correctamente.
+2026-01-30 16:00:32 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['lcontigiani@bpbargentina.com']
+2026-01-30 16:00:35 [INFO] Email enviado correctamente.
+2026-01-30 16:00:35 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['aalberto@bpbargentina.com']
+2026-01-30 16:00:38 [INFO] Email enviado correctamente.
+2026-01-30 16:00:38 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['afareleira@bpbargentina.com']
+2026-01-30 16:00:41 [INFO] Email enviado correctamente.
+2026-01-30 16:00:41 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['ctorigian@bpbargentina.com']
+2026-01-30 16:00:44 [INFO] Email enviado correctamente.
+2026-01-30 16:00:44 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['fbeaz@bpbargentina.com']
+2026-01-30 16:00:47 [INFO] Email enviado correctamente.
+2026-01-30 16:00:47 [INFO] Correo diario enviado a 8/8 destinatarios. Token a19ab56a.
+2026-02-02 17:00:01 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['dmartin@bpbargentina.com']
+2026-02-02 17:00:04 [INFO] Email enviado correctamente.
+2026-02-02 17:00:04 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['lcochis@bpbargentina.com']
+2026-02-02 17:00:06 [INFO] Email enviado correctamente.
+2026-02-02 17:00:07 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['tcolacilli@bpbargentina.com']
+2026-02-02 17:00:09 [INFO] Email enviado correctamente.
+2026-02-02 17:00:09 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['lcontigiani@bpbargentina.com']
+2026-02-02 17:00:11 [INFO] Email enviado correctamente.
+2026-02-02 17:00:11 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['aalberto@bpbargentina.com']
+2026-02-02 17:00:14 [INFO] Email enviado correctamente.
+2026-02-02 17:00:14 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['afareleira@bpbargentina.com']
+2026-02-02 17:00:16 [INFO] Email enviado correctamente.
+2026-02-02 17:00:16 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['ctorigian@bpbargentina.com']
+2026-02-02 17:00:19 [INFO] Email enviado correctamente.
+2026-02-02 17:00:19 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['fbeaz@bpbargentina.com']
+2026-02-02 17:00:21 [INFO] Email enviado correctamente.
+2026-02-02 17:00:21 [INFO] Correo diario enviado a 8/8 destinatarios. Token 90160cf1.
+2026-02-03 15:45:12 [WARN] Error al revisar respuestas IMAP: command: UID => System Error
+2026-02-03 17:00:07 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['dmartin@bpbargentina.com']
+2026-02-03 17:00:11 [INFO] Email enviado correctamente.
+2026-02-03 17:00:11 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['lcochis@bpbargentina.com']
+2026-02-03 17:00:13 [INFO] Email enviado correctamente.
+2026-02-03 17:00:13 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['tcolacilli@bpbargentina.com']
+2026-02-03 17:00:16 [INFO] Email enviado correctamente.
+2026-02-03 17:00:16 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['lcontigiani@bpbargentina.com']
+2026-02-03 17:00:18 [INFO] Email enviado correctamente.
+2026-02-03 17:00:18 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['aalberto@bpbargentina.com']
+2026-02-03 17:00:21 [INFO] Email enviado correctamente.
+2026-02-03 17:00:21 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['afareleira@bpbargentina.com']
+2026-02-03 17:00:24 [INFO] Email enviado correctamente.
+2026-02-03 17:00:24 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['ctorigian@bpbargentina.com']
+2026-02-03 17:00:26 [INFO] Email enviado correctamente.
+2026-02-03 17:00:27 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['fbeaz@bpbargentina.com']
+2026-02-03 17:00:29 [INFO] Email enviado correctamente.
+2026-02-03 17:00:30 [INFO] Correo diario enviado a 8/8 destinatarios. Token 0523f3af.
+2026-02-04 17:00:13 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['dmartin@bpbargentina.com']
+2026-02-04 17:00:16 [INFO] Email enviado correctamente.
+2026-02-04 17:00:17 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['lcochis@bpbargentina.com']
+2026-02-04 17:00:21 [INFO] Email enviado correctamente.
+2026-02-04 17:00:21 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['tcolacilli@bpbargentina.com']
+2026-02-04 17:00:25 [INFO] Email enviado correctamente.
+2026-02-04 17:00:26 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['lcontigiani@bpbargentina.com']
+2026-02-04 17:00:30 [INFO] Email enviado correctamente.
+2026-02-04 17:00:30 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['aalberto@bpbargentina.com']
+2026-02-04 17:00:33 [INFO] Email enviado correctamente.
+2026-02-04 17:00:33 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['afareleira@bpbargentina.com']
+2026-02-04 17:00:37 [INFO] Email enviado correctamente.
+2026-02-04 17:00:38 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['ctorigian@bpbargentina.com']
+2026-02-04 17:00:42 [INFO] Email enviado correctamente.
+2026-02-04 17:00:42 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['fbeaz@bpbargentina.com']
+2026-02-04 17:00:45 [INFO] Email enviado correctamente.
+2026-02-04 17:00:46 [INFO] Correo diario enviado a 8/8 destinatarios. Token 18d2d69f.
+2026-02-05 17:00:03 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['dmartin@bpbargentina.com']
+2026-02-05 17:00:06 [INFO] Email enviado correctamente.
+2026-02-05 17:00:06 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['lcochis@bpbargentina.com']
+2026-02-05 17:00:08 [INFO] Email enviado correctamente.
+2026-02-05 17:00:09 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['tcolacilli@bpbargentina.com']
+2026-02-05 17:00:11 [INFO] Email enviado correctamente.
+2026-02-05 17:00:11 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['lcontigiani@bpbargentina.com']
+2026-02-05 17:00:14 [INFO] Email enviado correctamente.
+2026-02-05 17:00:14 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['aalberto@bpbargentina.com']
+2026-02-05 17:00:16 [INFO] Email enviado correctamente.
+2026-02-05 17:00:16 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['afareleira@bpbargentina.com']
+2026-02-05 17:00:19 [INFO] Email enviado correctamente.
+2026-02-05 17:00:19 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['ctorigian@bpbargentina.com']
+2026-02-05 17:00:22 [INFO] Email enviado correctamente.
+2026-02-05 17:00:22 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['fbeaz@bpbargentina.com']
+2026-02-05 17:00:25 [INFO] Email enviado correctamente.
+2026-02-05 17:00:25 [INFO] Correo diario enviado a 8/8 destinatarios. Token 54dc2ac7.

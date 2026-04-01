@@ -1,0 +1,60 @@
+{
+  "purchase_order": "1291",
+  "code": "1206-TN-C3",
+  "revision": "B",
+  "date": "14/08/2024",
+  "dimensions": {
+    "thickness": {
+      "value_mm": 16.0,
+      "tol_plus_mm": 0.0,
+      "tol_minus_mm": -0.12
+    },
+    "outer_thickness": null,
+    "inner_thickness": null,
+    "outer_dia": {
+      "value_mm": 62.0,
+      "tol_plus_mm": 0.0,
+      "tol_minus_mm": -0.013
+    },
+    "inner_dia": {
+      "value_mm": 30.0,
+      "tol_plus_mm": 0.0,
+      "tol_minus_mm": -0.01
+    }
+  },
+  "radial_clearance": {
+    "class": "C3",
+    "range_um": {
+      "min": 19,
+      "max": 35
+    }
+  },
+  "axial_clearance": null,
+  "hardness_hrc": {
+    "inner_plus": 64,
+    "inner_minus": 58,
+    "outer_plus": 64,
+    "outer_minus": 58
+  },
+  "seal_torque": null,
+  "lubricant": {
+    "type": null,
+    "fill": null
+  },
+  "retainer": {
+    "material": "Nylon"
+  },
+  "revision_history": [
+    {
+      "rev": "B",
+      "date": "14/08/2024",
+      "by": "L.C"
+    },
+    {
+      "rev": "A",
+      "date": "16/06/2023",
+      "by": "L.C"
+    }
+  ],
+  "proveedor": "195"
+}

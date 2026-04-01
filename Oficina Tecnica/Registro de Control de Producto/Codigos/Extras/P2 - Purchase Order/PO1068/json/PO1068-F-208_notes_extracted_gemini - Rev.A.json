@@ -1,0 +1,47 @@
+{
+  "purchase_order": "1068",
+  "code": "F-208",
+  "revision": "A",
+  "date": "23/03/2016",
+  "dimensions": {
+    "thickness": {
+      "value_mm": 36,
+      "tol_plus_mm": 0,
+      "tol_minus_mm": 0
+    },
+    "outer_thickness": {
+      "value_mm": 21,
+      "tol_plus_mm": 0.5,
+      "tol_minus_mm": -0.5
+    },
+    "inner_thickness": {
+      "value_mm": 16,
+      "tol_plus_mm": 0,
+      "tol_minus_mm": 0
+    },
+    "outer_dia": {
+      "value_mm": 83,
+      "tol_plus_mm": 0.74,
+      "tol_minus_mm": 0
+    },
+    "inner_dia": {
+      "value_mm": 80,
+      "tol_plus_mm": 0.009,
+      "tol_minus_mm": -0.021
+    }
+  },
+  "radial_clearance": null,
+  "axial_clearance": null,
+  "hardness_hrc": null,
+  "seal_torque": null,
+  "lubricant": null,
+  "retainer": null,
+  "revision_history": [
+    {
+      "rev": "A",
+      "date": "23/03/2016",
+      "by": ""
+    }
+  ],
+  "proveedor": "440"
+}

@@ -1,0 +1,52 @@
+[
+    {
+        "id": "c9f3b979-6809-40ff-8492-78116a22fe0d",
+        "save_name": "Cuerpo de Siembra",
+        "save_description": "(Sin pecho ni paralelogramo)",
+        "timestamp": "2026-02-05T19:59:07.902Z",
+        "author": "Lorenzo Contigiani",
+        "container": {
+            "type": "40ft",
+            "l": 1203,
+            "w": 235,
+            "h": 239,
+            "weight": 27600
+        },
+        "pallet": {
+            "type": "collars_120x100",
+            "boards": 4,
+            "l": 120,
+            "w": 100,
+            "h": 93.9,
+            "weight": 50,
+            "max_weight": 1200,
+            "limit_height": false,
+            "max_height": 180
+        },
+        "optimization": {
+            "maximize": false,
+            "mixed_pallets": true,
+            "stack_load": true,
+            "force_orientation": true,
+            "orientation_face": "LxA",
+            "mixed_containers": true,
+            "sort_items": true,
+            "visual_only": false
+        },
+        "safety_factors": {
+            "dims": 0,
+            "weight": 0
+        },
+        "items": [
+            {
+                "name": "Cuerpo de Siembra",
+                "l": 95,
+                "w": 34,
+                "h": 64,
+                "weight": 85,
+                "qty": 126,
+                "rel_qty": 0
+            }
+        ]
+    }
+]

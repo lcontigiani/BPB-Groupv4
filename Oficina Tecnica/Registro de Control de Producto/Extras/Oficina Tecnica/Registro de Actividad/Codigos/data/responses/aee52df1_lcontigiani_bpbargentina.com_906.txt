@@ -1,0 +1,11 @@
+Proyecto: Tostadora Radioactiva
+Tiempo destinado: 30 minutos
+Descripción: Que buena tostadora.
+
+Proyecto: Calefactor a vapor
+Tiempo destinado: 2 horas
+Descripción: Que linda oficina.
+
+Proyecto: Otros
+Tiempo destinado: 10 minutos
+Descripción: Estuve con el celular.

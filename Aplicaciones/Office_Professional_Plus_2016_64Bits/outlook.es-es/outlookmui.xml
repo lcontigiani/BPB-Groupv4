@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--_MODULUS=Ttcd7o2sGiU1C093rvMA7+jJ4jSFT6Z6IpExYneMoLrKsoOSbLiyZFQis6uny4B9HU25BWfIdGN70VoCpbEcXzTzk0L+KKJasiXVOtI80Uu9vE2JbHk3IirGcm3kJ4KwYNpMBBXyhv9z60FS18PoKYChZaBQFTKTjCHC2aEDL5I=-->
+<!--_SIG=tylcSbcadc72kRWDuwrD6CnQpy6RGkA8+b5//ANDOW2bFKTQuzMoy4VuopWVeiXpp3LV6GRGs1gMNscG0rAai/SuBoPQWttFgWnWP8QIM2W07omYrIrRhcplcy9loyUgeto90PPTaJJOm1UC9+pC0QlL/JWw412vWD5Ld+HEKyc=-->
+<Package Id="OutlookMUI.es-es" Type="MSI" Path="OutlookMUI.MSI" Version="1.0" ProductCode="{90160000-001A-0C0A-1000-0000000FF1CE}" MSIVersion="16.0.4266.1001" ProductLanguage="3082" Platform="x64">
+	<Feature Id="OutlookSearchShellRegIntl_3082" Cost="177432">
+		<OptionRef Id="OutlookSearchShellRegIntl"/>
+	</Feature>
+	<Feature Id="SetupControllerFiles" Cost="468">
+		<OptionRef Id="AlwaysInstalled"/>
+	</Feature>
+	<Feature Id="OutlookStationeryBasicFilesIntl_3082" Cost="17917">
+		<OptionRef Id="OutlookStationeryBasicFiles"/>
+	</Feature>
+	<Feature Id="OutlookMAPI2Intl_3082" Cost="1395463">
+		<OptionRef Id="OutlookMAPI2"/>
+	</Feature>
+	<Feature Id="OutlookStationeryExtendedIntl_3082" Cost="22271">
+		<OptionRef Id="OutlookStationeryExtended"/>
+	</Feature>
+	<Feature Id="MsoInstalledPackagesScopedIntl_3082" Cost="0">
+		<OptionRef Id="AlwaysInstalled"/>
+	</Feature>
+	<Feature Id="OutlookImportExportFilesIntl_3082" Cost="63392">
+		<OptionRef Id="OutlookImportExportFiles"/>
+	</Feature>
+	<Feature Id="OutlookDVCsvWinFilesIntl_3082" Cost="10984">
+		<OptionRef Id="OutlookDVCsvWinFiles"/>
+	</Feature>
+	<Feature Id="OutlookTemplateFilesIntl_3082" Cost="12288">
+		<OptionRef Id="OutlookTemplateFiles"/>
+	</Feature>
+	<Feature Id="SetupXmlFiles" Cost="468">
+		<OptionRef Id="AlwaysInstalled"/>
+	</Feature>
+	<Feature Id="OutlookHelpFilesIntl_3082" Cost="705967">
+		<OptionRef Id="OutlookHelpFiles"/>
+	</Feature>
+	<Feature Id="OUTLOOKFilesIntl_3082" Cost="11438724">
+		<OptionRef Id="OUTLOOKFiles"/>
+	</Feature>
+	<Feature Id="OutlookDVExtensionsFilesIntl_3082" Cost="89752">
+		<OptionRef Id="OutlookDVExtensionsFiles"/>
+	</Feature>
+	<Feature Id="WhiteRabbitHiddenIntl_3082" Cost="82432">
+		<OptionRef Id="WhiteRabbitHidden"/>
+	</Feature>
+	<Feature Id="WORDSharedFilesIntl_3082" Cost="1302956">
+		<OptionRef Id="WORDSharedFiles"/>
+	</Feature>
+	<Feature Id="OUTLOOKNonBootFilesIntl_3082" Cost="231922">
+		<OptionRef Id="OUTLOOKFiles"/>
+	</Feature>
+	<Feature Id="Gimme_OnDemandData" Cost="0">
+		<OptionRef Id="Gimme_OnDemandData"/>
+	</Feature>
+	<Feature Id="OutlookOmsIntl_3082" Cost="425542">
+		<OptionRef Id="OutlookOms"/>
+	</Feature>
+	<Feature Id="OutlookSocialConnectorIntl_3082" Cost="244496">
+		<OptionRef Id="OutlookSocialConnector"/>
+	</Feature>
+	<Feature Id="OutlookMessagingIntl_3082" Cost="176178">
+		<OptionRef Id="OutlookMessaging"/>
+	</Feature>
+</Package>

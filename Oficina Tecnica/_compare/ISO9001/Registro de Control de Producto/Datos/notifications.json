@@ -1,0 +1,756 @@
+[
+  {
+    "id": "6c7a9fb0-c9b6-4e74-ab48-d8ca3d34808b",
+    "recipient": "Agustin Alberto",
+    "recipient_key": "agustin alberto",
+    "type": "signature",
+    "message": "Firma pendiente para BP-26010",
+    "payload": {
+      "bp": "BP-26010",
+      "numero": "184"
+    },
+    "created_at": "2026-02-09T15:15:01.351384",
+    "read": true
+  },
+  {
+    "id": "814cc2bc-ab9c-4514-8143-a26cf0537000",
+    "recipient": "Agustin Alberto",
+    "recipient_key": "agustin alberto",
+    "recipient_email": "aalberto@bpbargentina.com",
+    "type": "signature",
+    "message": "Firma pendiente para BP-26011",
+    "payload": {
+      "bp": "BP-26011",
+      "numero": "185"
+    },
+    "created_at": "2026-02-09T15:20:36.948894",
+    "read": true
+  },
+  {
+    "id": "625a025f-834c-47cb-9310-1aacfd962a4c",
+    "recipient": "Agustin Alberto",
+    "recipient_key": "agustin alberto",
+    "recipient_email": "aalberto@bpbargentina.com",
+    "type": "signature",
+    "message": "Firma pendiente para BP-26012",
+    "payload": {
+      "bp": "BP-26012",
+      "numero": "186"
+    },
+    "created_at": "2026-02-09T15:25:39.667169",
+    "read": true
+  },
+  {
+    "id": "4cc7e28d-7ad9-4186-88a2-cdacf7a5fce1",
+    "recipient": "Agustin Alberto",
+    "recipient_key": "agustin alberto",
+    "recipient_email": "aalberto@bpbargentina.com",
+    "type": "signature",
+    "message": "Firma pendiente para BP-26013",
+    "payload": {
+      "bp": "BP-26013",
+      "numero": "187"
+    },
+    "created_at": "2026-02-09T15:32:54.183389",
+    "read": true
+  },
+  {
+    "id": "06259144-d069-4b2d-be81-7dcc58a00168",
+    "recipient": "Lorenzo Contigiani",
+    "recipient_key": "lorenzo contigiani",
+    "recipient_email": "lcontigiani@bpbargentina.com",
+    "type": "signature",
+    "message": "Firma pendiente para BP-26014",
+    "payload": {
+      "bp": "BP-26014",
+      "numero": "188"
+    },
+    "created_at": "2026-02-09T15:35:33.471532",
+    "read": true
+  },
+  {
+    "id": "4d697ee2-4b62-4400-bfc0-55c89c3bb16a",
+    "recipient": "Lorenzo Contigiani",
+    "recipient_key": "lorenzo contigiani",
+    "recipient_email": "lcontigiani@bpbargentina.com",
+    "type": "signature",
+    "message": "Firma pendiente para BP-26014",
+    "payload": {
+      "bp": "BP-26014",
+      "numero": "188"
+    },
+    "created_at": "2026-02-09T15:36:54.673955",
+    "read": true
+  },
+  {
+    "id": "0bf5f407-17db-469a-a04c-1ba5cc675eaf",
+    "recipient": "Lorenzo Contigiani",
+    "recipient_key": "lorenzo contigiani",
+    "recipient_email": "lcontigiani@bpbargentina.com",
+    "type": "signature",
+    "message": "Firma pendiente para BP-26015",
+    "payload": {
+      "bp": "BP-26015",
+      "numero": "189"
+    },
+    "created_at": "2026-02-09T15:44:39.453596",
+    "read": true
+  },
+  {
+    "id": "a9709b65-cc4d-4404-8c3c-9836ec6e6502",
+    "recipient": "Lorenzo Contigiani",
+    "recipient_key": "lorenzo contigiani",
+    "recipient_email": "lcontigiani@bpbargentina.com",
+    "type": "signature",
+    "message": "Firma pendiente para BP-26016",
+    "payload": {
+      "bp": "BP-26016",
+      "numero": "190"
+    },
+    "created_at": "2026-02-09T15:46:21.710537",
+    "read": true
+  },
+  {
+    "id": "7317b873-4f77-4707-9594-7aad1c0bb5f0",
+    "recipient": "Lorenzo Contigiani",
+    "recipient_key": "lorenzo contigiani",
+    "recipient_email": "lcontigiani@bpbargentina.com",
+    "type": "signature",
+    "message": "Firma pendiente para BP-26017",
+    "payload": {
+      "bp": "BP-26017",
+      "numero": "191"
+    },
+    "created_at": "2026-02-09T15:48:59.314110",
+    "read": true
+  },
+  {
+    "id": "04959c6f-0a4b-46e8-8f4b-22e22a61928a",
+    "recipient": "Agustin Alberto",
+    "recipient_key": "agustin alberto",
+    "recipient_email": "aalberto@bpbargentina.com",
+    "type": "signature",
+    "message": "Firma pendiente para BP-26018",
+    "payload": {
+      "bp": "BP-26018",
+      "numero": "192"
+    },
+    "created_at": "2026-02-09T15:51:50.333921",
+    "read": true
+  },
+  {
+    "id": "3d6d418e-5189-46fe-b489-d06ff8dcafd8",
+    "recipient": "Agustin Alberto",
+    "recipient_key": "agustin alberto",
+    "recipient_email": "aalberto@bpbargentina.com",
+    "type": "signature",
+    "message": "Firma pendiente para BP-26018",
+    "payload": {
+      "bp": "BP-26018",
+      "numero": "192"
+    },
+    "created_at": "2026-02-09T15:53:44.985759",
+    "read": true
+  },
+  {
+    "id": "8fe991e0-2c03-43e1-b70e-82ce4d170b5f",
+    "recipient": "Agustin Alberto",
+    "recipient_key": "agustin alberto",
+    "recipient_email": "aalberto@bpbargentina.com",
+    "type": "signature",
+    "message": "Firma pendiente para BP-26019",
+    "payload": {
+      "bp": "BP-26019",
+      "numero": "193"
+    },
+    "created_at": "2026-02-09T15:54:10.382923",
+    "read": true
+  },
+  {
+    "id": "167428f0-4a78-48ea-a840-90e51189612e",
+    "recipient": "Agustin Alberto",
+    "recipient_key": "agustin alberto",
+    "recipient_email": "aalberto@bpbargentina.com",
+    "type": "signature",
+    "message": "Firma pendiente para BP-26012",
+    "payload": {
+      "bp": "BP-26012",
+      "numero": "186"
+    },
+    "created_at": "2026-02-09T15:59:29.031234",
+    "read": true
+  },
+  {
+    "id": "fe3bc42b-3251-4482-b8d8-b1b4be9ee4f6",
+    "recipient": "Agustin Alberto",
+    "recipient_key": "agustin alberto",
+    "recipient_email": "aalberto@bpbargentina.com",
+    "type": "signature",
+    "message": "Firma pendiente para BP-26012",
+    "payload": {
+      "bp": "BP-26012",
+      "numero": "186"
+    },
+    "created_at": "2026-02-09T16:00:50.902539",
+    "read": true
+  },
+  {
+    "id": "3ab094f1-124f-4054-b0c6-6830916cff40",
+    "recipient": "Agustin Alberto",
+    "recipient_key": "agustin alberto",
+    "recipient_email": "aalberto@bpbargentina.com",
+    "type": "signature",
+    "message": "Firma pendiente para BP-26012",
+    "payload": {
+      "bp": "BP-26012",
+      "numero": "186"
+    },
+    "created_at": "2026-02-09T16:09:38.501311",
+    "read": true
+  },
+  {
+    "id": "5e7e515a-2f7c-40ca-806b-fc40f8733afc",
+    "recipient": "Agustin Alberto",
+    "recipient_key": "agustin alberto",
+    "recipient_email": "aalberto@bpbargentina.com",
+    "type": "signature",
+    "message": "Firma pendiente para BP-26012",
+    "payload": {
+      "bp": "BP-26012",
+      "numero": "186"
+    },
+    "created_at": "2026-02-09T16:15:06.476248",
+    "read": true
+  },
+  {
+    "id": "1453af13-baa1-4a7c-9870-ee8ef08b0dfd",
+    "recipient": "Agustin Alberto",
+    "recipient_key": "agustin alberto",
+    "recipient_email": "aalberto@bpbargentina.com",
+    "type": "signature",
+    "message": "Firma pendiente para BP-26013",
+    "payload": {
+      "bp": "BP-26013",
+      "numero": "187"
+    },
+    "created_at": "2026-02-09T16:15:37.486743",
+    "read": true
+  },
+  {
+    "id": "c21c0b40-e1db-43df-8291-3ed29c36eb97",
+    "recipient": "Agustin Alberto",
+    "recipient_key": "agustin alberto",
+    "recipient_email": "aalberto@bpbargentina.com",
+    "type": "signature",
+    "message": "Firma pendiente para BP-26014",
+    "payload": {
+      "bp": "BP-26014",
+      "numero": "188"
+    },
+    "created_at": "2026-02-09T16:23:51.422722",
+    "read": true
+  },
+  {
+    "id": "27351848-f2b6-41a1-bd83-a8dbff33e703",
+    "recipient": "Agustin Alberto",
+    "recipient_key": "agustin alberto",
+    "recipient_email": "aalberto@bpbargentina.com",
+    "type": "signature",
+    "message": "Firma pendiente para BP-26012",
+    "payload": {
+      "bp": "BP-26012",
+      "numero": "186"
+    },
+    "created_at": "2026-02-09T16:26:33.708197",
+    "read": true
+  },
+  {
+    "id": "11e38ef4-5615-468c-b87d-f047f56fd64b",
+    "recipient": "Agustin Alberto",
+    "recipient_key": "agustin alberto",
+    "recipient_email": "aalberto@bpbargentina.com",
+    "type": "signature",
+    "message": "Firma pendiente para BP-26013",
+    "payload": {
+      "bp": "BP-26013",
+      "numero": "187"
+    },
+    "created_at": "2026-02-09T16:28:06.014577",
+    "read": true
+  },
+  {
+    "id": "141b9636-0201-497f-a522-d4d47e2750b7",
+    "recipient": "Agustin Alberto",
+    "recipient_key": "agustin alberto",
+    "recipient_email": "aalberto@bpbargentina.com",
+    "type": "signature",
+    "message": "Firma pendiente para BP-26014",
+    "payload": {
+      "bp": "BP-26014",
+      "numero": "188"
+    },
+    "created_at": "2026-02-09T16:39:53.963603",
+    "read": true
+  },
+  {
+    "id": "77a258b9-66a8-4d3b-a302-bbcb43729ecc",
+    "recipient": "Lorenzo Contigiani",
+    "recipient_key": "lorenzo contigiani",
+    "recipient_email": "lcontigiani@bpbargentina.com",
+    "type": "signature",
+    "message": "Firma pendiente para BP-26015",
+    "payload": {
+      "bp": "BP-26015",
+      "numero": "189"
+    },
+    "created_at": "2026-02-09T16:41:10.067820",
+    "read": true
+  },
+  {
+    "id": "d2dee42e-8f7f-4981-a974-ff43c5369292",
+    "recipient": "Luciano Cochis",
+    "recipient_key": "luciano cochis",
+    "recipient_email": "lcochis@bpbargentina.com",
+    "type": "approval",
+    "message": "AprobaciÃ³n pendiente para BP-26014",
+    "payload": {
+      "bp": "BP-26014",
+      "row": 4,
+      "etapa": "Validación"
+    },
+    "created_at": "2026-02-09T16:44:00.092528",
+    "read": false
+  },
+  {
+    "id": "fe66d6f3-f3c2-48ed-b022-b29e15ac8148",
+    "recipient": "Luciano Cochis",
+    "recipient_key": "luciano cochis",
+    "recipient_email": "lcochis@bpbargentina.com",
+    "type": "approval",
+    "message": "AprobaciÃ³n pendiente para BP-26014",
+    "payload": {
+      "bp": "BP-26014",
+      "row": 5,
+      "etapa": "Cotizaciones"
+    },
+    "created_at": "2026-02-09T16:45:22.754416",
+    "read": false
+  },
+  {
+    "id": "a5d5d991-928f-4a54-8c9d-d8a221ce7a8c",
+    "recipient": "Lorenzo Contigiani",
+    "recipient_key": "lorenzo contigiani",
+    "recipient_email": "lcontigiani@bpbargentina.com",
+    "type": "approval",
+    "message": "AprobaciÃ³n pendiente para BP-26014",
+    "payload": {
+      "bp": "BP-26014",
+      "row": 5,
+      "etapa": "Cotizaciones"
+    },
+    "created_at": "2026-02-09T16:45:22.757514",
+    "read": true
+  },
+  {
+    "id": "a245797a-5597-46a6-aaff-c4ba23cfceff",
+    "recipient": "Luciano Cochis",
+    "recipient_key": "luciano cochis",
+    "recipient_email": "lcochis@bpbargentina.com",
+    "type": "approval",
+    "message": "Aprobacion pendiente para BP-26015",
+    "payload": {
+      "bp": "BP-26015",
+      "row": 4,
+      "etapa": "Validación"
+    },
+    "created_at": "2026-02-09T17:02:14.254758",
+    "read": false
+  },
+  {
+    "id": "d7a75452-ebb4-404e-8f01-87435280cd0e",
+    "recipient": "Lorenzo Contigiani",
+    "recipient_key": "lorenzo contigiani",
+    "recipient_email": "lcontigiani@bpbargentina.com",
+    "type": "approval",
+    "message": "Aprobacion pendiente para BP-26015",
+    "payload": {
+      "bp": "BP-26015",
+      "row": 4,
+      "etapa": "Validación"
+    },
+    "created_at": "2026-02-09T17:02:14.257197",
+    "read": true
+  },
+  {
+    "id": "826f38e5-de21-45ba-a3fc-cb7f1aec61be",
+    "recipient": "Luciano Cochis",
+    "recipient_key": "luciano cochis",
+    "recipient_email": "lcochis@bpbargentina.com",
+    "type": "approval",
+    "message": "Aprobacion pendiente para BP-26015",
+    "payload": {
+      "bp": "BP-26015",
+      "row": 5,
+      "etapa": "Cotizaciones"
+    },
+    "created_at": "2026-02-09T17:08:14.257468",
+    "read": false
+  },
+  {
+    "id": "f47b7053-51b0-4e31-ab28-d8936be37958",
+    "recipient": "Lorenzo Contigiani",
+    "recipient_key": "lorenzo contigiani",
+    "recipient_email": "lcontigiani@bpbargentina.com",
+    "type": "approval",
+    "message": "Aprobacion pendiente para BP-26015",
+    "payload": {
+      "bp": "BP-26015",
+      "row": 5,
+      "etapa": "Cotizaciones"
+    },
+    "created_at": "2026-02-09T17:08:14.260311",
+    "read": true
+  },
+  {
+    "id": "b848a311-52a9-45c4-85cb-1856b702c710",
+    "recipient": "Luciano Cochis",
+    "recipient_key": "luciano cochis",
+    "recipient_email": "lcochis@bpbargentina.com",
+    "type": "approval",
+    "message": "Aprobacion pendiente para BP-26015",
+    "payload": {
+      "bp": "BP-26015",
+      "row": 6,
+      "etapa": "Produccion Externa"
+    },
+    "created_at": "2026-02-09T17:11:47.825782",
+    "read": false
+  },
+  {
+    "id": "7bb9f51c-615d-4b9f-b0b3-32ccd77ccfc2",
+    "recipient": "Lorenzo Contigiani",
+    "recipient_key": "lorenzo contigiani",
+    "recipient_email": "lcontigiani@bpbargentina.com",
+    "type": "approval",
+    "message": "Aprobacion pendiente para BP-26015",
+    "payload": {
+      "bp": "BP-26015",
+      "row": 6,
+      "etapa": "Produccion Externa"
+    },
+    "created_at": "2026-02-09T17:11:47.828337",
+    "read": true
+  },
+  {
+    "id": "66227a81-bc4d-4fa6-9634-976f749695fa",
+    "recipient": "Luciano Cochis",
+    "recipient_key": "luciano cochis",
+    "recipient_email": "lcochis@bpbargentina.com",
+    "type": "approval",
+    "message": "Aprobacion pendiente para BP-26015",
+    "payload": {
+      "bp": "BP-26015",
+      "row": 7,
+      "etapa": "Produccion Externa"
+    },
+    "created_at": "2026-02-09T17:16:46.684910",
+    "read": false
+  },
+  {
+    "id": "7aa83a19-edb2-48d2-8f84-c62e008bc529",
+    "recipient": "Lorenzo Contigiani",
+    "recipient_key": "lorenzo contigiani",
+    "recipient_email": "lcontigiani@bpbargentina.com",
+    "type": "approval",
+    "message": "Aprobacion pendiente para BP-26015",
+    "payload": {
+      "bp": "BP-26015",
+      "row": 7,
+      "etapa": "Produccion Externa"
+    },
+    "created_at": "2026-02-09T17:16:46.687653",
+    "read": true
+  },
+  {
+    "id": "1039668b-f540-40d5-9438-be91fdc1fc13",
+    "recipient": "Agustin Fareleira",
+    "recipient_key": "agustin fareleira",
+    "recipient_email": "afareleira@bpbargentina.com",
+    "type": "signature",
+    "message": "Firma pendiente para BP-26016",
+    "payload": {
+      "bp": "BP-26016",
+      "numero": "190"
+    },
+    "created_at": "2026-02-10T11:10:20.488320",
+    "read": true
+  },
+  {
+    "id": "71169930-2bcb-431b-b987-bd581ad4e99a",
+    "recipient": "Luciano Cochis",
+    "recipient_key": "luciano cochis",
+    "recipient_email": "lcochis@bpbargentina.com",
+    "type": "approval",
+    "message": "Aprobacion pendiente para BP-26016",
+    "payload": {
+      "bp": "BP-26016",
+      "row": 4,
+      "etapa": "Recolección de Datos"
+    },
+    "created_at": "2026-02-10T11:12:10.042995",
+    "read": false
+  },
+  {
+    "id": "535f73dc-2f96-4903-886d-74648364d4b4",
+    "recipient": "Lorenzo Contigiani",
+    "recipient_key": "lorenzo contigiani",
+    "recipient_email": "lcontigiani@bpbargentina.com",
+    "type": "approval",
+    "message": "Aprobacion pendiente para BP-26016",
+    "payload": {
+      "bp": "BP-26016",
+      "row": 4,
+      "etapa": "Recolección de Datos"
+    },
+    "created_at": "2026-02-10T11:12:10.045592",
+    "read": true
+  },
+  {
+    "id": "de98a99f-3732-4b50-932e-6c1b10d0d969",
+    "recipient": "Agustin Alberto",
+    "recipient_key": "agustin alberto",
+    "recipient_email": "aalberto@bpbargentina.com",
+    "type": "signature",
+    "message": "Firma pendiente para BP-26017",
+    "payload": {
+      "bp": "BP-26017",
+      "numero": "191"
+    },
+    "created_at": "2026-02-10T11:29:48.419081",
+    "read": false
+  },
+  {
+    "id": "1a249033-0470-4c0a-ab36-e56466606ff0",
+    "recipient": "Luciano Cochis",
+    "recipient_key": "luciano cochis",
+    "recipient_email": "lcochis@bpbargentina.com",
+    "type": "approval",
+    "message": "Aprobacion pendiente para BP-26017",
+    "payload": {
+      "bp": "BP-26017",
+      "row": 4,
+      "etapa": "Recolección de Datos"
+    },
+    "created_at": "2026-02-10T11:30:22.403090",
+    "read": false
+  },
+  {
+    "id": "34d42228-2f39-4417-afe3-6f949df545b1",
+    "recipient": "Lorenzo Contigiani",
+    "recipient_key": "lorenzo contigiani",
+    "recipient_email": "lcontigiani@bpbargentina.com",
+    "type": "approval",
+    "message": "Aprobacion pendiente para BP-26017",
+    "payload": {
+      "bp": "BP-26017",
+      "row": 4,
+      "etapa": "Recolección de Datos"
+    },
+    "created_at": "2026-02-10T11:30:22.405725",
+    "read": true
+  },
+  {
+    "id": "0f46196b-5bac-47a2-99f8-364b914a52b6",
+    "recipient": "Luciano Cochis",
+    "recipient_key": "luciano cochis",
+    "recipient_email": "lcochis@bpbargentina.com",
+    "type": "approval",
+    "message": "Aprobacion pendiente para BP-26020",
+    "payload": {
+      "bp": "BP-26020",
+      "row": 4,
+      "etapa": "Recolección de Datos"
+    },
+    "created_at": "2026-02-10T11:53:10.546331",
+    "read": false
+  },
+  {
+    "id": "98bd19db-76f9-4447-aadd-44a87771f0b5",
+    "recipient": "Lorenzo Contigiani",
+    "recipient_key": "lorenzo contigiani",
+    "recipient_email": "lcontigiani@bpbargentina.com",
+    "type": "approval",
+    "message": "Aprobacion pendiente para BP-26020",
+    "payload": {
+      "bp": "BP-26020",
+      "row": 4,
+      "etapa": "Recolección de Datos"
+    },
+    "created_at": "2026-02-10T11:53:10.549129",
+    "read": true
+  },
+  {
+    "id": "e05e04e1-14f5-40f6-a271-d155218f0d29",
+    "recipient": "Luciano Cochis",
+    "recipient_key": "luciano cochis",
+    "recipient_email": "lcochis@bpbargentina.com",
+    "type": "approval",
+    "message": "Aprobacion pendiente para BP-26020",
+    "payload": {
+      "bp": "BP-26020",
+      "row": 5,
+      "etapa": "Recolección de Datos"
+    },
+    "created_at": "2026-02-10T11:53:13.457665",
+    "read": false
+  },
+  {
+    "id": "df57672c-db59-4842-bfd6-97f8add36b72",
+    "recipient": "Lorenzo Contigiani",
+    "recipient_key": "lorenzo contigiani",
+    "recipient_email": "lcontigiani@bpbargentina.com",
+    "type": "approval",
+    "message": "Aprobacion pendiente para BP-26020",
+    "payload": {
+      "bp": "BP-26020",
+      "row": 5,
+      "etapa": "Recolección de Datos"
+    },
+    "created_at": "2026-02-10T11:53:13.460649",
+    "read": true
+  },
+  {
+    "id": "afb95a55-e707-4972-82b8-b561cfcb0ffa",
+    "recipient": "Luciano Cochis",
+    "recipient_key": "luciano cochis",
+    "recipient_email": "lcochis@bpbargentina.com",
+    "type": "approval",
+    "message": "Aprobacion pendiente para BP-26020",
+    "payload": {
+      "bp": "BP-26020",
+      "row": 6,
+      "etapa": "Recolección de Datos"
+    },
+    "created_at": "2026-02-10T11:53:13.619376",
+    "read": false
+  },
+  {
+    "id": "936e71a7-d357-4055-8b17-9b45c8e82355",
+    "recipient": "Lorenzo Contigiani",
+    "recipient_key": "lorenzo contigiani",
+    "recipient_email": "lcontigiani@bpbargentina.com",
+    "type": "approval",
+    "message": "Aprobacion pendiente para BP-26020",
+    "payload": {
+      "bp": "BP-26020",
+      "row": 6,
+      "etapa": "Recolección de Datos"
+    },
+    "created_at": "2026-02-10T11:53:13.622356",
+    "read": true
+  },
+  {
+    "id": "f9a68cb1-e6ff-44a7-a22a-0d45e3454976",
+    "recipient": "Luciano Cochis",
+    "recipient_key": "luciano cochis",
+    "recipient_email": "lcochis@bpbargentina.com",
+    "type": "approval",
+    "message": "Aprobacion pendiente para BP-26020",
+    "payload": {
+      "bp": "BP-26020",
+      "row": 10,
+      "etapa": "Pruebas"
+    },
+    "created_at": "2026-02-10T11:58:17.937201",
+    "read": false
+  },
+  {
+    "id": "8c6953ea-150d-4c44-8cc7-8a6a7ab0a1ba",
+    "recipient": "Lorenzo Contigiani",
+    "recipient_key": "lorenzo contigiani",
+    "recipient_email": "lcontigiani@bpbargentina.com",
+    "type": "approval",
+    "message": "Aprobacion pendiente para BP-26020",
+    "payload": {
+      "bp": "BP-26020",
+      "row": 10,
+      "etapa": "Pruebas"
+    },
+    "created_at": "2026-02-10T11:58:17.940314",
+    "read": true
+  },
+  {
+    "id": "72f1dec7-d5de-4b2f-8d2c-335cd694bf21",
+    "recipient": "Luciano Cochis",
+    "recipient_key": "luciano cochis",
+    "recipient_email": "lcochis@bpbargentina.com",
+    "type": "approval",
+    "message": "Aprobacion pendiente para BP-26021",
+    "payload": {
+      "bp": "BP-26021",
+      "row": 5,
+      "etapa": "Diseño y Desarrollo"
+    },
+    "created_at": "2026-02-10T12:20:33.833943",
+    "read": false
+  },
+  {
+    "id": "f2fb68ed-cc37-4499-bfa0-e58a47c078f2",
+    "recipient": "Lorenzo Contigiani",
+    "recipient_key": "lorenzo contigiani",
+    "recipient_email": "lcontigiani@bpbargentina.com",
+    "type": "approval",
+    "message": "Aprobacion pendiente para BP-26021",
+    "payload": {
+      "bp": "BP-26021",
+      "row": 5,
+      "etapa": "Diseño y Desarrollo"
+    },
+    "created_at": "2026-02-10T12:20:33.836970",
+    "read": true
+  },
+  {
+    "id": "19e8ade9-60d9-4043-a467-7459d1eaf6b3",
+    "recipient": "Luciano Cochis",
+    "recipient_key": "luciano cochis",
+    "recipient_email": "lcochis@bpbargentina.com",
+    "type": "approval",
+    "message": "Aprobacion pendiente para BP-26020",
+    "payload": {
+      "bp": "BP-26020",
+      "row": 11,
+      "etapa": "Validación"
+    },
+    "created_at": "2026-02-10T12:24:32.553057",
+    "read": false
+  },
+  {
+    "id": "c34162d2-d9bc-4e03-8bb6-0fa449a1dcbb",
+    "recipient": "Lorenzo Contigiani",
+    "recipient_key": "lorenzo contigiani",
+    "recipient_email": "lcontigiani@bpbargentina.com",
+    "type": "approval",
+    "message": "Aprobacion pendiente para BP-26020",
+    "payload": {
+      "bp": "BP-26020",
+      "row": 11,
+      "etapa": "Validación"
+    },
+    "created_at": "2026-02-10T12:24:32.557432",
+    "read": true
+  },
+  {
+    "id": "7ab28b94-e1e2-431e-847b-eee8c92d56ef",
+    "recipient": "Agustin Alberto",
+    "recipient_key": "agustin alberto",
+    "recipient_email": "aalberto@bpbargentina.com",
+    "type": "signature",
+    "message": "Firma pendiente para BP-26022",
+    "payload": {
+      "bp": "BP-26022",
+      "numero": "196"
+    },
+    "created_at": "2026-02-10T12:38:59.609189",
+    "read": false
+  }
+]

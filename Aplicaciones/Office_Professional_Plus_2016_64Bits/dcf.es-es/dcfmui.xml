@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--_MODULUS=8g5vEi8BOkWSuLxKcYAJF84yQ4y0/Dd2cOUHNPLOr+HOkRGbH6r1ti1xeK51N8eIMsEwdxr4NBvFXSmuwW2LBWKPJe6EdK6A8NYQo8LNxF7AbrvkS/GagkvbQ8OeFTF6ULFEjdcmo4s18k0TnUgPJq6DQ/Ek3/Rwr7vqnp1VUJc=-->
+<!--_SIG=3Tp19fujcmvjzqfMfARsyeZatDrh7iUXHObyrcCuaqK9aqDiRqwljF/c8mcaE2/RROJVYq17SSLGuHFyk+ef64tstsvCJNpm0DptrmiYAm1TfetDP+siOZaCX0GlP15baSPaOyBrLJp+aM6F4+ul0u4UKgWtwGag3lpV146GAXE=-->
+<Package Id="DCFMUI.es-es" Type="MSI" Path="DCFMUI.MSI" Version="1.0" ProductCode="{90160000-0090-0C0A-1000-0000000FF1CE}" MSIVersion="16.0.4266.1001" ProductLanguage="3082" Platform="x64">
+	<Feature Id="Gimme_OnDemandData" Cost="0">
+		<OptionRef Id="Gimme_OnDemandData"/>
+	</Feature>
+	<Feature Id="DCFSpreadsheetIQ_3082" Cost="1171160">
+		<OptionRef Id="Prodiance"/>
+	</Feature>
+	<Feature Id="SetupXmlFiles" Cost="468">
+		<OptionRef Id="AlwaysInstalled"/>
+	</Feature>
+	<Feature Id="MsoInstalledPackagesScopedIntl_3082" Cost="0">
+		<OptionRef Id="AlwaysInstalled"/>
+	</Feature>
+	<Feature Id="DCFHelpFilesIntl_3082" Cost="414445">
+		<OptionRef Id="Prodiance"/>
+	</Feature>
+	<Feature Id="SetupControllerFiles" Cost="468">
+		<OptionRef Id="AlwaysInstalled"/>
+	</Feature>
+</Package>
