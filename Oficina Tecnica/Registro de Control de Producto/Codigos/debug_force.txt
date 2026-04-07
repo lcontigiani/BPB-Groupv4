@@ -660,3 +660,10 @@
 2026-04-07 10:56:46.560690: APP STARTED. CWD=C:\Users\lcontigiani\Desktop\Servidor\BPB-Groupv4\Oficina Tecnica\Registro de Control de Producto\Codigos\Dashboard_PO
 2026-04-07 11:02:44.366093: APP STARTED. CWD=C:\Users\lcontigiani\Desktop\Servidor\BPB-Groupv4\Oficina Tecnica\Registro de Control de Producto\Codigos\Dashboard_PO
 2026-04-07 11:06:54.532381: APP STARTED. CWD=C:\Users\lcontigiani\Desktop\Servidor\BPB-Groupv4\Oficina Tecnica\Registro de Control de Producto\Codigos\Dashboard_PO
+2026-04-07 11:13:18.066874: APP STARTED. CWD=C:\Users\lcontigiani\Desktop\Servidor\BPB-Groupv4\Oficina Tecnica\Registro de Control de Producto\Codigos\Dashboard_PO
+2026-04-07 13:34:56.292601: APP STARTED. CWD=C:\Users\lcontigiani\Desktop\Servidor\BPB-Groupv4\Oficina Tecnica\Registro de Control de Producto\Codigos\Dashboard_PO
+2026-04-07 14:20:52.957854: APP STARTED. CWD=C:\Users\lcontigiani\Desktop\Servidor\BPB-Groupv4\Oficina Tecnica\Registro de Control de Producto\Codigos\Dashboard_PO
+2026-04-07 14:36:02.086705: APP STARTED. CWD=C:\Users\lcontigiani\Desktop\Servidor\BPB-Groupv4\Oficina Tecnica\Registro de Control de Producto\Codigos\Dashboard_PO
+2026-04-07 15:16:24.725143: APP STARTED. CWD=C:\Users\lcontigiani\Desktop\Servidor\BPB-Groupv4\Oficina Tecnica\Registro de Control de Producto\Codigos\Dashboard_PO
+2026-04-07 15:21:57.085067: APP STARTED. CWD=C:\Users\lcontigiani\Desktop\Servidor\BPB-Groupv4\Oficina Tecnica\Registro de Control de Producto\Codigos\Dashboard_PO
+2026-04-07 15:24:37.157309: APP STARTED. CWD=C:\Users\lcontigiani\Desktop\Servidor\BPB-Groupv4\Oficina Tecnica\Registro de Control de Producto\Codigos\Dashboard_PO

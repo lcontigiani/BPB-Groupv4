@@ -3594,7 +3594,8 @@
         <div class="panel-header">
             <div class="panel-title decorated-title">Cotizaci&oacute;n de Producto</div>
             <div class="header-right" style="display: flex; gap: 10px;">
-                <button class="btn btn-primary" onclick="openCotizacionSaveModal()">Guardar Cotizaci&oacute;n</button>
+                <button id="cotizacion-save-header-btn" class="btn btn-primary" onclick="openCotizacionSaveModal()" style="display:none;">Guardar Cotizaci&oacute;n</button>
+                <button id="cotizacion-revision-header-btn" class="btn btn-primary" onclick="openCotizacionRevisionModal()" style="display:none;">Generar Revision</button>
                 <button id="cotizacion-print-btn" class="btn" onclick="printCotizacion()" style="display:none; align-items:center; gap:8px; padding: 6px 12px;" title="Imprimir Cotizacion">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
                 </button>
@@ -3707,8 +3708,8 @@
 
         <div id="cotizacion-sheet-stage" style="display: none;">
             <div class="cotizacion-sheet">
+                <div class="cotizacion-head-title">ANALISIS DE COSTOS PRODUCTO</div>
                 <div class="cotizacion-head-grid">
-                    <div class="cotizacion-head-title">ANALISIS DE COSTOS PRODUCTO</div>
                     <div class="cotizacion-head-field">
                         <label>CODIGO DE PIEZA</label>
                         <input type="text" id="cot-code" placeholder="Ej: BP-26002">
@@ -3719,14 +3720,21 @@
                     </div>
                     <div class="cotizacion-head-field">
                         <label>FECHA DE ANALISIS</label>
-                        <input type="date" id="cot-analysis-date" class="cot-date-input">
-                    </div>
-                    <div class="cotizacion-head-field">
-                        <label>DOLAR OFICIAL (VENTA)</label>
-                        <div class="cotizacion-inline-field">
-                            <input type="number" id="cot-usd-value" step="0.01" placeholder="0.00">
-                            <button type="button" class="btn btn-sm" onclick="refreshCotizacionDollarRate(true)">Actualizar</button>
+                        <div class="cotizacion-date-field">
+                            <input type="date" id="cot-analysis-date" class="cot-date-input">
+                            <button type="button" class="cotizacion-date-picker-btn" onclick="openCotizacionAnalysisDatePicker()" aria-label="Abrir calendario" title="Abrir calendario">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                                </svg>
+                            </button>
                         </div>
+                    </div>
+                    <div class="cotizacion-head-field cotizacion-revision-field">
+                        <label>REVISION</label>
+                        <input type="text" id="cot-revision" value="0" readonly>
                     </div>
                 </div>
 
@@ -3746,6 +3754,46 @@
                     <div class="cotizacion-head-field">
                         <label>RESPONSABLE</label>
                         <input type="text" id="cot-resp-owner" value="Luciano Cochis" readonly>
+                    </div>
+                </div>
+
+                <div class="cotizacion-revision-grid">
+                    <div class="cotizacion-head-field">
+                        <label>Solicitante</label>
+                        <input type="text" id="cot-requester" placeholder="Nombre del solicitante">
+                    </div>
+                    <div class="cotizacion-head-field">
+                        <label>Tiempo Estimado de Entrega</label>
+                        <div class="cotizacion-inline-field cotizacion-inline-field-split">
+                            <input type="number" id="cot-delivery-time" min="0" step="1" inputmode="numeric" placeholder="0">
+                            <div class="cot-single-select cot-delivery-unit-select" data-placeholder="Seleccionar...">
+                                <input type="hidden" id="cot-delivery-unit" class="cot-input cot-single-select-value" value="Dias">
+                                <button type="button" class="cot-input cot-single-select-trigger">Dias</button>
+                                <div class="cot-single-select-menu" style="display:none;">
+                                    <button type="button" class="cot-single-select-option" data-value="Horas">Horas</button>
+                                    <button type="button" class="cot-single-select-option" data-value="Dias">Dias</button>
+                                    <button type="button" class="cot-single-select-option" data-value="Semanas">Semanas</button>
+                                    <button type="button" class="cot-single-select-option" data-value="Meses">Meses</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="cotizacion-head-field">
+                        <label>DOLAR OFICIAL (VENTA)</label>
+                        <div class="cotizacion-inline-field cotizacion-inline-field-split">
+                            <input type="number" id="cot-usd-value" step="0.01" placeholder="0.00">
+                            <button type="button" class="btn btn-sm" onclick="refreshCotizacionDollarRate(true)">Actualizar</button>
+                        </div>
+                    </div>
+                    <div class="cotizacion-head-field cotizacion-approved-field">
+                        <label>Aprobado</label>
+                        <div class="cotizacion-inline-field cotizacion-inline-field-split">
+                            <div class="cotizacion-approved-input-wrap">
+                                <input type="text" id="cot-approved-by" readonly placeholder="Firma o Nombre Visible">
+                                <button type="button" class="cotizacion-approved-clear" onclick="clearCotizacionApprovalSignature(true)" title="Borrar aprobaci&oacute;n">&times;</button>
+                            </div>
+                            <button class="btn btn-primary cotizacion-approve-action" onclick="applyCotizacionApprovalSignature()">Aprobar</button>
+                        </div>
                     </div>
                 </div>
 
@@ -3776,6 +3824,7 @@
                         <div class="cotizacion-module-insert-row">
                             <button class="btn" onclick="openCotizacionModuleMenu()">Insertar Modulo</button>
                             <button class="btn" id="cotizacion-delete-mode-btn" onclick="toggleCotizacionDeleteMode()">Eliminar Modulo</button>
+                            <button class="btn" id="cotizacion-muda-mode-btn" onclick="toggleCotizacionMudaMode()">Insertar Muda</button>
                             <button class="btn" id="cotizacion-split-tables-btn" onclick="toggleCotizacionSplitTables()">Separar por Materia Prima</button>
                         </div>
                         <div class="cotizacion-head-field cotizacion-notes-field">
@@ -3792,36 +3841,6 @@
                             <div id="cotizacion-files-list" class="cotizacion-files-list">
                                 <div class="cotizacion-files-empty">Sin archivos adjuntos.</div>
                             </div>
-                        </div>
-                        <div class="cotizacion-approval-row">
-                            <div class="cotizacion-head-field cotizacion-approved-field">
-                                <label>Solicitante</label>
-                                <input type="text" id="cot-requester" placeholder="Nombre del solicitante">
-                            </div>
-                            <div class="cotizacion-head-field cotizacion-approved-field">
-                                <label>Tiempo Estimado de Entrega</label>
-                                <div class="cotizacion-inline-field">
-                                    <input type="number" id="cot-delivery-time" min="0" step="1" inputmode="numeric" placeholder="0">
-                                    <div class="cot-single-select cot-delivery-unit-select" data-placeholder="Seleccionar...">
-                                        <input type="hidden" id="cot-delivery-unit" class="cot-input cot-single-select-value" value="Dias">
-                                        <button type="button" class="cot-input cot-single-select-trigger">Dias</button>
-                                        <div class="cot-single-select-menu" style="display:none;">
-                                            <button type="button" class="cot-single-select-option" data-value="Horas">Horas</button>
-                                            <button type="button" class="cot-single-select-option" data-value="Dias">Dias</button>
-                                            <button type="button" class="cot-single-select-option" data-value="Semanas">Semanas</button>
-                                            <button type="button" class="cot-single-select-option" data-value="Meses">Meses</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="cotizacion-head-field cotizacion-approved-field">
-                                <label>Aprobado</label>
-                                <div class="cotizacion-approved-input-wrap">
-                                    <input type="text" id="cot-approved-by" readonly placeholder="Firma o Nombre Visible">
-                                    <button type="button" class="cotizacion-approved-clear" onclick="clearCotizacionApprovalSignature(true)" title="Borrar aprobaci&oacute;n">&times;</button>
-                                </div>
-                            </div>
-                            <button class="btn btn-primary cotizacion-approve-action" onclick="applyCotizacionApprovalSignature()">Aprobar</button>
                         </div>
                     </div>
 
@@ -3858,6 +3877,11 @@
                                     <td id="cot-sum-label-produccion">Costo de Produccion</td>
                                     <td id="cot-sum-produccion-min">$ 0.00</td>
                                     <td id="cot-sum-produccion-may">$ 0.00</td>
+                                </tr>
+                                <tr>
+                                    <td id="cot-sum-label-desperdicios">Costo de Desperdicios</td>
+                                    <td id="cot-sum-desperdicios-min">$ 0.00</td>
+                                    <td id="cot-sum-desperdicios-may">$ 0.00</td>
                                 </tr>
                                 <tr>
                                     <td id="cot-sum-label-externo">Costo Externo a B&amp;P</td>
@@ -7114,7 +7138,7 @@
     <div id="cotizacion-save-modal"
         style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(8px); z-index: 10000; justify-content: center; align-items: center;">
         <div class="login-card" style="max-width: 400px; padding: 2rem; background: rgba(30, 30, 30, 0.8);">
-            <h3 style="margin-bottom: 1.5rem; color: #fff;">Guardar Cotizaci&oacute;n</h3>
+            <h3 id="cotizacion-save-modal-title" style="margin-bottom: 1.5rem; color: #fff;">Guardar Cotizaci&oacute;n</h3>
 
             <div style="margin-bottom: 1rem;">
                 <label style="display: block; margin-bottom: 0.5rem; color: #ccc; font-size: 0.9rem;">Codigo de Pieza</label>
@@ -7150,7 +7174,7 @@
 
             <div style="display: flex; gap: 1rem;">
                 <button class="btn" onclick="closeCotizacionSaveModal()" style="flex: 1;">Cancelar</button>
-                <button class="btn btn-primary" onclick="confirmSaveCotizacion()" style="flex: 1;">Guardar</button>
+                <button id="cotizacion-save-confirm-btn" class="btn btn-primary" onclick="confirmSaveCotizacion()" style="flex: 1;">Guardar</button>
             </div>
         </div>
     </div>

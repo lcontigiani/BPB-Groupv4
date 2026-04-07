@@ -1317,14 +1317,6 @@ LOGISTICS_RECORDS_FILE = os.path.join(SCRIPT_DIR, 'logistics_records.json')
 COTIZACION_RECORDS_FILE = os.path.join(SCRIPT_DIR, 'cotizacion_records.json')
 COTIZACION_DEFAULT_FOLDER = 'Sin Carpeta'
 
-COTIZACION_INDICES_FILES = {
-    'produccion': Path(r'\\BPBSRV03\lcontigiani\Proyecto Costos\Analisis de Procesos\Analisis de Costos Produccion\Analisis de Costos Produccion.xlsm'),
-    'ensamble': Path(r'\\BPBSRV03\lcontigiani\Proyecto Costos\Analisis de Procesos\Analisis de Costos Ensamble\Analisis de Costos Ensamble.xlsm'),
-    'embalaje': Path(r'\\BPBSRV03\lcontigiani\Proyecto Costos\Analisis de Procesos\Analisis de Costos Embalaje\Analisis de Costos Embalaje.xlsm'),
-    'deposito_logistica': Path(r'\\BPBSRV03\lcontigiani\Proyecto Costos\Analisis de Procesos\Analisis de Costos Deposito y Logistica\Analisis de Costos Deposito y Logistica.xlsm')
-}
-
-
 # Initialize Flask with explicit folder paths
 
 # --- DEBUG STARTUP ---
@@ -1401,6 +1393,42 @@ else:
 
 # Update SCRIPT_DIR usage to be consistent? 
 # SCRIPT_DIR was defined as os.path.dirname... at top.
+
+
+def _resolve_cotizacion_indices_files():
+    relative_paths = {
+        'produccion': Path('Analisis de Costos Produccion/Analisis de Costos Produccion.xlsm'),
+        'ensamble': Path('Analisis de Costos Ensamble/Analisis de Costos Ensamble.xlsm'),
+        'embalaje': Path('Analisis de Costos Embalaje/Analisis de Costos Embalaje.xlsm'),
+        'deposito_logistica': Path('Analisis de Costos Deposito y Logistica/Analisis de Costos Deposito y Logistica.xlsm')
+    }
+
+    network_root = Path(r'\BPBSRV03\lcontigiani\Proyecto Costos\Analisis de Procesos')
+    local_project_root = BASE_DIR.parent.parent
+    local_root = local_project_root / 'Proyecto Costos' / 'Analisis de Procesos'
+    base_dir_is_network = str(BASE_DIR).startswith('\\')
+
+    resolved = {}
+    for key, relative_path in relative_paths.items():
+        network_candidate = network_root / relative_path
+        local_candidate = local_root / relative_path
+
+        preferred = [network_candidate, local_candidate] if base_dir_is_network else [local_candidate, network_candidate]
+        chosen = preferred[0]
+        for candidate in preferred:
+            try:
+                if candidate.exists():
+                    chosen = candidate
+                    break
+            except Exception:
+                continue
+
+        resolved[key] = chosen
+
+    return resolved
+
+
+COTIZACION_INDICES_FILES = _resolve_cotizacion_indices_files()
 
 
 # --- DEBUG FORCE ABSOLUTE ---
@@ -3927,6 +3955,7 @@ def _clean_cotizacion_items(raw_items):
             'source_summary': _cotizacion_normalize_source_summary(item.get('source_summary')),
             'source_record_id': str(item.get('source_record_id', '')),
             'source_version_id': str(item.get('source_version_id', '')),
+            'is_muda': bool(item.get('is_muda')),
             'rate_formula': str(item.get('rate_formula', '')),
             'cantidad_formula': str(item.get('cantidad_formula', '')),
             'costo_formula': str(item.get('costo_formula', '')),
@@ -4056,7 +4085,7 @@ def _cotizacion_normalize_source_summary(raw_summary):
     if not isinstance(raw_summary, dict):
         return None
 
-    keys = ['materia_prima', 'complementarios', 'transformacion', 'externo', 'importacion', 'extra', 'comadm', 'produccion', 'venta', 'total']
+    keys = ['materia_prima', 'complementarios', 'transformacion', 'desperdicios', 'externo', 'importacion', 'extra', 'comadm', 'produccion', 'venta', 'total']
     normalized = {}
     has_value = False
 
@@ -4089,7 +4118,7 @@ def _cotizacion_apply_source_summary_to_bucket(bucket, source_summary, multiplie
     if not math.isfinite(factor) or factor <= 0:
         factor = 1.0
 
-    for key in ('materia_prima', 'complementarios', 'transformacion', 'externo', 'importacion', 'extra', 'comadm'):
+    for key in ('materia_prima', 'complementarios', 'transformacion', 'desperdicios', 'externo', 'importacion', 'extra', 'comadm'):
         bucket[key] = float(bucket.get(key, 0) or 0) + (float(summary.get(key, 0) or 0) * factor)
     return True
 
@@ -4123,12 +4152,91 @@ def _cotizacion_safe_settings(raw_settings):
     return safe_settings
 
 
+def _cotizacion_is_truthy(value):
+    if isinstance(value, bool):
+        return value
+    return str(value or '').strip().lower() in ('1', 'true', 'yes', 'si', 'on')
+
+
+def _cotizacion_normalize_revision_label(raw_label):
+    cleaned = re.sub(r'[^A-Za-z]+', '', str(raw_label or '').upper())
+    return cleaned
+
+
+def _cotizacion_revision_index_to_label(index):
+    try:
+        value = int(index or 0)
+    except Exception:
+        value = 0
+    if value < 1:
+        return ''
+
+    chars = []
+    while value > 0:
+        value -= 1
+        chars.append(chr(ord('A') + (value % 26)))
+        value //= 26
+    return ''.join(reversed(chars))
+
+
+def _cotizacion_apply_revision_metadata(versions):
+    safe_versions = versions if isinstance(versions, list) else []
+    revision_count = 0
+    latest_revision_label = '0'
+
+    for version in safe_versions:
+        if not isinstance(version, dict):
+            continue
+
+        is_revision = _cotizacion_is_truthy(version.get('is_revision'))
+        version['is_revision'] = is_revision
+        if not is_revision:
+            version['revision_label'] = ''
+            continue
+
+        revision_count += 1
+        revision_label = (
+            _cotizacion_normalize_revision_label(version.get('revision_label'))
+            or _cotizacion_revision_index_to_label(revision_count)
+        )
+        version['revision_label'] = revision_label
+        latest_revision_label = revision_label or latest_revision_label
+
+    return {
+        'revision_count': revision_count,
+        'latest_revision_label': latest_revision_label if revision_count > 0 else '0'
+    }
+
+
+def _cotizacion_get_group_revision_info(group):
+    if not isinstance(group, dict):
+        return {'revision_count': 0, 'latest_revision_label': '0'}
+
+    versions = group.get('versions', [])
+    if isinstance(versions, list) and versions:
+        sorted_versions = sorted(
+            versions,
+            key=lambda v: (int(v.get('version_number') or 0), v.get('timestamp', ''))
+        )
+        return _cotizacion_apply_revision_metadata(sorted_versions)
+
+    revision_count = int(group.get('revision_count') or 0)
+    latest_revision_label = _cotizacion_normalize_revision_label(group.get('latest_revision_label'))
+    return {
+        'revision_count': revision_count,
+        'latest_revision_label': latest_revision_label if revision_count > 0 and latest_revision_label else '0'
+    }
+
+
 def _build_cotizacion_version_snapshot(source, version_number=1):
     data = source if isinstance(source, dict) else {}
+    is_revision = _cotizacion_is_truthy(data.get('is_revision'))
     return {
         'version_id': str(data.get('version_id') or uuid.uuid4()),
         'version_number': int(data.get('version_number') or version_number or 1),
         'timestamp': _cotizacion_safe_timestamp(data.get('timestamp')),
+        'is_revision': is_revision,
+        'revision_label': _cotizacion_normalize_revision_label(data.get('revision_label')) if is_revision else '',
         'save_name': _cotizacion_fix_text(data.get('save_name', '')),
         'save_description': _cotizacion_fix_text(data.get('save_description', '')),
         'save_category': _normalize_cotizacion_record_category(data.get('save_category', '')),
@@ -4194,6 +4302,7 @@ def _normalize_cotizacion_group(raw_group):
         versions = [_build_cotizacion_version_snapshot(raw_group, version_number=1)]
 
     versions.sort(key=lambda v: (int(v.get('version_number') or 0), v.get('timestamp', '')))
+    revision_info = _cotizacion_apply_revision_metadata(versions)
     latest = versions[-1]
     latest_version = int(latest.get('version_number') or len(versions) or 1)
 
@@ -4206,6 +4315,8 @@ def _normalize_cotizacion_group(raw_group):
         'created_at': created_at,
         'updated_at': updated_at,
         'latest_version': latest_version,
+        'latest_revision_label': revision_info.get('latest_revision_label', '0'),
+        'revision_count': int(revision_info.get('revision_count') or 0),
         'save_name': latest.get('save_name', ''),
         'save_description': latest.get('save_description', ''),
         'save_category': latest.get('save_category', ''),
@@ -4341,7 +4452,9 @@ def _cotizacion_group_to_summary(group):
         'created_at': created_at,
         'modified_at': modified_at,
         'latest_version': int(group.get('latest_version') or latest.get('version_number') or len(versions) or 1),
-        'version_count': len(versions)
+        'version_count': len(versions),
+        'latest_revision_label': group.get('latest_revision_label', '0') or '0',
+        'revision_count': int(group.get('revision_count') or 0)
     }
 
 
@@ -4351,6 +4464,9 @@ def _cotizacion_version_to_editor_record(group, version):
         'folder': _normalize_cotizacion_folder_name(group.get('folder')),
         'version_id': version.get('version_id', ''),
         'version_number': int(version.get('version_number') or 1),
+        'is_revision': _cotizacion_is_truthy(version.get('is_revision')),
+        'revision_label': version.get('revision_label', ''),
+        'latest_revision_label': group.get('latest_revision_label', '0') or '0',
         'created_at': group.get('created_at', ''),
         'modified_at': group.get('updated_at', ''),
         'save_name': version.get('save_name', ''),
@@ -4406,6 +4522,7 @@ def _cotizacion_empty_summary_bucket():
         'materia_prima': 0.0,
         'complementarios': 0.0,
         'transformacion': 0.0,
+        'desperdicios': 0.0,
         'produccion': 0.0,
         'externo': 0.0,
         'importacion': 0.0,
@@ -4451,7 +4568,7 @@ def _cotizacion_finalize_summary_bucket(raw_bucket, piece_qty=1):
                 raw[key] = 0.0
 
     raw['produccion'] = raw['materia_prima'] + raw['complementarios'] + raw['transformacion']
-    raw['venta'] = raw['produccion'] + raw['externo'] + raw['importacion'] + raw['extra']
+    raw['venta'] = raw['produccion'] + raw['desperdicios'] + raw['externo'] + raw['importacion'] + raw['extra']
     raw['total'] = raw['venta'] + raw['comadm']
 
     try:
@@ -4638,6 +4755,7 @@ def _cotizacion_build_conjunto_item_from_group(group, base_item=None):
         'source_summary': _cotizacion_normalize_source_summary(unitario),
         'source_record_id': str(group.get('id') or ''),
         'source_version_id': str(latest.get('version_id') or ''),
+        'is_muda': False,
         'rate_formula': rate_formula,
         'cantidad_formula': cantidad_formula,
         'costo_formula': costo_formula,
@@ -4688,6 +4806,8 @@ def _cotizacion_fill_missing_source_summaries(items, records):
         category = _cotizacion_normalize_category(item.get('category') or item.get('categoria'))
         if category != 'conjunto':
             continue
+        if bool(item.get('is_muda')):
+            continue
         existing = _cotizacion_normalize_source_summary(item.get('source_summary'))
         if existing:
             item['source_summary'] = existing
@@ -4702,13 +4822,18 @@ def _cotizacion_build_combined_summary_from_items(items, piece_qty=1):
     raw_bucket = _cotizacion_empty_summary_bucket()
     piece_list = []
     piece_summaries = {}
+    desperdicios_list = []
+    desperdicios_summaries = {}
     seen_piece_keys = set()
+    seen_desperdicio_keys = set()
 
     piece_counter = 0
+    desperdicio_counter = 0
     for item in items if isinstance(items, list) else []:
         if not isinstance(item, dict):
             continue
         category = _cotizacion_normalize_category(item.get('category') or item.get('categoria'))
+        is_muda = bool(item.get('is_muda'))
         try:
             cost = float(item.get('costo_unitario', 0) or 0)
         except Exception:
@@ -4725,10 +4850,43 @@ def _cotizacion_build_combined_summary_from_items(items, piece_qty=1):
             quantity = 1.0
 
         used_source_summary = False
-        if category == 'conjunto':
-            used_source_summary = _cotizacion_apply_source_summary_to_bucket(raw_bucket, source_summary, quantity)
-        if not used_source_summary:
-            _cotizacion_add_cost_to_bucket(raw_bucket, category, cost)
+        if is_muda:
+            summary = _cotizacion_normalize_source_summary(source_summary)
+            if summary:
+                try:
+                    summary_waste = float(summary.get('desperdicios', 0) or 0)
+                except Exception:
+                    summary_waste = 0.0
+                if math.isfinite(summary_waste) and summary_waste != 0:
+                    raw_bucket['desperdicios'] = float(raw_bucket.get('desperdicios', 0) or 0) + (summary_waste * quantity)
+                    used_source_summary = True
+            if not used_source_summary:
+                raw_bucket['desperdicios'] = float(raw_bucket.get('desperdicios', 0) or 0) + cost
+
+            desperdicio_label = _cotizacion_fix_text(item.get('pieza', '')).strip() or f"Desperdicio {desperdicio_counter + 1}"
+            desperdicio_key = f"waste:{desperdicio_label.lower()}"
+            if desperdicio_key not in seen_desperdicio_keys:
+                seen_desperdicio_keys.add(desperdicio_key)
+                desperdicios_list.append({'key': desperdicio_key, 'label': desperdicio_label})
+                desperdicios_summaries[desperdicio_key] = {'label': desperdicio_label, 'raw': _cotizacion_empty_summary_bucket()}
+            desperdicio_value = cost
+            if summary:
+                try:
+                    summary_waste = float(summary.get('desperdicios', 0) or 0)
+                except Exception:
+                    summary_waste = 0.0
+                if math.isfinite(summary_waste) and summary_waste != 0:
+                    desperdicio_value = summary_waste * quantity
+            desperdicios_summaries[desperdicio_key]['raw']['desperdicios'] = float(desperdicios_summaries[desperdicio_key]['raw'].get('desperdicios', 0) or 0) + desperdicio_value
+            desperdicio_counter += 1
+        else:
+            if category == 'conjunto':
+                used_source_summary = _cotizacion_apply_source_summary_to_bucket(raw_bucket, source_summary, quantity)
+            if not used_source_summary:
+                _cotizacion_add_cost_to_bucket(raw_bucket, category, cost)
+
+        if is_muda:
+            continue
 
         if category not in ('materia_prima', 'conjunto'):
             continue
@@ -4755,6 +4913,14 @@ def _cotizacion_build_combined_summary_from_items(items, piece_qty=1):
             'unitario': finalized_piece['unitario'],
             'piezas': finalized_piece['piezas']
         }
+    finalized_desperdicios_summaries = {}
+    for waste_key, waste_data in desperdicios_summaries.items():
+        finalized_waste = _cotizacion_finalize_summary_bucket(waste_data.get('raw', {}), piece_qty)
+        finalized_desperdicios_summaries[waste_key] = {
+            'label': waste_data.get('label', ''),
+            'unitario': finalized_waste['unitario'],
+            'piezas': finalized_waste['piezas']
+        }
 
     return {
         'pieceQty': max(1, int(piece_qty or 1)),
@@ -4764,6 +4930,8 @@ def _cotizacion_build_combined_summary_from_items(items, piece_qty=1):
         'pieceSummaries': finalized_piece_summaries,
         'complementariosList': [],
         'complementariosSummaries': {},
+        'desperdiciosList': desperdicios_list,
+        'desperdiciosSummaries': finalized_desperdicios_summaries,
         'provider_breakdown': _cotizacion_build_provider_breakdown_from_items(items)
     }
 
@@ -4910,12 +5078,23 @@ def save_cotizacion_record():
         rec_id = str(data.get('id') or uuid.uuid4())
         records = _read_cotizacion_record_groups()
         data['items'] = _cotizacion_fill_missing_source_summaries(data.get('items', []), records)
+        generate_revision = _cotizacion_is_truthy(data.get('generate_revision'))
 
         group = None
         for item in records:
             if str(item.get('id')) == rec_id:
                 group = item
                 break
+
+        if group:
+            current_revision_info = _cotizacion_get_group_revision_info(group)
+            next_revision_label = _cotizacion_revision_index_to_label(int(current_revision_info.get('revision_count') or 0) + 1)
+        else:
+            current_revision_info = {'revision_count': 0, 'latest_revision_label': '0'}
+            next_revision_label = _cotizacion_revision_index_to_label(1)
+
+        data['is_revision'] = generate_revision
+        data['revision_label'] = next_revision_label if generate_revision else ''
 
         if group:
             new_version_number = int(group.get('latest_version') or len(group.get('versions', [])) or 0) + 1
@@ -4929,15 +5108,21 @@ def save_cotizacion_record():
             group['save_category'] = snapshot.get('save_category', '')
             group['record_category'] = snapshot.get('save_category', '')
             group['author'] = snapshot.get('author', 'Usuario')
+            revision_info = _cotizacion_get_group_revision_info(group)
+            group['latest_revision_label'] = revision_info.get('latest_revision_label', '0')
+            group['revision_count'] = int(revision_info.get('revision_count') or 0)
         else:
             snapshot = _build_cotizacion_version_snapshot(data, version_number=1)
             created_at = _cotizacion_safe_timestamp(data.get('created_at') or snapshot.get('timestamp'))
+            initial_revision_label = snapshot.get('revision_label', '') if _cotizacion_is_truthy(snapshot.get('is_revision')) else ''
             group = {
                 'id': rec_id,
                 'folder': _normalize_cotizacion_folder_name(data.get('folder')),
                 'created_at': created_at,
                 'updated_at': snapshot.get('timestamp', created_at),
                 'latest_version': 1,
+                'latest_revision_label': initial_revision_label or '0',
+                'revision_count': 1 if initial_revision_label else 0,
                 'save_name': snapshot.get('save_name', ''),
                 'save_description': snapshot.get('save_description', ''),
                 'save_category': snapshot.get('save_category', ''),
@@ -4958,7 +5143,10 @@ def save_cotizacion_record():
             'message': 'Cotizacion saved',
             'id': rec_id,
             'version_id': snapshot.get('version_id', ''),
-            'version_number': int(snapshot.get('version_number') or 1)
+            'version_number': int(snapshot.get('version_number') or 1),
+            'is_revision': _cotizacion_is_truthy(snapshot.get('is_revision')),
+            'revision_label': snapshot.get('revision_label', ''),
+            'latest_revision_label': group.get('latest_revision_label', '0') or '0'
         })
     except Exception as e:
         print(f"ERROR saving cotizacion: {e}")
@@ -5052,6 +5240,8 @@ def get_cotizacion_history():
             history.append({
                 'version_id': version.get('version_id', ''),
                 'version_number': int(version.get('version_number') or 1),
+                'is_revision': _cotizacion_is_truthy(version.get('is_revision')),
+                'revision_label': version.get('revision_label', ''),
                 'timestamp': version.get('timestamp', ''),
                 'author': version.get('author', 'Usuario'),
                 'save_name': version.get('save_name', ''),
@@ -5064,6 +5254,7 @@ def get_cotizacion_history():
             'save_name': latest.get('save_name', '') or group.get('save_name', ''),
             'created_at': group.get('created_at', ''),
             'modified_at': group.get('updated_at', ''),
+            'latest_revision_label': group.get('latest_revision_label', '0') or '0',
             'versions': history
         })
     except Exception as e:
