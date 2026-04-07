@@ -3540,16 +3540,20 @@
 
     <!-- VIEW: COTIZACION RECORDS -->
     <div id="view-cotizacion-records" class="panel animate-entry" style="display: none; max-width: 1200px; margin: 0 auto;">
-        <div class="panel-header">
-            <div class="panel-title decorated-title">
-                <span class="breadcrumb-link" onclick="showCotizacionView()">Cotizaci&oacute;n</span>
-                <span style="color:var(--bpb-blue); margin: 0 10px;">&gt;</span>
-                <span id="cotizacion-records-root-crumb" class="breadcrumb-link" onclick="showCotizacionRecordsFolderHome()">Registro de Cotizaciones</span>
-                <span id="cotizacion-records-folder-sep" style="display:none; color:var(--bpb-blue); margin: 0 10px;">&gt;</span>
-                <span id="cotizacion-records-folder-crumb" style="display:none; color:var(--text-primary);"></span>
+        <div class="panel-header cotizacion-records-header">
+            <div class="panel-title decorated-title cotizacion-records-breadcrumb">
+                <span class="cotizacion-records-breadcrumb-main">
+                    <span class="breadcrumb-link" onclick="showCotizacionView()">Cotizaci&oacute;n</span>
+                    <span class="cotizacion-records-breadcrumb-separator">&gt;</span>
+                    <span id="cotizacion-records-root-crumb" class="breadcrumb-link" onclick="showCotizacionRecordsFolderHome()">Registro de Cotizaciones</span>
+                </span>
+                <span id="cotizacion-records-folder-tail" class="cotizacion-records-breadcrumb-tail" style="display:none;">
+                    <span id="cotizacion-records-folder-sep" class="cotizacion-records-breadcrumb-separator">&gt;</span>
+                    <span id="cotizacion-records-folder-crumb" class="cotizacion-records-folder-crumb"></span>
+                </span>
             </div>
             <div class="header-right">
-                <div style="display: flex; gap: 1rem; align-items: center;">
+                <div class="cotizacion-records-actions">
                     <input id="cotizacion-records-search" type="text" placeholder="Buscar cotizaci&oacute;n..." class="search-input" style="max-width: 250px; display:none;"
                         onkeyup="filterCotizacionRecordsTable(this)">
                     <button id="cotizacion-records-create-folder-btn" class="btn" onclick="openCotizacionCreateFolderPrompt()">Crear Carpeta</button>
@@ -3568,14 +3572,15 @@
             <table id="cotizacion-records-table">
                 <thead>
                     <tr>
-                        <th style="text-align: center; width: 39%;">Nombre</th>
-                        <th style="text-align: center; width: 22%;">Descripci&oacute;n</th>
-                        <th style="text-align: center; width: 10%;">Autor</th>
-                        <th style="text-align: center; width: 9%;">Fecha Modificaci&oacute;n</th>
-                        <th style="text-align: center; width: 9%;">Fecha Creaci&oacute;n</th>
-                        <th style="text-align: center; width: 6%;">Acci&oacute;n</th>
-                        <th style="text-align: center; width: 4%;">Historial</th>
-                        <th id="cotizacion-records-select-header" style="text-align: center; width: 1%;">Eliminar</th>
+                        <th style="text-align: center; width: 12%;">Categoria</th>
+                        <th style="text-align: center; width: 18%;">Codigo</th>
+                        <th style="text-align: center; width: 14%;">Nombre</th>
+                        <th style="text-align: center; width: 8%;">Autor</th>
+                        <th style="text-align: center; width: 6%;">Fecha Mod.</th>
+                        <th style="text-align: center; width: 7%;">Fecha Creaci&oacute;n</th>
+                        <th style="text-align: center; width: 16%;">Acci&oacute;n</th>
+                        <th style="text-align: center; width: 12%;">Historial</th>
+                        <th id="cotizacion-records-select-header" style="text-align: center; width: 7%;">Eliminar</th>
                     </tr>
                 </thead>
                 <tbody id="cotizacion-records-body">
@@ -3705,15 +3710,19 @@
                 <div class="cotizacion-head-grid">
                     <div class="cotizacion-head-title">ANALISIS DE COSTOS PRODUCTO</div>
                     <div class="cotizacion-head-field">
+                        <label>CODIGO</label>
+                        <input type="text" id="cot-code" placeholder="Ej: BP-26002">
+                    </div>
+                    <div class="cotizacion-head-field">
                         <label>PIEZA</label>
-                        <input type="text" id="cot-piece" placeholder="Ej: BP-26002">
+                        <input type="text" id="cot-piece" placeholder="Ej: Maza doble disco">
                     </div>
                     <div class="cotizacion-head-field">
                         <label>FECHA DE ANALISIS</label>
                         <input type="date" id="cot-analysis-date" class="cot-date-input">
                     </div>
                     <div class="cotizacion-head-field">
-                        <label>DOLAR BLUE (VENTA)</label>
+                        <label>DOLAR OFICIAL (VENTA)</label>
                         <div class="cotizacion-inline-field">
                             <input type="number" id="cot-usd-value" step="0.01" placeholder="0.00">
                             <button type="button" class="btn btn-sm" onclick="refreshCotizacionDollarRate(true)">Actualizar</button>
@@ -3785,7 +3794,26 @@
                             </div>
                         </div>
                         <div class="cotizacion-approval-row">
-                            <button class="btn btn-primary" onclick="applyCotizacionApprovalSignature()">Aprobar</button>
+                            <div class="cotizacion-head-field cotizacion-approved-field">
+                                <label>Solicitante</label>
+                                <input type="text" id="cot-requester" placeholder="Nombre del solicitante">
+                            </div>
+                            <div class="cotizacion-head-field cotizacion-approved-field">
+                                <label>Tiempo Estimado de Entrega</label>
+                                <div class="cotizacion-inline-field">
+                                    <input type="number" id="cot-delivery-time" min="0" step="1" inputmode="numeric" placeholder="0">
+                                    <div class="cot-single-select cot-delivery-unit-select" data-placeholder="Seleccionar...">
+                                        <input type="hidden" id="cot-delivery-unit" class="cot-input cot-single-select-value" value="Dias">
+                                        <button type="button" class="cot-input cot-single-select-trigger">Dias</button>
+                                        <div class="cot-single-select-menu" style="display:none;">
+                                            <button type="button" class="cot-single-select-option" data-value="Horas">Horas</button>
+                                            <button type="button" class="cot-single-select-option" data-value="Dias">Dias</button>
+                                            <button type="button" class="cot-single-select-option" data-value="Semanas">Semanas</button>
+                                            <button type="button" class="cot-single-select-option" data-value="Meses">Meses</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                             <div class="cotizacion-head-field cotizacion-approved-field">
                                 <label>Aprobado</label>
                                 <div class="cotizacion-approved-input-wrap">
@@ -3793,6 +3821,7 @@
                                     <button type="button" class="cotizacion-approved-clear" onclick="clearCotizacionApprovalSignature(true)" title="Borrar aprobaci&oacute;n">&times;</button>
                                 </div>
                             </div>
+                            <button class="btn btn-primary cotizacion-approve-action" onclick="applyCotizacionApprovalSignature()">Aprobar</button>
                         </div>
                     </div>
 
@@ -7088,10 +7117,15 @@
             <h3 style="margin-bottom: 1.5rem; color: #fff;">Guardar Cotizaci&oacute;n</h3>
 
             <div style="margin-bottom: 1rem;">
-                <label style="display: block; margin-bottom: 0.5rem; color: #ccc; font-size: 0.9rem;">Nombre del
-                    Registro</label>
-                <input type="text" id="cotizacion-save-name" class="login-input"
-                    placeholder="Ej: Cotizaci&oacute;n BP-26002 Enero" style="width: 100%; box-sizing: border-box;">
+                <label style="display: block; margin-bottom: 0.5rem; color: #ccc; font-size: 0.9rem;">Codigo</label>
+                <input type="text" id="cotizacion-save-code" class="login-input"
+                    placeholder="Ej: BP-26002" style="width: 100%; box-sizing: border-box;">
+            </div>
+
+            <div style="margin-bottom: 1rem;">
+                <label style="display: block; margin-bottom: 0.5rem; color: #ccc; font-size: 0.9rem;">Pieza</label>
+                <input type="text" id="cotizacion-save-piece" class="login-input"
+                    placeholder="Ej: Maza doble disco" style="width: 100%; box-sizing: border-box;">
             </div>
 
             <div style="margin-bottom: 1rem;">
@@ -7099,11 +7133,14 @@
                 <select id="cotizacion-save-folder" class="login-input" style="width: 100%; box-sizing: border-box;"></select>
             </div>
 
-            <div style="margin-bottom: 1.5rem;">
-                <label style="display: block; margin-bottom: 0.5rem; color: #ccc; font-size: 0.9rem;">Descripci&oacute;n
-                    (Opcional)</label>
-                <textarea id="cotizacion-save-desc" class="login-input" placeholder="Detalles adicionales..."
-                    style="width: 100%; box-sizing: border-box; min-height: 80px; resize: vertical; padding: 10px;"></textarea>
+            <div style="margin-bottom: 1rem;">
+                <label style="display: block; margin-bottom: 0.5rem; color: #ccc; font-size: 0.9rem;">Categoria</label>
+                <select id="cotizacion-save-category" class="login-input" style="width: 100%; box-sizing: border-box;">
+                    <option value="">Seleccionar categoria...</option>
+                    <option value="Conjunto">Conjunto</option>
+                    <option value="Sub-Conjunto">Sub-Conjunto</option>
+                    <option value="Pieza">Pieza</option>
+                </select>
             </div>
 
             <label style="display:flex; align-items:center; gap:0.6rem; margin-bottom: 1.5rem; color:#ccc; font-size:0.92rem; cursor:pointer;">

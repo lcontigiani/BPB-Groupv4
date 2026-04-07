@@ -13751,6 +13751,7 @@ let lastCotizacionRecords = [];
 let currentCotizacionRecordId = null;
 let currentCotizacionRecordName = '';
 let currentCotizacionRecordDescription = '';
+let currentCotizacionRecordCategory = '';
 let lastCotizacionFolders = ['Sin Carpeta'];
 let currentCotizacionFolder = 'Sin Carpeta';
 let currentCotizacionRecordsFolderView = '';
@@ -13764,6 +13765,99 @@ window._cotizacionFromCombine = false;
 window._cotizacionBindingsReady = false;
 window._cotizacionDefaultRowsHTML = '';
 window._cotizacionProgrammaticUpdate = false;
+
+function normalizeCotizacionRecordCategory(value) {
+    const raw = String(value || '').trim().toLowerCase();
+    if (raw === 'conjunto') return 'Conjunto';
+    if (raw === 'sub-conjunto' || raw === 'sub conjunto' || raw === 'subconjunto') return 'Sub-Conjunto';
+    if (raw === 'pieza') return 'Pieza';
+    return '';
+}
+
+function getCotizacionCategoryBadgeHTML(value) {
+    const label = normalizeCotizacionRecordCategory(value);
+    if (!label) return '<span style="color: var(--text-secondary);">-</span>';
+
+    let toneClass = 'pieza';
+    if (label === 'Conjunto') toneClass = 'conjunto';
+    else if (label === 'Sub-Conjunto') toneClass = 'sub-conjunto';
+
+    return `<span class="cotizacion-category-badge ${toneClass}">${escapeCotizacionHTML(label)}</span>`;
+}
+
+function normalizeCotizacionSourceSummary(summary) {
+    if (!summary || typeof summary !== 'object') return null;
+
+    const keys = ['materia_prima', 'complementarios', 'transformacion', 'externo', 'importacion', 'extra', 'comadm', 'produccion', 'venta', 'total'];
+    const normalized = {};
+    let hasValue = false;
+
+    keys.forEach((key) => {
+        const value = Number(summary[key] || 0);
+        normalized[key] = Number.isFinite(value) ? value : 0;
+        if (Math.abs(normalized[key]) > 0) hasValue = true;
+    });
+
+    return hasValue ? normalized : null;
+}
+
+function getCotizacionRowSourceSummary(row) {
+    const summary = normalizeCotizacionSourceSummary(row?.source_summary || null);
+    if (!summary) return null;
+    const quantity = Math.max(0, Number(row?.cantidad || 0));
+    const multiplier = Number.isFinite(quantity) && quantity > 0 ? quantity : 1;
+
+    return {
+        materia_prima: Number(summary.materia_prima || 0) * multiplier,
+        complementarios: Number(summary.complementarios || 0) * multiplier,
+        transformacion: Number(summary.transformacion || 0) * multiplier,
+        externo: Number(summary.externo || 0) * multiplier,
+        importacion: Number(summary.importacion || 0) * multiplier,
+        extra: Number(summary.extra || 0) * multiplier,
+        comadm: Number(summary.comadm || 0) * multiplier
+    };
+}
+
+function applyCotizacionSummaryContribution(bucket, row) {
+    if (!bucket || !row) return;
+
+    const category = sanitizeCotizacionCategory(row.category);
+    const sourceSummary = category === 'conjunto' ? getCotizacionRowSourceSummary(row) : null;
+    if (sourceSummary) {
+        bucket.materia_prima += Number(sourceSummary.materia_prima || 0);
+        bucket.complementarios += Number(sourceSummary.complementarios || 0);
+        bucket.transformacion += Number(sourceSummary.transformacion || 0);
+        bucket.externo += Number(sourceSummary.externo || 0);
+        bucket.importacion += Number(sourceSummary.importacion || 0);
+        bucket.extra += Number(sourceSummary.extra || 0);
+        bucket.comadm += Number(sourceSummary.comadm || 0);
+        return;
+    }
+
+    addCotizacionCostToSummaryBucket(bucket, category, Number(row.costo_unitario || 0));
+}
+
+function getCotizacionRowBarSegments(row) {
+    const sourceSummary = getCotizacionRowSourceSummary(row);
+    if (!sourceSummary) {
+        const category = sanitizeCotizacionCategory(row?.category || '');
+        const segmentKey = getCotizacionStatsBarSegmentKey(category);
+        if (!segmentKey) return {};
+        return {
+            [segmentKey]: Number(row?.costo_unitario || 0)
+        };
+    }
+
+    return {
+        materia_prima: Number(sourceSummary.materia_prima || 0),
+        complementarios: Number(sourceSummary.complementarios || 0),
+        transformacion: Number(sourceSummary.transformacion || 0),
+        externo: Number(sourceSummary.externo || 0),
+        importacion: Number(sourceSummary.importacion || 0),
+        extra: Number(sourceSummary.extra || 0),
+        comadm: Number(sourceSummary.comadm || 0)
+    };
+}
 window._cotizacionConfigBindingsReady = false;
 window._cotizacionCellRefMap = {};
 window._cotizacionFormulaEditingInput = null;
@@ -13840,6 +13934,11 @@ const COTIZACION_INDICE_RATE_SUFFIX = {
     Kilogramos: 'Kg',
     Gramos: 'g'
 };
+const COTIZACION_TIME_UNIT_FACTORS = {
+    Horas: 1,
+    Minutos: 1 / 60,
+    Segundos: 1 / 3600
+};
 
 function normalizeCotizacionIndiceFromComplementarioUnit(rawValue = '') {
     const raw = String(rawValue || '').trim();
@@ -13908,6 +14007,22 @@ function normalizeCotizacionIndiceFromComplementarioUnit(rawValue = '') {
 
     const direct = COTIZACION_INDICE_OPTIONS.find((optionValue) => String(optionValue || '').trim().toLowerCase() === raw.toLowerCase());
     return direct || raw;
+}
+
+function isCotizacionTimeIndiceCategory(categoryKey) {
+    return COTIZACION_SUBCONCEPTO_AUTO_HORA_CATEGORIES.has(sanitizeCotizacionCategory(categoryKey));
+}
+
+function getCotizacionIndiceOptionsForCategory(categoryKey) {
+    if (isCotizacionTimeIndiceCategory(categoryKey)) {
+        return ['Horas', 'Minutos', 'Segundos'];
+    }
+    return [...COTIZACION_INDICE_OPTIONS];
+}
+
+function getCotizacionIndiceConversionFactor(indiceValue = '') {
+    const safeIndice = normalizeCotizacionIndiceFromComplementarioUnit(indiceValue);
+    return Number(COTIZACION_TIME_UNIT_FACTORS[safeIndice] || 1);
 }
 const COTIZACION_SUMMARY_ROW_CONFIG = [
     { key: 'materia_prima', label: 'Costo Materia Prima', labelId: 'cot-sum-label-materia-prima', minId: 'cot-sum-materia-prima-min', mayId: 'cot-sum-materia-prima-may' },
@@ -21380,8 +21495,26 @@ function syncCotizacionRateFromSubconceptRow(row, onlyIfEmptyRate = false) {
     const rateNumber = parseFloat(rateRaw.replace(',', '.'));
     if (!Number.isFinite(rateNumber)) return;
 
+    const category = sanitizeCotizacionCategory(row.dataset.category || 'extras');
+    const indiceControl = row.querySelector('.cot-indice');
+    let targetIndice = normalizeCotizacionIndiceFromComplementarioUnit(indiceControl?.value || '');
+    if (isCotizacionTimeIndiceCategory(category)) {
+        if (!targetIndice) {
+            targetIndice = 'Horas';
+            if (indiceControl instanceof HTMLInputElement || indiceControl instanceof HTMLSelectElement) {
+                setCotizacionSingleSelectValue(indiceControl, targetIndice, { dispatchEvents: false });
+            }
+        }
+        row.dataset.lastIndice = targetIndice;
+    }
+
+    const targetFactor = isCotizacionTimeIndiceCategory(category)
+        ? getCotizacionIndiceConversionFactor(targetIndice || 'Horas')
+        : 1;
+    const convertedRate = rateNumber * targetFactor;
+
     rateInput.dataset.formula = '';
-    rateInput.value = formatCotizacionFormulaValue(rateNumber);
+    setCotizacionNumericDisplayValue(rateInput, convertedRate);
     updateCotizacionRowUnitPlaceholders(row);
 }
 
@@ -21397,9 +21530,46 @@ function syncCotizacionIndiceFromSubconceptRow(row) {
 
     const indiceControl = row.querySelector('.cot-indice');
     if (!(indiceControl instanceof HTMLInputElement || indiceControl instanceof HTMLSelectElement)) return;
-    if (String(indiceControl.value || '').trim() === 'Horas') return;
+    if (String(indiceControl.value || '').trim()) {
+        row.dataset.lastIndice = normalizeCotizacionIndiceFromComplementarioUnit(indiceControl.value || '') || 'Horas';
+        return;
+    }
 
     setCotizacionSingleSelectValue(indiceControl, 'Horas', { dispatchEvents: false });
+    row.dataset.lastIndice = 'Horas';
+    updateCotizacionRowUnitPlaceholders(row);
+}
+
+function syncCotizacionRateToIndiceUnit(row, previousIndice = '', nextIndice = '') {
+    if (!(row instanceof HTMLTableRowElement)) return;
+    const category = sanitizeCotizacionCategory(row.dataset.category || 'extras');
+    if (!isCotizacionTimeIndiceCategory(category)) return;
+
+    const fromIndice = normalizeCotizacionIndiceFromComplementarioUnit(previousIndice || row.dataset.lastIndice || 'Horas') || 'Horas';
+    const toIndice = normalizeCotizacionIndiceFromComplementarioUnit(nextIndice || row.querySelector('.cot-indice')?.value || 'Horas') || 'Horas';
+    row.dataset.lastIndice = toIndice;
+
+    if (fromIndice === toIndice) return;
+
+    const rateInput = row.querySelector('.cot-rate');
+    if (!(rateInput instanceof HTMLInputElement)) return;
+
+    const formula = String(rateInput.dataset.formula || '').trim();
+    if (formula.startsWith('=')) return;
+
+    const currentRate = parseFloat(String(rateInput.dataset.preciseValue || rateInput.value || '').trim().replace(/,/g, '.'));
+    if (!Number.isFinite(currentRate)) return;
+
+    const fromFactor = getCotizacionIndiceConversionFactor(fromIndice);
+    const toFactor = getCotizacionIndiceConversionFactor(toIndice);
+    if (!Number.isFinite(fromFactor) || !Number.isFinite(toFactor) || fromFactor <= 0 || toFactor <= 0) return;
+
+    const hourlyBase = currentRate / fromFactor;
+    const convertedRate = hourlyBase * toFactor;
+    setCotizacionNumericDisplayValue(rateInput, convertedRate);
+
+    clearCotizacionApprovalSignature(false);
+    applyCotizacionDefaultCostFormulaToRow(row, { force: true });
     updateCotizacionRowUnitPlaceholders(row);
 }
 
@@ -21755,7 +21925,12 @@ function syncCotizacionPieceMultiselectState(wrapper, options = {}) {
 
 function toggleCotizacionPieceMultiselect(wrapper) {
     if (!(wrapper instanceof HTMLElement)) return;
-    const menu = wrapper.querySelector('.cot-pieza-multiselect-menu');
+    const openStateMenu = window._cotizacionOpenPieceMultiselect?.wrapper === wrapper
+        ? window._cotizacionOpenPieceMultiselect?.menu
+        : null;
+    const menu = openStateMenu instanceof HTMLElement
+        ? openStateMenu
+        : wrapper.querySelector('.cot-pieza-multiselect-menu');
     if (!(menu instanceof HTMLElement)) return;
 
     const willOpen = !wrapper.classList.contains('is-open');
@@ -21853,7 +22028,12 @@ function syncCotizacionSingleSelectState(wrapper, selectedValue = '', options = 
 
 function toggleCotizacionSingleSelect(wrapper) {
     if (!(wrapper instanceof HTMLElement)) return;
-    const menu = wrapper.querySelector('.cot-single-select-menu');
+    const openStateMenu = window._cotizacionOpenSingleSelect?.wrapper === wrapper
+        ? window._cotizacionOpenSingleSelect?.menu
+        : null;
+    const menu = openStateMenu instanceof HTMLElement
+        ? openStateMenu
+        : wrapper.querySelector('.cot-single-select-menu');
     if (!(menu instanceof HTMLElement)) return;
 
     const willOpen = !wrapper.classList.contains('is-open');
@@ -22437,9 +22617,9 @@ function scheduleCotizacionProviderSuggestions(control) {
     }, COTIZACION_PROVIDER_LOOKUP_DEBOUNCE_MS);
 }
 
-function buildCotizacionIndiceFieldHTML(currentValue = '') {
+function buildCotizacionIndiceFieldHTML(categoryKey = '', currentValue = '') {
     const current = normalizeCotizacionIndiceFromComplementarioUnit(currentValue);
-    const options = COTIZACION_INDICE_OPTIONS.map((optionValue) => ({
+    const options = getCotizacionIndiceOptionsForCategory(categoryKey).map((optionValue) => ({
         value: optionValue,
         label: optionValue
     }));
@@ -22450,7 +22630,7 @@ function buildCotizacionIndiceFieldHTML(currentValue = '') {
     return buildCotizacionSingleSelectHTML({
         controlClass: 'cot-indice',
         wrapperClass: 'cot-indice-select-wrap',
-        currentValue: current,
+        currentValue: current || (isCotizacionTimeIndiceCategory(categoryKey) ? 'Horas' : current),
         placeholderText: 'Seleccionar...',
         options
     });
@@ -22594,18 +22774,18 @@ async function refreshCotizacionDollarRate(showMessage = false) {
         if (response.ok && data && data.status === 'success' && Number(data.value) > 0) {
             usdInput.value = Number(data.value).toFixed(2);
             if (showMessage) {
-                showNotification('Dolar Blue (venta) actualizado.', 'success');
+                showNotification('Dolar Oficial (venta) actualizado.', 'success');
             }
             return;
         }
 
         if (showMessage) {
-            showNotification(data.message || 'No se pudo obtener el valor del dolar Blue venta.', 'warning');
+            showNotification(data.message || 'No se pudo obtener el valor del dolar Oficial venta.', 'warning');
         }
     } catch (e) {
         console.error(e);
         if (showMessage) {
-            showNotification('Error al consultar el valor del dolar Blue venta.', 'error');
+            showNotification('Error al consultar el valor del dolar Oficial venta.', 'error');
         }
     }
 }
@@ -22615,8 +22795,10 @@ function applyCotizacionUserContext() {
     const positionInput = document.getElementById('cot-resp-position');
     const deptInput = document.getElementById('cot-resp-dept');
     const ownerInput = document.getElementById('cot-resp-owner');
+    const requesterInput = document.getElementById('cot-requester');
 
     if (nameInput) nameInput.value = currentDisplayName || currentUser || '';
+    if (requesterInput && !String(requesterInput.value || '').trim()) requesterInput.value = currentDisplayName || currentUser || '';
     if (positionInput) {
         positionInput.value = currentUserPosition || '';
         positionInput.readOnly = true;
@@ -23117,7 +23299,7 @@ function refreshCotizacionCellReferences() {
 function formatCotizacionFormulaValue(value) {
     const numeric = Number(value);
     if (!Number.isFinite(numeric)) return '';
-    let textValue = numeric.toFixed(6);
+    let textValue = numeric.toFixed(3);
     textValue = textValue.replace(/\.0+$/, '').replace(/(\.\d*?)0+$/, '$1');
     return textValue;
 }
@@ -23131,7 +23313,19 @@ function formatCotizacionInitialNumericValue(value) {
 function roundCotizacionStoredNumber(value) {
     const numeric = Number(value);
     if (!Number.isFinite(numeric)) return 0;
-    return Number(formatCotizacionFormulaValue(numeric));
+    return Number(numeric.toFixed(6));
+}
+
+function setCotizacionNumericDisplayValue(input, value) {
+    if (!(input instanceof HTMLInputElement)) return;
+    const numeric = Number(value);
+    if (!Number.isFinite(numeric)) {
+        input.dataset.preciseValue = '';
+        input.value = '';
+        return;
+    }
+    input.dataset.preciseValue = String(numeric);
+    input.value = formatCotizacionFormulaValue(numeric);
 }
 
 function getCotizacionRateSuffixFromIndice(indiceValue) {
@@ -23181,6 +23375,14 @@ function updateCotizacionRowUnitPlaceholders(row) {
             costInput.value = '';
         }
     }
+}
+
+function getCotizacionDefaultProvider(categoryKey) {
+    const category = sanitizeCotizacionCategory(categoryKey);
+    if (category === 'produccion' || category === 'ensamble' || category === 'embalaje' || category === 'deposito_logistica') {
+        return 'BPB';
+    }
+    return '';
 }
 
 function refreshCotizacionUnitPlaceholders() {
@@ -23411,6 +23613,9 @@ function evaluateCotizacionFormulaInput(input, options = {}) {
             input.dataset.formula = '';
         }
         const parsed = parseFloat(String(input.value || '').replace(/,/g, '.'));
+        if (Number.isFinite(parsed)) {
+            input.dataset.preciseValue = String(parsed);
+        }
         return Number.isFinite(parsed) ? parsed : null;
     }
 
@@ -23440,6 +23645,7 @@ function evaluateCotizacionFormulaInput(input, options = {}) {
     }
 
     input.dataset.formula = raw;
+    input.dataset.preciseValue = String(evaluated);
     if (document.activeElement !== input || fromStored) {
         input.value = formatCotizacionFormulaValue(evaluated);
     }
@@ -23503,13 +23709,17 @@ function createCotizacionRow(data = {}) {
     const categoria = data.categoria || meta.label || 'Modulo Extra';
     const subconcepto = data.subconcepto || data.subCategoria || '';
     const pieza = data.pieza || data.piece || '';
-    const proveedor = data.proveedor || data.provider || '';
+    const proveedor = String(data.proveedor || data.provider || getCotizacionDefaultProvider(category) || '').trim();
 
     const tr = document.createElement('tr');
     tr.className = 'cotizacion-item-row';
     tr.dataset.category = category;
     if (Array.isArray(data.provider_mix) && data.provider_mix.length) {
         tr.dataset.providerMix = JSON.stringify(data.provider_mix);
+    }
+    const sourceSummary = normalizeCotizacionSourceSummary(data.source_summary || null);
+    if (sourceSummary) {
+        tr.dataset.sourceSummary = JSON.stringify(sourceSummary);
     }
     if (String(data.source_record_id || '').trim()) {
         tr.dataset.sourceRecordId = String(data.source_record_id).trim();
@@ -23542,8 +23752,9 @@ function createCotizacionRow(data = {}) {
 
     const indiceCell = tr.querySelector('.cot-indice-cell');
     if (indiceCell instanceof HTMLTableCellElement) {
-        indiceCell.innerHTML = buildCotizacionIndiceFieldHTML(data.indice || '');
+        indiceCell.innerHTML = buildCotizacionIndiceFieldHTML(category, data.indice || '');
     }
+    tr.dataset.lastIndice = normalizeCotizacionIndiceFromComplementarioUnit(data.indice || '') || (isCotizacionTimeIndiceCategory(category) ? 'Horas' : '');
 
     const rateInput = tr.querySelector('.cot-rate');
     const qtyInput = tr.querySelector('.cot-cantidad');
@@ -23554,11 +23765,17 @@ function createCotizacionRow(data = {}) {
     if (rateInput instanceof HTMLInputElement && rateFormula.startsWith('=')) {
         rateInput.dataset.formula = rateFormula;
     }
+    if (rateInput instanceof HTMLInputElement && Number.isFinite(Number(data.rate))) {
+        rateInput.dataset.preciseValue = String(Number(data.rate));
+    }
     if (qtyInput instanceof HTMLInputElement && qtyFormula.startsWith('=')) {
         qtyInput.dataset.formula = qtyFormula;
     }
     if (costInput instanceof HTMLInputElement && costFormula.startsWith('=')) {
         costInput.dataset.formula = costFormula;
+    }
+    if (costInput instanceof HTMLInputElement && Number.isFinite(Number(data.costo_unitario))) {
+        costInput.dataset.preciseValue = String(Number(data.costo_unitario));
     }
 
     syncCotizacionRateFromSubconceptRow(tr, true);
@@ -23636,8 +23853,11 @@ function resetCotizacionForm() {
         if (tbody) tbody.innerHTML = '';
 
         const ids = [
+            'cot-code',
             'cot-piece',
             'cot-usd-value',
+            'cot-requester',
+            'cot-delivery-time',
             'cot-approved-by',
             'cot-notes'
         ];
@@ -23654,10 +23874,14 @@ function resetCotizacionForm() {
         const piecesInput = document.getElementById('cotizacion-cantidad-piezas');
         if (piecesInput) piecesInput.value = '1';
 
+        const deliveryUnitInput = document.getElementById('cot-delivery-unit');
+        if (deliveryUnitInput) setCotizacionSingleSelectValue(deliveryUnitInput, 'Dias', { dispatchEvents: false });
+
         applyCotizacionUserContext();
         currentCotizacionRecordId = null;
         currentCotizacionRecordName = '';
         currentCotizacionRecordDescription = '';
+        currentCotizacionRecordCategory = '';
         currentCotizacionCombinedSourceIds = [];
         clearCotizacionAttachments();
     });
@@ -23689,6 +23913,13 @@ function handleCotizacionEditorInput(event) {
 
     if (target instanceof HTMLInputElement && target.classList.contains('cot-proveedor')) {
         scheduleCotizacionProviderSuggestions(target);
+    }
+
+    if (target.id === 'cot-delivery-time' && target instanceof HTMLInputElement) {
+        const digitsOnly = String(target.value || '').replace(/[^\d]/g, '');
+        if (digitsOnly !== target.value) {
+            target.value = digitsOnly;
+        }
     }
 
     if (target instanceof HTMLInputElement && target.classList.contains('cot-formula-input')) {
@@ -23781,14 +24012,23 @@ function ensureCotizacionBindings() {
         view.addEventListener('change', (event) => {
             const target = event.target;
             if (!(target instanceof HTMLInputElement || target instanceof HTMLSelectElement)) return;
-            if (!target.classList.contains('cot-subconcepto')) return;
-
             const row = target.closest('.cotizacion-item-row');
             if (!(row instanceof HTMLTableRowElement)) return;
 
-            syncCotizacionRateFromSubconceptRow(row, false);
-            clearCotizacionApprovalSignature(false);
-            updateCotizacionSummary();
+            if (target.classList.contains('cot-subconcepto')) {
+                syncCotizacionRateFromSubconceptRow(row, false);
+                row.dataset.lastIndice = normalizeCotizacionIndiceFromComplementarioUnit(row.querySelector('.cot-indice')?.value || '') || 'Horas';
+                clearCotizacionApprovalSignature(false);
+                updateCotizacionSummary();
+                return;
+            }
+
+            if (target.classList.contains('cot-indice')) {
+                const previousIndice = String(row.dataset.lastIndice || '').trim() || 'Horas';
+                syncCotizacionRateToIndiceUnit(row, previousIndice, target.value);
+                clearCotizacionApprovalSignature(false);
+                updateCotizacionSummary();
+            }
         }, true);
 
         view.addEventListener('click', (event) => {
@@ -23820,6 +24060,7 @@ function ensureCotizacionBindings() {
             if (multiselectTrigger instanceof HTMLButtonElement) {
                 event.preventDefault();
                 event.stopPropagation();
+                event.stopImmediatePropagation();
                 const wrapper = multiselectTrigger.closest('.cot-pieza-multiselect');
                 if (wrapper instanceof HTMLElement) {
                     toggleCotizacionPieceMultiselect(wrapper);
@@ -23831,10 +24072,12 @@ function ensureCotizacionBindings() {
             if (singleSelectTrigger instanceof HTMLButtonElement) {
                 event.preventDefault();
                 event.stopPropagation();
+                event.stopImmediatePropagation();
                 const wrapper = singleSelectTrigger.closest('.cot-single-select');
                 if (wrapper instanceof HTMLElement) {
                     toggleCotizacionSingleSelect(wrapper);
                 }
+                return;
             }
         }, true);
 
@@ -23898,6 +24141,13 @@ function ensureCotizacionBindings() {
             }
 
             evaluateCotizacionFormulaInput(target, { fromStored: false, silent: false });
+            if (!String(target.dataset.formula || '').trim().startsWith('=') && (target.classList.contains('cot-rate') || target.classList.contains('cot-cost'))) {
+                const preciseParsed = parseFloat(String(target.value || '').trim().replace(/,/g, '.'));
+                if (Number.isFinite(preciseParsed)) {
+                    target.dataset.preciseValue = String(preciseParsed);
+                    target.value = formatCotizacionFormulaValue(preciseParsed);
+                }
+            }
             if (window._cotizacionFormulaEditingInput === target) {
                 window._cotizacionFormulaEditingInput = null;
             }
@@ -24216,12 +24466,8 @@ function isCotizacionCombinedRecord(record) {
 }
 
 function buildCotizacionCombinedRowFromRecord(rec, index = 0) {
-    const rowName = String(rec?.save_name || '').trim();
-    const pieceLabel = rowName || String(rec?.header?.piece || '').trim() || `Conjunto ${index + 1}`;
-    const descriptionParts = [
-        String(rec?.header?.piece || '').trim(),
-        String(rec?.save_description || '').trim()
-    ].filter(Boolean);
+    const codeLabel = String(rec?.header?.code || '').trim();
+    const pieceName = String(rec?.header?.piece || '').trim() || String(rec?.save_name || '').trim() || `Conjunto ${index + 1}`;
     const saleCost = Number(rec?.summary?.unitario?.venta || 0);
     const providerBreakdown = Array.isArray(rec?.summary?.provider_breakdown) ? rec.summary.provider_breakdown : [];
     const providerLabel = providerBreakdown.length === 1
@@ -24233,13 +24479,14 @@ function buildCotizacionCombinedRowFromRecord(rec, index = 0) {
         categoria: 'Conjunto',
         subCategoria: '-',
         subconcepto: '-',
-        pieza: pieceLabel,
-        descripcion: descriptionParts.join(' - '),
+        pieza: codeLabel || `Conjunto ${index + 1}`,
+        descripcion: pieceName,
         proveedor: providerLabel,
         provider_mix: providerBreakdown.map((item) => ({
             provider: String(item?.provider || '').trim() || 'Sin proveedor',
             ratio: Number(item?.ratio || 0)
         })).filter((item) => Number.isFinite(item.ratio) && item.ratio > 0),
+        source_summary: rec?.summary?.unitario || null,
         source_record_id: String(rec?.id || '').trim(),
         source_version_id: String(rec?.version_id || '').trim(),
         rate: Number.isFinite(saleCost) ? saleCost : 0,
@@ -24263,6 +24510,7 @@ function cloneCotizacionCombinedItem(item, index = 0) {
         descripcion: String(item?.descripcion || '').trim(),
         proveedor: String(item?.proveedor || '').trim(),
         provider_mix: Array.isArray(item?.provider_mix) ? item.provider_mix : [],
+        source_summary: item?.source_summary || null,
         source_record_id: String(item?.source_record_id || '').trim(),
         source_version_id: String(item?.source_version_id || '').trim(),
         rate: Number.isFinite(rate) ? rate : 0,
@@ -24291,29 +24539,27 @@ function buildCombinedCotizacionRecord(records = []) {
         rows = safeRecords.map((rec, index) => buildCotizacionCombinedRowFromRecord(rec, index));
     }
 
-    const sourceNames = rows
-        .map((row) => String(row?.pieza || '').trim())
-        .filter(Boolean);
-    const pieceTitle = sourceNames.length
-        ? `Conjunto - ${sourceNames.join(' + ')}`
-        : `Conjunto - ${safeRecords.length} cotizaciones`;
-
     return {
         id: null,
         save_name: `Conjunto - ${rows.length} cotizaciones`,
         save_description: '',
+        save_category: '',
         approved_by: '',
         notes: '',
         attachments: [],
         settings: { piece_quantity: 1 },
         header: {
-            piece: pieceTitle,
+            code: String(safeRecords[0]?.header?.code || '').trim(),
+            piece: '',
             analysis_date: today,
             usd_value: Number(safeRecords[0]?.header?.usd_value || 0) || 0,
             responsible_name: currentDisplayName || currentUser || '',
             responsible_position: currentUserPosition || '',
             responsible_department: currentUserDepartment || '',
-            responsible_owner: COTIZACION_RESPONSABLE_FIJO
+            responsible_owner: COTIZACION_RESPONSABLE_FIJO,
+            requester: String(safeRecords[0]?.header?.requester || currentDisplayName || currentUser || '').trim(),
+            delivery_time: String(safeRecords[0]?.header?.delivery_time || '').trim(),
+            delivery_unit: String(safeRecords[0]?.header?.delivery_unit || 'Dias').trim() || 'Dias'
         },
         items: rows
     };
@@ -24326,6 +24572,9 @@ function openCombinedCotizacionRecord(records = [], sourceIds = []) {
 
     runCotizacionProgrammaticUpdate(() => {
         setCotizacionSheetVisibility(true);
+
+        const codeInput = document.getElementById('cot-code');
+        if (codeInput) codeInput.value = combined.header?.code || '';
 
         const pieceInput = document.getElementById('cot-piece');
         if (pieceInput) pieceInput.value = combined.header?.piece || '';
@@ -24357,6 +24606,15 @@ function openCombinedCotizacionRecord(records = [], sourceIds = []) {
             respOwnerInput.readOnly = true;
         }
 
+        const requesterInput = document.getElementById('cot-requester');
+        if (requesterInput) requesterInput.value = combined.header?.requester || '';
+
+        const deliveryTimeInput = document.getElementById('cot-delivery-time');
+        if (deliveryTimeInput) deliveryTimeInput.value = combined.header?.delivery_time || '';
+
+        const deliveryUnitInput = document.getElementById('cot-delivery-unit');
+        if (deliveryUnitInput) setCotizacionSingleSelectValue(deliveryUnitInput, combined.header?.delivery_unit || 'Dias', { dispatchEvents: false });
+
         const approvedInput = document.getElementById('cot-approved-by');
         if (approvedInput) approvedInput.value = '';
 
@@ -24379,6 +24637,7 @@ function openCombinedCotizacionRecord(records = [], sourceIds = []) {
     currentCotizacionRecordId = null;
     currentCotizacionRecordName = String(combined.save_name || '').trim();
     currentCotizacionRecordDescription = '';
+    currentCotizacionRecordCategory = String(combined.save_category || '').trim();
     currentCotizacionFolder = normalizeCotizacionFolderName(currentCotizacionRecordsFolderView || currentCotizacionFolder);
     currentCotizacionCombinedSourceIds = Array.isArray(sourceIds) ? [...sourceIds] : [];
     window._cotizacionFromRecords = false;
@@ -24586,6 +24845,14 @@ function getCotizacionNumericInputValue(row, selector, options = {}) {
         return Number(formulaResult);
     }
 
+    const preciseRaw = String(input.dataset.preciseValue || '').trim().replace(/,/g, '.');
+    if (preciseRaw) {
+        const preciseParsed = parseFloat(preciseRaw);
+        if (Number.isFinite(preciseParsed)) {
+            return preciseParsed;
+        }
+    }
+
     const raw = String(input.value || '').trim().replace(/,/g, '.');
     const parsed = parseFloat(raw);
     return Number.isFinite(parsed) ? parsed : 0;
@@ -24607,6 +24874,14 @@ function collectCotizacionRows() {
                 return Array.isArray(parsed) ? parsed : [];
             } catch (_) {
                 return [];
+            }
+        })(),
+        source_summary: (() => {
+            try {
+                const parsed = JSON.parse(String(row.dataset.sourceSummary || 'null'));
+                return normalizeCotizacionSourceSummary(parsed);
+            } catch (_) {
+                return null;
             }
         })(),
         source_record_id: String(row.dataset.sourceRecordId || '').trim(),
@@ -24708,6 +24983,7 @@ function normalizeCotizacionAttachment(rawAttachment) {
     const type = String(rawAttachment.type || '').trim().toLowerCase();
     const dataURL = String(rawAttachment.data_url || rawAttachment.dataURL || '').trim();
     const size = Number(rawAttachment.size || 0);
+    const featured = !!rawAttachment.featured;
     if (!name || !dataURL) return null;
     if (!dataURL.startsWith('data:image/') && !dataURL.startsWith('data:application/pdf')) return null;
 
@@ -24717,11 +24993,13 @@ function normalizeCotizacionAttachment(rawAttachment) {
         name,
         type: inferredType,
         size: Number.isFinite(size) && size > 0 ? size : 0,
-        data_url: dataURL
+        data_url: dataURL,
+        featured
     };
 }
 
 function collectCotizacionAttachmentsForSave() {
+    normalizeCotizacionFeaturedAttachmentsLimit();
     return currentCotizacionAttachments
         .map((attachment) => normalizeCotizacionAttachment(attachment))
         .filter(Boolean)
@@ -24730,13 +25008,58 @@ function collectCotizacionAttachmentsForSave() {
             name: attachment.name,
             type: attachment.type,
             size: attachment.size,
-            data_url: attachment.data_url
+            data_url: attachment.data_url,
+            featured: !!attachment.featured
         }));
+}
+
+function getCotizacionFeaturedAttachmentsCount(excludeId = '') {
+    return currentCotizacionAttachments.reduce((count, attachment) => {
+        const item = normalizeCotizacionAttachment(attachment);
+        if (!item || !item.featured) return count;
+        if (excludeId && String(item.id) === String(excludeId)) return count;
+        return count + 1;
+    }, 0);
+}
+
+function normalizeCotizacionFeaturedAttachmentsLimit() {
+    let featuredCount = 0;
+    currentCotizacionAttachments = currentCotizacionAttachments.map((attachment) => {
+        const item = normalizeCotizacionAttachment(attachment);
+        if (!item) return attachment;
+        if (item.featured) {
+            featuredCount += 1;
+            if (featuredCount > 2) {
+                return { ...attachment, featured: false };
+            }
+        }
+        return attachment;
+    });
+}
+
+function toggleCotizacionAttachmentFeatured(attachmentId) {
+    const targetId = String(attachmentId || '').trim();
+    if (!targetId) return;
+
+    const target = currentCotizacionAttachments.find((attachment) => String(attachment?.id || '') === targetId);
+    if (!target) return;
+
+    const normalized = normalizeCotizacionAttachment(target);
+    if (!normalized) return;
+
+    if (!normalized.featured && getCotizacionFeaturedAttachmentsCount(targetId) >= 2) {
+        showNotification('Solo puede destacar hasta 2 archivos.', 'warning');
+        return;
+    }
+
+    target.featured = !normalized.featured;
+    renderCotizacionAttachments();
 }
 
 function renderCotizacionAttachments() {
     const list = document.getElementById('cotizacion-files-list');
     if (!list) return;
+    normalizeCotizacionFeaturedAttachmentsLimit();
 
     list.innerHTML = '';
     if (!currentCotizacionAttachments.length) {
@@ -24788,6 +25111,16 @@ function renderCotizacionAttachments() {
             await openCotizacionAttachmentInNewTab(item);
         });
 
+        const featuredBtn = document.createElement('button');
+        featuredBtn.type = 'button';
+        featuredBtn.className = `btn btn-sm cotizacion-file-star-btn${item.featured ? ' is-active' : ''}`;
+        featuredBtn.textContent = '★';
+        featuredBtn.title = item.featured ? 'Quitar destacado' : 'Destacar para impresion';
+        featuredBtn.setAttribute('aria-label', featuredBtn.title);
+        featuredBtn.addEventListener('click', () => {
+            toggleCotizacionAttachmentFeatured(item.id);
+        });
+
         const removeBtn = document.createElement('button');
         removeBtn.type = 'button';
         removeBtn.className = 'btn btn-sm';
@@ -24799,6 +25132,7 @@ function renderCotizacionAttachments() {
 
         actions.appendChild(openBtn);
         actions.appendChild(removeBtn);
+        actions.appendChild(featuredBtn);
         body.appendChild(nameEl);
         body.appendChild(metaEl);
         body.appendChild(actions);
@@ -25099,14 +25433,13 @@ function computeCotizacionSummary() {
     let complementarioCounter = 0;
     rows.forEach((row, index) => {
         const category = sanitizeCotizacionCategory(row.category);
-        const cost = Number(row.costo_unitario || 0);
-        addCotizacionCostToSummaryBucket(globalBucket, category, cost);
+        applyCotizacionSummaryContribution(globalBucket, row);
 
         if (category === 'complementarios') {
             const complementarioLabel = String(row.pieza || '').trim() || String(row.descripcion || '').trim() || `Complementario ${++complementarioCounter}`;
             const complementarioKey = `complementario:${complementarioLabel.toLowerCase()}`;
             const entry = ensureComplementarioEntry(complementarioKey, complementarioLabel);
-            addCotizacionCostToSummaryBucket(entry.raw, category, cost);
+            applyCotizacionSummaryContribution(entry.raw, row);
             return;
         }
 
@@ -25153,7 +25486,7 @@ function computeCotizacionSummary() {
             if (!pieceKey) return;
             const entry = pieceEntryByKey.get(pieceKey);
             if (!entry) return;
-            addCotizacionCostToSummaryBucket(entry.raw, category, cost);
+            applyCotizacionSummaryContribution(entry.raw, row);
             return;
         }
 
@@ -25743,17 +26076,16 @@ function buildCotizacionStackedBarEntries(summary) {
 
     const rows = collectCotizacionRows();
     rows.forEach((row) => {
-        const cost = Number(row?.costo_unitario || 0);
-        if (!Number.isFinite(cost) || cost === 0) return;
-
-        const category = sanitizeCotizacionCategory(row?.category || '');
-        const segmentKey = getCotizacionStatsBarSegmentKey(category);
-        if (!segmentKey) return;
+        const segmentMap = getCotizacionRowBarSegments(row);
+        const segmentEntries = Object.entries(segmentMap).filter(([, value]) => Number.isFinite(Number(value)) && Number(value) !== 0);
+        if (!segmentEntries.length) return;
 
         let targetEntry = null;
-        if (segmentKey === 'complementarios') {
+        if (segmentEntries.length === 1 && segmentEntries[0][0] === 'complementarios') {
             targetEntry = complementariosEntry;
         } else {
+            const cost = segmentEntries.reduce((acc, [, value]) => acc + Number(value || 0), 0);
+            const category = sanitizeCotizacionCategory(row?.category || '');
             const pieceRaw = String(row?.pieza || '').trim();
             const selectedPieceLabels = resolveCotizacionSelectedPieceNames(category, pieceRaw, entries.map((entry) => entry.label));
             if (selectedPieceLabels.length > 0) {
@@ -25763,10 +26095,15 @@ function buildCotizacionStackedBarEntries(summary) {
                 if (!selectedEntries.length) {
                     targetEntry = othersEntry;
                 } else {
-                    const sharedCost = cost / selectedEntries.length;
+                    const divisor = selectedEntries.length;
                     selectedEntries.forEach((entry) => {
-                        entry.segments[segmentKey] = Number(entry.segments[segmentKey] || 0) + sharedCost;
-                        entry.total += sharedCost;
+                        let entryTotal = 0;
+                        segmentEntries.forEach(([segmentKey, value]) => {
+                            const sharedValue = Number(value || 0) / divisor;
+                            entry.segments[segmentKey] = Number(entry.segments[segmentKey] || 0) + sharedValue;
+                            entryTotal += sharedValue;
+                        });
+                        entry.total += entryTotal;
                     });
                     return;
                 }
@@ -25775,17 +26112,27 @@ function buildCotizacionStackedBarEntries(summary) {
             }
 
             if (!targetEntry) {
-                const sharedCost = cost / entries.length;
+                const divisor = entries.length || 1;
                 entries.forEach((entry) => {
-                    entry.segments[segmentKey] = Number(entry.segments[segmentKey] || 0) + sharedCost;
-                    entry.total += sharedCost;
+                    let entryTotal = 0;
+                    segmentEntries.forEach(([segmentKey, value]) => {
+                        const sharedValue = Number(value || 0) / divisor;
+                        entry.segments[segmentKey] = Number(entry.segments[segmentKey] || 0) + sharedValue;
+                        entryTotal += sharedValue;
+                    });
+                    entry.total += entryTotal;
                 });
                 return;
             }
         }
 
-        targetEntry.segments[segmentKey] = Number(targetEntry.segments[segmentKey] || 0) + cost;
-        targetEntry.total += cost;
+        let targetTotal = 0;
+        segmentEntries.forEach(([segmentKey, value]) => {
+            const numericValue = Number(value || 0);
+            targetEntry.segments[segmentKey] = Number(targetEntry.segments[segmentKey] || 0) + numericValue;
+            targetTotal += numericValue;
+        });
+        targetEntry.total += targetTotal;
     });
 
     const finalEntries = [...entries, complementariosEntry, othersEntry];
@@ -25828,9 +26175,9 @@ function drawCotizacionStatsBar(highlightSegmentKey = '') {
     }
 
     const segmentRects = [];
-    const baseFontSize = printMode ? 13 : 13;
-    const axisFontSize = printMode ? 12 : 12;
-    const totalFontSize = printMode ? 12 : 12;
+    const baseFontSize = printMode ? 19 : 13;
+    const axisFontSize = printMode ? 18 : 12;
+    const totalFontSize = printMode ? 18 : 12;
     ctx.font = `600 ${baseFontSize}px "Manrope", sans-serif`;
     const labelWidth = entries.reduce((acc, entry) => Math.max(acc, ctx.measureText(entry.label).width), 0);
     ctx.font = `700 ${totalFontSize}px "Manrope", sans-serif`;
@@ -26218,12 +26565,12 @@ function drawCotizacionProviderPie(highlightLabel = '') {
     ctx.fill();
 
     ctx.fillStyle = printMode ? '#111111' : '#f5f5f5';
-    ctx.font = '700 16px "Manrope", sans-serif';
+    ctx.font = printMode ? '700 22px "Manrope", sans-serif' : '700 16px "Manrope", sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText('Proveedores', cx, cy - 10);
     ctx.fillStyle = printMode ? '#111111' : '#f5f5f5';
-    ctx.font = '700 18px "Manrope", sans-serif';
+    ctx.font = printMode ? '700 24px "Manrope", sans-serif' : '700 18px "Manrope", sans-serif';
     ctx.fillText(formatCotizacionCurrency(total), cx, cy + 12);
 
     state.slices = sliceMeta;
@@ -26366,20 +26713,24 @@ function openCotizacionSaveModal() {
     const modal = document.getElementById('cotizacion-save-modal');
     if (modal) modal.style.display = 'flex';
 
-    const nameInput = document.getElementById('cotizacion-save-name');
-    const descInput = document.getElementById('cotizacion-save-desc');
+    const codeModalInput = document.getElementById('cotizacion-save-code');
+    const pieceModalInput = document.getElementById('cotizacion-save-piece');
+    const categoryInput = document.getElementById('cotizacion-save-category');
     const folderSelect = document.getElementById('cotizacion-save-folder');
     const updateLinkedInput = document.getElementById('cotizacion-save-update-linked');
-    const fallbackName = String(document.getElementById('cot-piece')?.value || '').trim();
-    const initialName = String(currentCotizacionRecordName || '').trim() || fallbackName;
-    const initialDesc = String(currentCotizacionRecordDescription || '').trim();
+    const codeSheetValue = String(document.getElementById('cot-code')?.value || '').trim();
+    const pieceSheetValue = String(document.getElementById('cot-piece')?.value || '').trim();
+    const initialCode = codeSheetValue;
+    const initialPiece = pieceSheetValue || String(currentCotizacionRecordName || '').trim();
+    const initialCategory = normalizeCotizacionRecordCategory(currentCotizacionRecordCategory);
 
-    if (nameInput) {
-        nameInput.value = initialName;
-        nameInput.focus();
-        nameInput.setSelectionRange(nameInput.value.length, nameInput.value.length);
+    if (codeModalInput) {
+        codeModalInput.value = initialCode;
+        codeModalInput.focus();
+        codeModalInput.setSelectionRange(codeModalInput.value.length, codeModalInput.value.length);
     }
-    if (descInput) descInput.value = initialDesc;
+    if (pieceModalInput) pieceModalInput.value = initialPiece;
+    if (categoryInput instanceof HTMLSelectElement) categoryInput.value = initialCategory;
     if (updateLinkedInput instanceof HTMLInputElement) updateLinkedInput.checked = false;
     renderCotizacionFolderOptions(folderSelect, currentCotizacionFolder);
     refreshCotizacionFoldersCache().then(() => {
@@ -26391,44 +26742,67 @@ function closeCotizacionSaveModal() {
     const modal = document.getElementById('cotizacion-save-modal');
     if (modal) modal.style.display = 'none';
 
-    const nameInput = document.getElementById('cotizacion-save-name');
-    const descInput = document.getElementById('cotizacion-save-desc');
+    const codeModalInput = document.getElementById('cotizacion-save-code');
+    const pieceModalInput = document.getElementById('cotizacion-save-piece');
+    const categoryInput = document.getElementById('cotizacion-save-category');
     const folderSelect = document.getElementById('cotizacion-save-folder');
     const updateLinkedInput = document.getElementById('cotizacion-save-update-linked');
-    if (nameInput) nameInput.value = '';
-    if (descInput) descInput.value = '';
+    if (codeModalInput) codeModalInput.value = '';
+    if (pieceModalInput) pieceModalInput.value = '';
+    if (categoryInput instanceof HTMLSelectElement) categoryInput.value = '';
     if (folderSelect instanceof HTMLSelectElement) folderSelect.innerHTML = '';
     if (updateLinkedInput instanceof HTMLInputElement) updateLinkedInput.checked = false;
 }
 
 async function confirmSaveCotizacion() {
-    const name = (document.getElementById('cotizacion-save-name')?.value || '').trim();
-    const desc = (document.getElementById('cotizacion-save-desc')?.value || '').trim();
+    const code = (document.getElementById('cotizacion-save-code')?.value || '').trim();
+    const piece = (document.getElementById('cotizacion-save-piece')?.value || '').trim();
+    const category = normalizeCotizacionRecordCategory(document.getElementById('cotizacion-save-category')?.value || '');
     const selectedFolder = normalizeCotizacionFolderName(document.getElementById('cotizacion-save-folder')?.value || currentCotizacionFolder);
     const updateLinked = !!document.getElementById('cotizacion-save-update-linked')?.checked;
 
-    if (!name) {
-        showNotification('Ingrese un nombre para la cotizacion.', 'warning');
+    if (!code) {
+        showNotification('Ingrese un codigo para la cotizacion.', 'warning');
         return;
     }
+
+    if (!piece) {
+        showNotification('Ingrese una pieza para la cotizacion.', 'warning');
+        return;
+    }
+
+    if (!category) {
+        showNotification('Seleccione una categoria para la cotizacion.', 'warning');
+        return;
+    }
+
+    const codeSheetInput = document.getElementById('cot-code');
+    const pieceSheetInput = document.getElementById('cot-piece');
+    if (codeSheetInput) codeSheetInput.value = code;
+    if (pieceSheetInput) pieceSheetInput.value = piece;
 
     const summary = updateCotizacionSummary();
     const payload = {
         id: currentCotizacionRecordId || undefined,
         folder: selectedFolder,
         update_linked: updateLinked,
-        save_name: name,
-        save_description: desc,
+        save_name: piece,
+        save_description: '',
+        save_category: category,
         timestamp: new Date().toISOString(),
         author: currentDisplayName || currentUser || 'Usuario',
         header: {
-            piece: document.getElementById('cot-piece')?.value || '',
+            code,
+            piece,
             analysis_date: document.getElementById('cot-analysis-date')?.value || '',
             usd_value: parseFloat(document.getElementById('cot-usd-value')?.value || 0) || 0,
             responsible_name: document.getElementById('cot-resp-name')?.value || '',
             responsible_position: document.getElementById('cot-resp-position')?.value || '',
             responsible_department: document.getElementById('cot-resp-dept')?.value || '',
-            responsible_owner: COTIZACION_RESPONSABLE_FIJO
+            responsible_owner: COTIZACION_RESPONSABLE_FIJO,
+            requester: document.getElementById('cot-requester')?.value || '',
+            delivery_time: document.getElementById('cot-delivery-time')?.value || '',
+            delivery_unit: document.getElementById('cot-delivery-unit')?.value || 'Dias'
         },
         approved_by: document.getElementById('cot-approved-by')?.value || '',
         notes: document.getElementById('cot-notes')?.value || '',
@@ -26449,8 +26823,9 @@ async function confirmSaveCotizacion() {
         const data = await response.json();
         if (data.status === 'success') {
             currentCotizacionRecordId = data.id || payload.id || null;
-            currentCotizacionRecordName = name;
-            currentCotizacionRecordDescription = desc;
+            currentCotizacionRecordName = piece;
+            currentCotizacionRecordDescription = '';
+            currentCotizacionRecordCategory = category;
             currentCotizacionFolder = selectedFolder;
             const versionNumber = parseInt(data.version_number, 10);
             const versionText = Number.isFinite(versionNumber) ? ` (v${versionNumber})` : '';
@@ -26481,16 +26856,21 @@ function printCotizacion() {
 
     const summary = updateCotizacionSummary();
     const esc = escapeCotizacionHTML;
-    const generatedAt = new Date().toLocaleString('es-AR');
     const pieceQty = Number(summary?.pieceQty || 1);
 
+    const codeValue = String(document.getElementById('cot-code')?.value || '').trim();
     const pieceName = String(document.getElementById('cot-piece')?.value || '').trim();
     const analysisDate = String(document.getElementById('cot-analysis-date')?.value || '').trim();
     const usdValue = Number(document.getElementById('cot-usd-value')?.value || 0);
-    const responsibleName = String(document.getElementById('cot-resp-name')?.value || '').trim();
+    const requester = String(document.getElementById('cot-requester')?.value || '').trim();
+    const deliveryTime = String(document.getElementById('cot-delivery-time')?.value || '').trim();
+    const deliveryUnit = String(document.getElementById('cot-delivery-unit')?.value || 'Dias').trim() || 'Dias';
     const responsiblePosition = String(document.getElementById('cot-resp-position')?.value || '').trim();
     const responsibleDepartment = String(document.getElementById('cot-resp-dept')?.value || '').trim();
+    const responsibleOwner = String(document.getElementById('cot-resp-owner')?.value || '').trim();
     const approvedBy = String(document.getElementById('cot-approved-by')?.value || '').trim();
+    const printSubtitle = [codeValue, pieceName].filter(Boolean).join(' - ') || '-';
+    const deliveryEstimate = deliveryTime ? `${deliveryTime} ${deliveryUnit}`.trim() : '-';
 
     const formatNumber = (value, maxDecimals = 4) => {
         const num = Number(value || 0);
@@ -26600,40 +26980,63 @@ function printCotizacion() {
     const normalizedAttachments = currentCotizacionAttachments
         .map((attachment) => normalizeCotizacionAttachment(attachment))
         .filter(Boolean);
+    const featuredAttachments = normalizedAttachments.filter((attachment) => attachment.featured).slice(0, 2);
     const notesHtml = `
         <div class="card">
             <h2>Notas</h2>
             <div class="notes-print-content">${notesValue ? esc(notesValue).replace(/\r?\n/g, '<br>') : '<span class="muted">Sin notas.</span>'}</div>
         </div>
     `;
-    const attachmentsHtml = `
-        <div class="card attachments-print-card">
-            <h2>Archivos Adjuntos</h2>
-            ${normalizedAttachments.length
-                ? `
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Archivo</th>
-                                <th>Tipo</th>
-                                <th class="right">Tamano</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${normalizedAttachments.map((attachment) => `
+    const attachmentsHtml = featuredAttachments.length
+        ? `
+            <div class="card attachments-print-card attachments-print-featured-card">
+                <h2>Archivos Destacados</h2>
+                <div class="attachments-print-featured-grid${featuredAttachments.length === 1 ? ' is-single' : ''}">
+                    ${featuredAttachments.map((attachment) => `
+                        <div class="attachments-print-featured-item">
+                            <div class="attachments-print-featured-head">
+                                <div class="attachments-print-featured-name">${esc(attachment.name || '-')}</div>
+                                <div class="attachments-print-featured-meta">${esc(attachment.type === 'application/pdf' ? 'PDF' : 'Imagen')} · ${esc(formatCotizacionAttachmentSize(attachment.size || 0))}</div>
+                            </div>
+                            <div class="attachments-print-featured-preview">
+                                ${attachment.type === 'application/pdf'
+                                    ? `<embed src="${attachment.data_url}" type="application/pdf">`
+                                    : `<img src="${attachment.data_url}" alt="${esc(attachment.name || 'Adjunto destacado')}">`
+                                }
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `
+        : `
+            <div class="card attachments-print-card">
+                <h2>Archivos Adjuntos</h2>
+                ${normalizedAttachments.length
+                    ? `
+                        <table>
+                            <thead>
                                 <tr>
-                                    <td>${esc(attachment.name || '-')}</td>
-                                    <td>${esc(attachment.type || '-')}</td>
-                                    <td class="right">${esc(formatCotizacionAttachmentSize(attachment.size || 0))}</td>
+                                    <th>Archivo</th>
+                                    <th>Tipo</th>
+                                    <th class="right">Tamano</th>
                                 </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                `
-                : '<div class="muted">Sin archivos adjuntos.</div>'
-            }
-        </div>
-    `;
+                            </thead>
+                            <tbody>
+                                ${normalizedAttachments.map((attachment) => `
+                                    <tr>
+                                        <td>${esc(attachment.name || '-')}</td>
+                                        <td>${esc(attachment.type || '-')}</td>
+                                        <td class="right">${esc(formatCotizacionAttachmentSize(attachment.size || 0))}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    `
+                    : '<div class="muted">Sin archivos adjuntos.</div>'
+                }
+            </div>
+        `;
 
     const previousStatsPrintMode = !!window._cotizacionStatsPrintMode;
     window._cotizacionStatsPrintMode = true;
@@ -26695,9 +27098,9 @@ function printCotizacion() {
                 <div class="stats-print-grid">
                     <div class="stats-print-card">
                         <h3>Composicion de Costo de Venta</h3>
-                        <div class="stats-print-card-body">
+                        <div class="stats-print-card-body stats-print-card-body-pie">
                             ${pieChartImage
-                                ? `<img class="stats-chart-image" src="${pieChartImage}" alt="Grafico de torta de costos">`
+                                ? `<img class="stats-chart-image stats-chart-image-pie" src="${pieChartImage}" alt="Grafico de torta de costos">`
                                 : '<div class="muted">Sin grafico disponible.</div>'
                             }
                             <div class="cotizacion-stats-legend">${pieLegendHtml}</div>
@@ -26715,9 +27118,9 @@ function printCotizacion() {
                     </div>
                     <div class="stats-print-card">
                         <h3>Distribucion por Proveedor</h3>
-                        <div class="stats-print-card-body">
+                        <div class="stats-print-card-body stats-print-card-body-pie">
                             ${providerChartImage
-                                ? `<img class="stats-chart-image" src="${providerChartImage}" alt="Grafico de torta por proveedor">`
+                                ? `<img class="stats-chart-image stats-chart-image-pie" src="${providerChartImage}" alt="Grafico de torta por proveedor">`
                                 : '<div class="muted">Sin grafico disponible.</div>'
                             }
                             <div class="cotizacion-stats-legend">${providerLegendHtml}</div>
@@ -26853,7 +27256,7 @@ function printCotizacion() {
             }
             .grid {
                 display: grid;
-                grid-template-columns: repeat(3, minmax(0, 1fr));
+                grid-template-columns: repeat(4, minmax(0, 1fr));
                 gap: 8px 14px;
             }
             .field-label {
@@ -26893,7 +27296,7 @@ function printCotizacion() {
             }
             .detail-print-table th:nth-child(5),
             .detail-print-table td:nth-child(5) {
-                width: 10%;
+                width: 12%;
             }
             .detail-print-table th:nth-child(6),
             .detail-print-table td:nth-child(6) {
@@ -26917,7 +27320,7 @@ function printCotizacion() {
             }
             .detail-print-table th:nth-child(11),
             .detail-print-table td:nth-child(11) {
-                width: 8%;
+                width: 6%;
             }
             th, td {
                 border: 1px solid #d4d4d4;
@@ -26963,6 +27366,57 @@ function printCotizacion() {
             .attachments-print-card th,
             .attachments-print-card td {
                 padding: 4px 6px;
+            }
+            .attachments-print-featured-card {
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
+            .attachments-print-featured-grid {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 12px;
+            }
+            .attachments-print-featured-grid.is-single {
+                grid-template-columns: minmax(0, 1fr);
+            }
+            .attachments-print-featured-item {
+                border: 1px solid #d7d7d7;
+                border-radius: 8px;
+                padding: 10px;
+                background: #fafafa;
+            }
+            .attachments-print-featured-head {
+                margin-bottom: 8px;
+            }
+            .attachments-print-featured-name {
+                font-size: 13px;
+                font-weight: 700;
+                color: #111;
+                word-break: break-word;
+            }
+            .attachments-print-featured-meta {
+                margin-top: 2px;
+                font-size: 11px;
+                color: #666;
+            }
+            .attachments-print-featured-preview {
+                width: 100%;
+                min-height: 240px;
+                max-height: 360px;
+                border: 1px solid #e2e2e2;
+                border-radius: 6px;
+                background: #fff;
+                overflow: hidden;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .attachments-print-featured-preview img,
+            .attachments-print-featured-preview embed {
+                width: 100%;
+                height: 100%;
+                object-fit: contain;
+                border: 0;
             }
             .notes-print-content {
                 white-space: normal;
@@ -27010,7 +27464,7 @@ function printCotizacion() {
             }
             .stats-print-card h3 {
                 margin: 0 0 8px 0;
-                font-size: 12px;
+                font-size: 18px;
                 line-height: 1.15;
             }
             .stats-print-card-body {
@@ -27030,6 +27484,12 @@ function printCotizacion() {
                 border: 1px solid #ececec;
                 border-radius: 4px;
             }
+            .stats-print-card-body-pie .stats-chart-image-pie {
+                width: 62%;
+            }
+            .stats-print-card-body-pie .cotizacion-stats-legend {
+                width: 38%;
+            }
             .cotizacion-stats-legend {
                 width: 28%;
                 border-left: 1px solid #ececec;
@@ -27044,7 +27504,7 @@ function printCotizacion() {
                 justify-content: space-between;
                 gap: 3px;
                 padding: 2px 0;
-                font-size: 10px;
+                font-size: 16px;
                 line-height: 1.15;
             }
             .cotizacion-stats-legend-label {
@@ -27055,10 +27515,10 @@ function printCotizacion() {
                 flex: 1 1 auto;
             }
             .cotizacion-stats-legend-dot {
-                width: 7px;
-                height: 7px;
+                width: 9px;
+                height: 9px;
                 border-radius: 50%;
-                flex: 0 0 7px;
+                flex: 0 0 9px;
             }
             .cotizacion-stats-legend-value {
                 font-weight: 700;
@@ -27073,13 +27533,10 @@ function printCotizacion() {
                 <img src="/static/assets/iso_red.png" style="height:74px;">
                 <div>
                     <h1>Cotizacion de Producto</h1>
-                    <div class="subtle">${esc(pieceName || 'Analisis de Costos')}</div>
+                    <div class="subtle">${esc(printSubtitle)}</div>
                 </div>
             </div>
-            <div style="text-align:right;" class="subtle">
-                <div>Generado: ${esc(generatedAt)}</div>
-                <div>Piezas: ${esc(formatNumber(pieceQty, 0))}</div>
-            </div>
+            <div style="flex:0 0 180px;"></div>
         </div>
     `;
 
@@ -27089,7 +27546,7 @@ function printCotizacion() {
             <div style="flex:1; text-align:center;">
                 <img src="/static/assets/Oficina_Tecnica_v3.png" style="height:62px; opacity:0.85;">
             </div>
-            <div style="flex:1; text-align:right;" class="subtle">BPB</div>
+            <div style="flex:1; text-align:right; font-size:16px; color:#cf1625; font-weight:700;">BPB</div>
         </div>
     `;
 
@@ -27107,13 +27564,18 @@ function printCotizacion() {
             <div class="card">
                 <h2>Datos Generales</h2>
                 <div class="grid">
+                    <div><div class="field-label">Solicitante</div><div class="field-value">${esc(requester || '-')}</div></div>
+                    <div><div class="field-label">&nbsp;</div><div class="field-value">&nbsp;</div></div>
+                    <div><div class="field-label">Valor del Dolar</div><div class="field-value">${esc(formatCotizacionCurrency(usdValue))}</div></div>
+                    <div><div class="field-label">Fecha de Cotizacion</div><div class="field-value">${esc(analysisDate || '-')}</div></div>
+                    <div><div class="field-label">Codigo</div><div class="field-value">${esc(codeValue || '-')}</div></div>
                     <div><div class="field-label">Pieza</div><div class="field-value">${esc(pieceName || '-')}</div></div>
-                    <div><div class="field-label">Fecha Analisis</div><div class="field-value">${esc(analysisDate || '-')}</div></div>
-                    <div><div class="field-label">USD</div><div class="field-value">${esc(formatCotizacionCurrency(usdValue))}</div></div>
-                    <div><div class="field-label">Responsable</div><div class="field-value">${esc(responsibleName || '-')}</div></div>
+                    <div><div class="field-label">Cantidad Solicitada</div><div class="field-value">${esc(formatNumber(pieceQty, 0))}</div></div>
+                    <div><div class="field-label">Fecha Estimada de Entrega</div><div class="field-value">${esc(deliveryEstimate)}</div></div>
+                    <div><div class="field-label">Aprobado</div><div class="field-value">${esc(approvedBy || '-')}</div></div>
                     <div><div class="field-label">Puesto</div><div class="field-value">${esc(responsiblePosition || '-')}</div></div>
                     <div><div class="field-label">Departamento</div><div class="field-value">${esc(responsibleDepartment || '-')}</div></div>
-                    <div><div class="field-label">Aprobado</div><div class="field-value">${esc(approvedBy || '-')}</div></div>
+                    <div><div class="field-label">Responsable</div><div class="field-value">${esc(responsibleOwner || '-')}</div></div>
                 </div>
             </div>
 
@@ -27160,7 +27622,7 @@ async function loadCotizacionRecords() {
 
     refreshCotizacionCombineModeUI();
     if (currentCotizacionRecordsFolderView) {
-        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">Cargando registros...</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;">Cargando registros...</td></tr>';
     }
 
     try {
@@ -27189,7 +27651,7 @@ async function loadCotizacionRecords() {
         const filteredRecords = lastCotizacionRecords.filter((rec) => normalizeCotizacionFolderName(rec?.folder) === currentCotizacionRecordsFolderView);
 
         if (!filteredRecords.length) {
-            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">No hay cotizaciones en esta carpeta.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;">No hay cotizaciones en esta carpeta.</td></tr>';
             return;
         }
 
@@ -27205,8 +27667,9 @@ async function loadCotizacionRecords() {
                 tr.classList.add('cotizacion-records-move-armed-row');
             }
             tr.innerHTML = `
+                <td style="text-align: center;">${getCotizacionCategoryBadgeHTML(rec.save_category)}</td>
+                <td style="text-align: center; font-weight: 600;">${escapeCotizacionHTML(rec?.header?.code || '-')}</td>
                 <td style="font-weight: 600;">${escapeCotizacionHTML(rec.save_name || 'Sin titulo')}</td>
-                <td style="text-align: center; color: var(--text-secondary);">${escapeCotizacionHTML(rec.save_description || '-')}</td>
                 <td style="text-align: center;">${escapeCotizacionHTML(rec.author || 'Sistema')}</td>
                 <td style="text-align: center; font-size: 0.85rem;">${escapeCotizacionHTML(modifiedDateStr)}</td>
                 <td style="text-align: center; font-size: 0.85rem;">${escapeCotizacionHTML(createdDateStr)}</td>
@@ -27241,7 +27704,7 @@ async function loadCotizacionRecords() {
     } catch (e) {
         console.error(e);
         if (currentCotizacionRecordsFolderView) {
-            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color: var(--bpb-blue);">Error al cargar registros.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; color: var(--bpb-blue);">Error al cargar registros.</td></tr>';
         }
     }
 }
@@ -27286,6 +27749,7 @@ function setCotizacionRecordsFolderView(folderName = '') {
     const combineBtn = document.getElementById('cotizacion-records-combine-btn');
     const moveBtn = document.getElementById('cotizacion-records-move-btn');
     const rootCrumb = document.getElementById('cotizacion-records-root-crumb');
+    const folderTail = document.getElementById('cotizacion-records-folder-tail');
     const folderSep = document.getElementById('cotizacion-records-folder-sep');
     const folderCrumb = document.getElementById('cotizacion-records-folder-crumb');
     const createFolderBtn = document.getElementById('cotizacion-records-create-folder-btn');
@@ -27301,6 +27765,7 @@ function setCotizacionRecordsFolderView(folderName = '') {
     if (moveBtn instanceof HTMLElement) moveBtn.style.display = inFolder ? '' : 'none';
     if (createFolderBtn instanceof HTMLElement) createFolderBtn.style.display = inFolder ? 'none' : '';
     if (rootCrumb instanceof HTMLElement) rootCrumb.style.color = inFolder ? 'var(--text-secondary)' : 'var(--text-primary)';
+    if (folderTail instanceof HTMLElement) folderTail.style.display = inFolder ? '' : 'none';
     if (folderSep instanceof HTMLElement) folderSep.style.display = inFolder ? '' : 'none';
     if (folderCrumb instanceof HTMLElement) {
         folderCrumb.style.display = inFolder ? '' : 'none';
@@ -27357,7 +27822,7 @@ function renderCotizacionFolderGrid() {
         button.className = 'btn iso-folder-btn cotizacion-folder-btn';
         button.innerHTML = `
             <div class="cotizacion-folder-btn-name">${escapeCotizacionHTML(safeFolder)}</div>
-            <div class="cotizacion-folder-btn-count">${count} cotizacion${count === 1 ? '' : 'es'}</div>
+            <div class="cotizacion-folder-btn-count">${count} archivo${count === 1 ? '' : 's'} interno${count === 1 ? '' : 's'}</div>
         `;
         button.onclick = () => openCotizacionRecordsFolder(safeFolder);
         grid.appendChild(button);
@@ -27591,6 +28056,9 @@ function restoreCotizacionRecordInEditor(rec) {
     runCotizacionProgrammaticUpdate(() => {
         setCotizacionSheetVisibility(true);
 
+        const codeInput = document.getElementById('cot-code');
+        if (codeInput) codeInput.value = rec.header?.code || '';
+
         const pieceInput = document.getElementById('cot-piece');
         if (pieceInput) pieceInput.value = rec.header?.piece || '';
 
@@ -27621,6 +28089,15 @@ function restoreCotizacionRecordInEditor(rec) {
             respOwnerInput.readOnly = true;
         }
 
+        const requesterInput = document.getElementById('cot-requester');
+        if (requesterInput) requesterInput.value = rec.header?.requester || '';
+
+        const deliveryTimeInput = document.getElementById('cot-delivery-time');
+        if (deliveryTimeInput) deliveryTimeInput.value = rec.header?.delivery_time || '';
+
+        const deliveryUnitInput = document.getElementById('cot-delivery-unit');
+        if (deliveryUnitInput) setCotizacionSingleSelectValue(deliveryUnitInput, rec.header?.delivery_unit || 'Dias', { dispatchEvents: false });
+
         const approvedInput = document.getElementById('cot-approved-by');
         if (approvedInput) approvedInput.value = rec.approved_by || '';
 
@@ -27650,6 +28127,7 @@ function restoreCotizacionRecordInEditor(rec) {
     currentCotizacionRecordId = rec.id || currentCotizacionRecordId || null;
     currentCotizacionRecordName = String(rec.save_name || '').trim();
     currentCotizacionRecordDescription = String(rec.save_description || '').trim();
+    currentCotizacionRecordCategory = String(rec.save_category || '').trim();
     currentCotizacionFolder = normalizeCotizacionFolderName(rec.folder);
     currentCotizacionCombinedSourceIds = [];
     window._cotizacionFromRecords = true;

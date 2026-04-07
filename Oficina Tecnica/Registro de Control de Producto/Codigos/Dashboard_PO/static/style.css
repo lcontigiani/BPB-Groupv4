@@ -581,9 +581,10 @@ tr:hover td {
 .decorated-title {
     border-left: 4px solid var(--bpb-blue);
     border-right: 4px solid var(--bpb-blue);
-    padding: 0 1rem;
+    padding: 0 0.75rem;
     font-weight: 800;
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
     line-height: 1.2;
     width: fit-content;
     max-width: 60%;
@@ -3001,12 +3002,12 @@ tbody tr:nth-child(n+11) {
 
 .cotizacion-folder-btn {
     display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    justify-content: center;
-    min-height: 92px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 68px;
     text-align: left;
-    gap: 0.4rem;
+    gap: 1rem;
 }
 
 .cotizacion-folder-btn-name {
@@ -3014,6 +3015,8 @@ tbody tr:nth-child(n+11) {
     font-weight: 700;
     letter-spacing: 0.03em;
     text-transform: none;
+    flex: 1 1 auto;
+    min-width: 0;
 }
 
 .cotizacion-folder-btn-count {
@@ -3021,10 +3024,13 @@ tbody tr:nth-child(n+11) {
     color: var(--text-secondary);
     letter-spacing: 0.02em;
     text-transform: none;
+    flex: 0 0 auto;
+    white-space: nowrap;
+    text-align: right;
 }
 
 #cotizacion-records-folders-grid {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1fr);
 }
 
 /* Custom Red Checkboxes - Restored */
@@ -3913,17 +3919,19 @@ tbody tr:nth-child(n+11) {
 
 .cotizacion-head-grid {
     display: grid;
-    grid-template-columns: minmax(260px, 1.4fr) 1fr 1fr 1fr;
+    grid-template-columns: repeat(4, minmax(180px, 1fr));
     gap: 0.75rem;
     align-items: end;
     margin-bottom: 0.75rem;
 }
 
 .cotizacion-head-title {
+    grid-column: 1 / -1;
     font-size: 1.3rem;
     font-weight: 800;
     color: var(--bpb-blue);
     letter-spacing: 0.02em;
+    margin-bottom: 0.15rem;
 }
 
 .cotizacion-head-field {
@@ -3951,6 +3959,14 @@ tbody tr:nth-child(n+11) {
     padding: 0.45rem 0.55rem;
     font-size: 0.85rem;
     box-sizing: border-box;
+}
+
+.cotizacion-head-field input {
+    height: 38px;
+}
+
+.cotizacion-head-field textarea {
+    min-height: 38px;
 }
 
 .cotizacion-head-field input[readonly] {
@@ -3983,6 +3999,90 @@ tbody tr:nth-child(n+11) {
     display: flex;
     gap: 0.5rem;
     align-items: center;
+}
+
+.cotizacion-records-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    flex-wrap: nowrap;
+}
+
+.cotizacion-records-breadcrumb {
+    display: inline-block;
+    flex: 0 1 auto;
+    width: auto;
+    max-width: min(100%, 820px);
+    min-width: 0;
+    margin-right: 0;
+    text-align: left;
+    white-space: normal;
+    overflow-wrap: normal;
+}
+
+.cotizacion-records-breadcrumb-main {
+    display: inline;
+    white-space: nowrap;
+}
+
+.cotizacion-records-breadcrumb-tail {
+    display: inline;
+    white-space: normal;
+}
+
+.cotizacion-records-breadcrumb-separator {
+    color: var(--bpb-blue);
+    margin: 0 10px;
+    flex: 0 0 auto;
+}
+
+.cotizacion-records-folder-crumb {
+    color: var(--text-primary);
+    white-space: normal;
+    overflow-wrap: normal;
+    word-break: normal;
+    hyphens: none;
+}
+
+.cotizacion-records-header .header-right {
+    flex: 0 0 auto;
+    min-width: auto;
+}
+
+.cotizacion-records-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: nowrap;
+}
+
+.cotizacion-category-badge {
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    display: inline-block;
+    white-space: nowrap;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border: 1px solid currentColor;
+    background-color: transparent;
+}
+
+.cotizacion-category-badge.conjunto {
+    color: #3498db;
+    background-color: #3498db33;
+}
+
+.cotizacion-category-badge.sub-conjunto {
+    color: #f39c12;
+    background-color: #f39c1233;
+}
+
+.cotizacion-category-badge.pieza {
+    color: #2ecc71;
+    background-color: #2ecc7133;
 }
 
 .cotizacion-inline-field .btn {
@@ -4193,7 +4293,7 @@ tbody tr:nth-child(n+11) {
 .cot-input:focus {
     outline: none;
     border-color: var(--bpb-blue);
-    background: rgba(255, 255, 255, 0.08);
+    background-color: rgba(255, 255, 255, 0.08);
 }
 
 .cot-input::placeholder {
@@ -4349,6 +4449,11 @@ tbody tr:nth-child(n+11) {
 .cot-single-select.is-open,
 .cot-pieza-multiselect.is-open {
     z-index: 40;
+}
+
+.cot-single-select.is-open .cot-single-select-trigger,
+.cot-pieza-multiselect.is-open .cot-pieza-multiselect-trigger {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23ECECEC' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='18 15 12 9 6 15'%3E%3C/polyline%3E%3C/svg%3E");
 }
 
 .cot-single-select-trigger,
@@ -4570,6 +4675,26 @@ tbody tr:nth-child(n+11) {
     margin-top: 0.08rem;
 }
 
+.cotizacion-file-star-btn {
+    min-width: 2.2rem;
+    padding-left: 0.55rem;
+    padding-right: 0.55rem;
+    font-size: 0.95rem;
+    line-height: 1;
+    color: #ffffff;
+}
+
+.cotizacion-file-star-btn.is-active {
+    border-color: rgba(207, 22, 37, 0.88);
+    background: rgba(207, 22, 37, 0.18);
+    color: #ffffff;
+}
+
+.cotizacion-file-star-btn:hover,
+.cotizacion-file-star-btn:focus-visible {
+    color: #ffffff;
+}
+
 .cotizacion-module-insert-row {
     display: flex;
     flex-wrap: wrap;
@@ -4607,12 +4732,69 @@ tbody tr:nth-child(n+11) {
     flex: 1;
 }
 
+.cotizacion-approve-action {
+    margin-left: auto;
+    align-self: flex-end;
+}
+
 .cotizacion-approved-input-wrap {
     position: relative;
 }
 
 .cotizacion-approved-input-wrap input {
     padding-right: 2rem;
+}
+
+.cot-delivery-unit-select {
+    min-width: 110px;
+}
+
+.cot-delivery-unit-select .cot-single-select-trigger {
+    min-width: 110px;
+    height: 38px;
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    border-radius: 6px;
+}
+
+.cot-delivery-unit-select .cot-single-select-trigger:hover,
+.cot-delivery-unit-select.is-open .cot-single-select-trigger {
+    background-color: rgba(255, 255, 255, 0.08) !important;
+    border-color: var(--bpb-blue);
+}
+
+.cot-delivery-unit-select .cot-single-select-menu {
+    border-color: var(--border);
+    background: #141414;
+}
+
+.cot-delivery-unit-select .cot-single-select-option {
+    background: #1f1f1f;
+}
+
+.cot-delivery-unit-select .cot-single-select-option:hover,
+.cot-delivery-unit-select .cot-single-select-option.is-selected {
+    background: rgba(207, 22, 37, 0.9);
+    color: #ffffff;
+}
+
+#cot-delivery-unit {
+    display: none;
+    min-width: 110px;
+    height: 38px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    border-radius: 6px;
+    padding: 0.45rem 0.55rem;
+    font-size: 0.85rem;
+    box-sizing: border-box;
+    accent-color: #cf1625;
+}
+
+#cot-delivery-time {
+    height: 38px;
 }
 
 .cotizacion-approved-clear {
@@ -4987,6 +5169,19 @@ tbody tr:nth-child(n+11) {
     .cotizacion-stats-legend {
         min-width: 0;
         max-width: none;
+    }
+
+    .cotizacion-records-header {
+        flex-wrap: wrap;
+    }
+
+    .cotizacion-records-header .header-right {
+        width: 100%;
+    }
+
+    .cotizacion-records-actions {
+        flex-wrap: wrap;
+        justify-content: flex-end;
     }
 }
 
@@ -8899,14 +9094,34 @@ button.erp-home-variant-circle {
     box-shadow: 0 1px 0 rgba(255,255,255,0.05), 0 -1px 0 rgba(0,0,0,0.3) inset;
 }
 
-#cotizacion-records-table th:nth-child(1),
-#cotizacion-records-table td:nth-child(1) {
-    white-space: nowrap;
+#cotizacion-records-table td {
+    text-align: center;
+    vertical-align: middle;
 }
 
-#cotizacion-records-table td:nth-child(1) {
-    overflow: hidden;
-    text-overflow: ellipsis;
+#cotizacion-records-table {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+}
+
+#cotizacion-records-table th:nth-child(2),
+#cotizacion-records-table td:nth-child(2),
+#cotizacion-records-table th:nth-child(3),
+#cotizacion-records-table td:nth-child(3) {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+#cotizacion-records-table td:nth-child(2),
+#cotizacion-records-table td:nth-child(3) {
+    line-height: 1.25;
+    text-align: center;
+}
+
+#cotizacion-records-table-view.table-container {
+    overflow-x: hidden;
 }
 
 .cotizacion-records-combine-check {

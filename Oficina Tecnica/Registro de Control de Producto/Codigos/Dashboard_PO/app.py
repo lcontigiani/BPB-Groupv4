@@ -48,6 +48,95 @@ from email.mime.multipart import MIMEMultipart
 from logistics_solver import Packer, Bin, Item, RotationType
 from chatbot_bridge import build_chatbot_response
 
+JSON_IO_LOCKS = {}
+JSON_IO_LOCKS_GUARD = threading.Lock()
+
+
+def _json_path(path_value) -> Path:
+    return path_value if isinstance(path_value, Path) else Path(path_value)
+
+
+def _get_json_lock(path_value) -> threading.RLock:
+    path = _json_path(path_value)
+    try:
+        key = str(path.resolve())
+    except Exception:
+        key = str(path)
+    with JSON_IO_LOCKS_GUARD:
+        lock = JSON_IO_LOCKS.get(key)
+        if lock is None:
+            lock = threading.RLock()
+            JSON_IO_LOCKS[key] = lock
+        return lock
+
+
+def _json_backup_path(path_value) -> Path:
+    path = _json_path(path_value)
+    suffix = f"{path.suffix}.bak" if path.suffix else ".bak"
+    return path.with_suffix(suffix)
+
+
+def _load_json_file(path_value, default_value, expected_type=None):
+    path = _json_path(path_value)
+    lock = _get_json_lock(path)
+    with lock:
+        candidates = [path, _json_backup_path(path)]
+        for candidate in candidates:
+            if not candidate.exists():
+                continue
+            try:
+                with candidate.open('r', encoding='utf-8') as f:
+                    data = json.load(f)
+                if expected_type is not None and not isinstance(data, expected_type):
+                    continue
+                return data
+            except Exception as exc:
+                print(f"JSON LOAD WARNING [{candidate}]: {exc}")
+        return deepcopy(default_value)
+
+
+def _write_json_file_atomic(path_value, data, *, indent=4, ensure_ascii=False):
+    path = _json_path(path_value)
+    lock = _get_json_lock(path)
+    with lock:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        backup_path = _json_backup_path(path)
+        temp_fd = None
+        temp_path = None
+        try:
+            payload = json.dumps(data, indent=indent, ensure_ascii=ensure_ascii)
+            temp_fd, temp_path = tempfile.mkstemp(
+                prefix=f".{path.name}.",
+                suffix=".tmp",
+                dir=str(path.parent),
+                text=True
+            )
+            with os.fdopen(temp_fd, 'w', encoding='utf-8', newline='\n') as f:
+                temp_fd = None
+                f.write(payload)
+                f.flush()
+                os.fsync(f.fileno())
+
+            if path.exists():
+                try:
+                    shutil.copy2(path, backup_path)
+                except Exception as backup_exc:
+                    print(f"JSON BACKUP WARNING [{path}]: {backup_exc}")
+
+            os.replace(temp_path, path)
+            temp_path = None
+        finally:
+            if temp_fd is not None:
+                try:
+                    os.close(temp_fd)
+                except Exception:
+                    pass
+            if temp_path:
+                try:
+                    os.unlink(temp_path)
+                except Exception:
+                    pass
+
 def _do_pack_internal(container_data, items_data, config):
     """Core Logistic Solver logic extracted for reuse in maximization."""
     print(f"DEBUG: _do_pack_internal called. Items: {len(items_data)}")
@@ -1493,8 +1582,7 @@ def load_db():
     if not os.path.exists(PROJECTS_DB_PATH):
         return default_db
     try:
-        with open(PROJECTS_DB_PATH, 'r', encoding='utf-8-sig') as f:
-            data = json.load(f)
+        data = _load_json_file(PROJECTS_DB_PATH, default_db, dict)
         if not isinstance(data, dict):
             return default_db
         if not isinstance(data.get('projects'), dict):
@@ -1506,9 +1594,7 @@ def load_db():
 
 def save_db(data):
     try:
-        os.makedirs(os.path.dirname(PROJECTS_DB_PATH), exist_ok=True)
-        with open(PROJECTS_DB_PATH, 'w', encoding='utf-8') as f:
-            json.dump(data, f, indent=4, ensure_ascii=False)
+        _write_json_file_atomic(PROJECTS_DB_PATH, data, indent=4, ensure_ascii=False)
         return True
     except Exception as e:
         print(f"Error saving DB: {e}")
@@ -1702,9 +1788,7 @@ def request_reset():
 
         # Save tokens
         try:
-            os.makedirs(RESET_TOKENS_FILE.parent, exist_ok=True)
-            with open(RESET_TOKENS_FILE, 'w', encoding='utf-8') as f:
-                json.dump(tokens, f, indent=4)
+            _write_json_file_atomic(RESET_TOKENS_FILE, tokens, indent=4, ensure_ascii=False)
         except Exception as file_err:
              import traceback
              print(traceback.format_exc())
@@ -1770,13 +1854,11 @@ def validate_reset():
              updated = True
         
         if updated:
-            with open(USERS_FILE, 'w', encoding='utf-8') as f:
-                json.dump(users, f, indent=4, ensure_ascii=False)
+            _write_json_file_atomic(USERS_FILE, users, indent=4, ensure_ascii=False)
             
             # Delete used token
             del tokens[token]
-            with open(RESET_TOKENS_FILE, 'w', encoding='utf-8') as f:
-                json.dump(tokens, f, indent=4)
+            _write_json_file_atomic(RESET_TOKENS_FILE, tokens, indent=4, ensure_ascii=False)
                 
             return """
             <html>
@@ -1895,9 +1977,7 @@ def log_action(username, action, details):
 
             
 
-        with open(LOG_FILE, 'w') as f:
-
-            json.dump(logs, f, indent=4)
+        _write_json_file_atomic(LOG_FILE, logs, indent=4, ensure_ascii=False)
 
         print("[LOG ACTION] Saved successfully.")
 
@@ -3157,8 +3237,7 @@ def save_logistics_calculation():
         # Keep only last 1000 records to avoid huge files
         records = records[:1000]
         
-        with open(LOGISTICS_RECORDS_FILE, 'w', encoding='utf-8') as f:
-            json.dump(records, f, indent=4, ensure_ascii=False)
+        _write_json_file_atomic(LOGISTICS_RECORDS_FILE, records, indent=4, ensure_ascii=False)
             
         return jsonify({'status': 'success', 'message': 'Calculation saved'})
     except Exception as e:
@@ -3193,8 +3272,7 @@ def delete_logistics_record():
         if len(new_records) == len(records):
             return jsonify({'status': 'error', 'message': 'Record not found'}), 404
 
-        with open(LOGISTICS_RECORDS_FILE, 'w', encoding='utf-8') as f:
-            json.dump(new_records, f, indent=4, ensure_ascii=False)
+        _write_json_file_atomic(LOGISTICS_RECORDS_FILE, new_records, indent=4, ensure_ascii=False)
 
         return jsonify({'status': 'success', 'message': 'Record deleted'})
     except Exception as e:
@@ -3243,6 +3321,35 @@ def _extract_dolar_blue_sell_value(payload):
                 continue
             name = str(item.get('casa') or item.get('nombre') or item.get('name') or '').strip().lower()
             if 'blue' not in name:
+                continue
+            for key in ('value_sell', 'venta', 'sell'):
+                numeric = _to_positive_float(item.get(key))
+                if numeric is not None:
+                    return numeric
+
+    return None
+
+
+def _extract_dolar_official_sell_value(payload):
+    if isinstance(payload, dict):
+        official_node = payload.get('oficial') or payload.get('official')
+        if isinstance(official_node, dict):
+            for key in ('value_sell', 'venta', 'sell'):
+                numeric = _to_positive_float(official_node.get(key))
+                if numeric is not None:
+                    return numeric
+
+        for key in ('value_sell', 'venta', 'sell'):
+            numeric = _to_positive_float(payload.get(key))
+            if numeric is not None:
+                return numeric
+
+    if isinstance(payload, list):
+        for item in payload:
+            if not isinstance(item, dict):
+                continue
+            name = str(item.get('casa') or item.get('nombre') or item.get('name') or '').strip().lower()
+            if 'oficial' not in name and 'official' not in name:
                 continue
             for key in ('value_sell', 'venta', 'sell'):
                 numeric = _to_positive_float(item.get(key))
@@ -3743,8 +3850,8 @@ def get_cotizacion_complementarios_lookup():
 @app.route('/api/cotizacion/dolar-rate', methods=['GET'])
 def get_cotizacion_dolar_rate():
     providers = [
-        ('dolarapi-blue', 'https://dolarapi.com/v1/dolares/blue'),
-        ('bluelytics-blue', 'https://api.bluelytics.com.ar/v2/latest'),
+        ('dolarapi-oficial', 'https://dolarapi.com/v1/dolares/oficial'),
+        ('bluelytics-oficial', 'https://api.bluelytics.com.ar/v2/latest'),
     ]
 
     errors = []
@@ -3752,22 +3859,22 @@ def get_cotizacion_dolar_rate():
     for source_name, source_url in providers:
         try:
             payload = _fetch_external_json(source_url, timeout=4)
-            numeric = _extract_dolar_blue_sell_value(payload)
+            numeric = _extract_dolar_official_sell_value(payload)
             if numeric is None:
-                raise ValueError('valor blue venta no presente en respuesta')
+                raise ValueError('valor oficial venta no presente en respuesta')
 
             return jsonify({
                 'status': 'success',
                 'value': round(numeric, 2),
                 'source': source_name,
-                'rate_type': 'blue_venta'
+                'rate_type': 'oficial_venta'
             })
         except Exception as e:
             errors.append(f"{source_name}: {str(e)}")
 
     return jsonify({
         'status': 'error',
-        'message': 'No se pudo obtener el valor del dolar Blue venta desde internet',
+        'message': 'No se pudo obtener el valor del dolar Oficial venta desde internet',
         'errors': errors[:3]
     }), 502
 
@@ -3817,6 +3924,7 @@ def _clean_cotizacion_items(raw_items):
             'descripcion': _cotizacion_fix_text(item.get('descripcion', '')),
             'proveedor': _cotizacion_fix_text(item.get('proveedor', item.get('provider', ''))),
             'provider_mix': item.get('provider_mix', []),
+            'source_summary': _cotizacion_normalize_source_summary(item.get('source_summary')),
             'source_record_id': str(item.get('source_record_id', '')),
             'source_version_id': str(item.get('source_version_id', '')),
             'rate_formula': str(item.get('rate_formula', '')),
@@ -3928,16 +4036,78 @@ def _cotizacion_fix_text(value):
     return text
 
 
+def _cotizacion_normalize_delivery_unit(value):
+    unit = _cotizacion_fix_text(value).strip().lower()
+    aliases = {
+        'hora': 'Horas',
+        'horas': 'Horas',
+        'dia': 'Dias',
+        'dias': 'Dias',
+        'días': 'Dias',
+        'semana': 'Semanas',
+        'semanas': 'Semanas',
+        'mes': 'Meses',
+        'meses': 'Meses'
+    }
+    return aliases.get(unit, 'Dias')
+
+
+def _cotizacion_normalize_source_summary(raw_summary):
+    if not isinstance(raw_summary, dict):
+        return None
+
+    keys = ['materia_prima', 'complementarios', 'transformacion', 'externo', 'importacion', 'extra', 'comadm', 'produccion', 'venta', 'total']
+    normalized = {}
+    has_value = False
+
+    for key in keys:
+        try:
+            value = float(raw_summary.get(key, 0) or 0)
+        except Exception:
+            value = 0.0
+        if not math.isfinite(value):
+            value = 0.0
+        normalized[key] = value
+        if abs(value) > 0:
+            has_value = True
+
+    return normalized if has_value else None
+
+
+def _cotizacion_apply_source_summary_to_bucket(bucket, source_summary, multiplier=1.0):
+    if not isinstance(bucket, dict):
+        return False
+
+    summary = _cotizacion_normalize_source_summary(source_summary)
+    if not summary:
+        return False
+
+    try:
+        factor = float(multiplier or 1)
+    except Exception:
+        factor = 1.0
+    if not math.isfinite(factor) or factor <= 0:
+        factor = 1.0
+
+    for key in ('materia_prima', 'complementarios', 'transformacion', 'externo', 'importacion', 'extra', 'comadm'):
+        bucket[key] = float(bucket.get(key, 0) or 0) + (float(summary.get(key, 0) or 0) * factor)
+    return True
+
+
 def _cotizacion_safe_header(raw_header):
     header = raw_header if isinstance(raw_header, dict) else {}
     return {
+        'code': _cotizacion_fix_text(header.get('code', '')),
         'piece': _cotizacion_fix_text(header.get('piece', '')),
         'analysis_date': header.get('analysis_date', ''),
         'usd_value': header.get('usd_value', 0),
         'responsible_name': _cotizacion_fix_text(header.get('responsible_name', '')),
         'responsible_position': _cotizacion_fix_text(header.get('responsible_position', '')),
         'responsible_department': _cotizacion_fix_text(header.get('responsible_department', '')),
-        'responsible_owner': _cotizacion_fix_text(header.get('responsible_owner', ''))
+        'responsible_owner': _cotizacion_fix_text(header.get('responsible_owner', '')),
+        'requester': _cotizacion_fix_text(header.get('requester', '')),
+        'delivery_time': _cotizacion_fix_text(header.get('delivery_time', '')),
+        'delivery_unit': _cotizacion_normalize_delivery_unit(header.get('delivery_unit', 'Dias'))
     }
 
 
@@ -3957,6 +4127,7 @@ def _build_cotizacion_version_snapshot(source, version_number=1):
         'timestamp': _cotizacion_safe_timestamp(data.get('timestamp')),
         'save_name': _cotizacion_fix_text(data.get('save_name', '')),
         'save_description': _cotizacion_fix_text(data.get('save_description', '')),
+        'save_category': _normalize_cotizacion_record_category(data.get('save_category', '')),
         'author': _cotizacion_fix_text(data.get('author', 'Usuario')),
         'header': _cotizacion_safe_header(data.get('header', {})),
         'approved_by': _cotizacion_fix_text(data.get('approved_by', '')),
@@ -3971,6 +4142,17 @@ def _build_cotizacion_version_snapshot(source, version_number=1):
 def _normalize_cotizacion_folder_name(raw_folder):
     folder = str(raw_folder or '').strip()
     return folder or COTIZACION_DEFAULT_FOLDER
+
+
+def _normalize_cotizacion_record_category(raw_category):
+    value = str(raw_category or '').strip().lower()
+    if value == 'conjunto':
+        return 'Conjunto'
+    if value in ('sub-conjunto', 'sub conjunto', 'subconjunto'):
+        return 'Sub-Conjunto'
+    if value == 'pieza':
+        return 'Pieza'
+    return ''
 
 
 def _normalize_cotizacion_group(raw_group):
@@ -4014,6 +4196,7 @@ def _normalize_cotizacion_group(raw_group):
         'latest_version': latest_version,
         'save_name': latest.get('save_name', ''),
         'save_description': latest.get('save_description', ''),
+        'save_category': latest.get('save_category', ''),
         'author': latest.get('author', 'Usuario'),
         'versions': versions
     }
@@ -4115,8 +4298,7 @@ def _write_cotizacion_record_groups(groups):
         'folders': sorted(folder_set, key=lambda name: (name != COTIZACION_DEFAULT_FOLDER, name.lower())),
         'groups': safe_groups
     }
-    with open(COTIZACION_RECORDS_FILE, 'w', encoding='utf-8') as f:
-        json.dump(safe_payload, f, indent=4, ensure_ascii=False)
+    _write_json_file_atomic(COTIZACION_RECORDS_FILE, safe_payload, indent=4, ensure_ascii=False)
 
 
 def _cotizacion_get_latest_version(group):
@@ -4139,7 +4321,9 @@ def _cotizacion_group_to_summary(group):
         'folder': _normalize_cotizacion_folder_name(group.get('folder')),
         'save_name': latest.get('save_name', '') or group.get('save_name', ''),
         'save_description': latest.get('save_description', '') or group.get('save_description', ''),
+        'save_category': latest.get('save_category', '') or group.get('save_category', ''),
         'author': latest.get('author', 'Usuario') or group.get('author', 'Usuario'),
+        'header': latest.get('header', {}) if isinstance(latest.get('header', {}), dict) else {},
         'created_at': created_at,
         'modified_at': modified_at,
         'latest_version': int(group.get('latest_version') or latest.get('version_number') or len(versions) or 1),
@@ -4157,6 +4341,7 @@ def _cotizacion_version_to_editor_record(group, version):
         'modified_at': group.get('updated_at', ''),
         'save_name': version.get('save_name', ''),
         'save_description': version.get('save_description', ''),
+        'save_category': version.get('save_category', ''),
         'timestamp': version.get('timestamp', ''),
         'author': version.get('author', 'Usuario'),
         'header': version.get('header', {}),
@@ -4406,13 +4591,11 @@ def _cotizacion_build_conjunto_item_from_group(group, base_item=None):
     elif len(provider_mix) > 1:
         provider_label = 'Mixto'
 
+    source_code = _cotizacion_fix_text(latest.get('header', {}).get('code', '')).strip()
+    source_piece = _cotizacion_fix_text(latest.get('header', {}).get('piece', '')).strip()
     source_name = _cotizacion_fix_text(latest.get('save_name', '')).strip()
-    piece_label = source_name or _cotizacion_fix_text(latest.get('header', {}).get('piece', '')).strip() or 'Conjunto'
-    description_parts = [
-        _cotizacion_fix_text(latest.get('header', {}).get('piece', '')).strip(),
-        _cotizacion_fix_text(latest.get('save_description', '')).strip()
-    ]
-    description = ' - '.join([part for part in description_parts if part])
+    piece_label = source_code or 'Conjunto'
+    description = source_piece or source_name
 
     base = base_item if isinstance(base_item, dict) else {}
     try:
@@ -4437,6 +4620,7 @@ def _cotizacion_build_conjunto_item_from_group(group, base_item=None):
         'descripcion': description,
         'proveedor': provider_label,
         'provider_mix': provider_mix,
+        'source_summary': _cotizacion_normalize_source_summary(unitario),
         'source_record_id': str(group.get('id') or ''),
         'source_version_id': str(latest.get('version_id') or ''),
         'rate_formula': rate_formula,
@@ -4481,7 +4665,20 @@ def _cotizacion_build_combined_summary_from_items(items, piece_qty=1):
             cost = 0.0
         if not math.isfinite(cost):
             cost = 0.0
-        _cotizacion_add_cost_to_bucket(raw_bucket, category, cost)
+        source_summary = item.get('source_summary')
+        quantity_value = item.get('cantidad', 1)
+        try:
+            quantity = float(quantity_value or 1)
+        except Exception:
+            quantity = 1.0
+        if not math.isfinite(quantity) or quantity <= 0:
+            quantity = 1.0
+
+        used_source_summary = False
+        if category == 'conjunto':
+            used_source_summary = _cotizacion_apply_source_summary_to_bucket(raw_bucket, source_summary, quantity)
+        if not used_source_summary:
+            _cotizacion_add_cost_to_bucket(raw_bucket, category, cost)
 
         if category not in ('materia_prima', 'conjunto'):
             continue
@@ -4495,6 +4692,8 @@ def _cotizacion_build_combined_summary_from_items(items, piece_qty=1):
             seen_piece_keys.add(piece_key)
             piece_list.append({'key': piece_key, 'label': label})
             piece_summaries[piece_key] = {'label': label, 'raw': _cotizacion_empty_summary_bucket()}
+        if category == 'conjunto' and _cotizacion_apply_source_summary_to_bucket(piece_summaries[piece_key]['raw'], source_summary, quantity):
+            continue
         _cotizacion_add_cost_to_bucket(piece_summaries[piece_key]['raw'], category, cost)
 
     finalized_global = _cotizacion_finalize_summary_bucket(raw_bucket, piece_qty)
@@ -4603,13 +4802,13 @@ def _cotizacion_sync_linked_combined_groups(groups, source_group_id):
             piece_qty = settings.get('piece_quantity', 1)
             updated_summary = _cotizacion_build_combined_summary_from_items(updated_items, piece_qty)
             updated_header = _cotizacion_safe_header(latest.get('header', {}))
-            updated_header['piece'] = _cotizacion_build_combined_header_piece(updated_items, updated_header.get('piece', ''))
 
             new_version_number = int(target_group.get('latest_version') or len(target_group.get('versions', [])) or 0) + 1
             new_snapshot = _build_cotizacion_version_snapshot({
                 'timestamp': _cotizacion_now_iso(),
                 'save_name': latest.get('save_name', '') or target_group.get('save_name', ''),
                 'save_description': latest.get('save_description', '') or target_group.get('save_description', ''),
+                'save_category': latest.get('save_category', '') or target_group.get('save_category', ''),
                 'author': latest.get('author', 'Sistema') or 'Sistema',
                 'header': updated_header,
                 'approved_by': latest.get('approved_by', ''),
@@ -4625,6 +4824,7 @@ def _cotizacion_sync_linked_combined_groups(groups, source_group_id):
             target_group['updated_at'] = new_snapshot.get('timestamp', _cotizacion_now_iso())
             target_group['save_name'] = new_snapshot.get('save_name', '')
             target_group['save_description'] = new_snapshot.get('save_description', '')
+            target_group['save_category'] = new_snapshot.get('save_category', '')
             target_group['author'] = new_snapshot.get('author', 'Sistema')
             downstream_changes.append(target_id)
             groups_by_id[target_id] = target_group
@@ -4659,6 +4859,7 @@ def save_cotizacion_record():
             group['updated_at'] = snapshot.get('timestamp', _cotizacion_now_iso())
             group['save_name'] = snapshot.get('save_name', '')
             group['save_description'] = snapshot.get('save_description', '')
+            group['save_category'] = snapshot.get('save_category', '')
             group['author'] = snapshot.get('author', 'Usuario')
         else:
             snapshot = _build_cotizacion_version_snapshot(data, version_number=1)
@@ -4671,6 +4872,7 @@ def save_cotizacion_record():
                 'latest_version': 1,
                 'save_name': snapshot.get('save_name', ''),
                 'save_description': snapshot.get('save_description', ''),
+                'save_category': snapshot.get('save_category', ''),
                 'author': snapshot.get('author', 'Usuario'),
                 'versions': [snapshot]
             }
@@ -4718,11 +4920,10 @@ def create_cotizacion_folder():
         folder_set = {_normalize_cotizacion_folder_name(name) for name in store.get('folders', [])}
         folder_set.add(COTIZACION_DEFAULT_FOLDER)
         folder_set.add(folder_name)
-        with open(COTIZACION_RECORDS_FILE, 'w', encoding='utf-8') as f:
-            json.dump({
-                'folders': sorted(folder_set, key=lambda name: (name != COTIZACION_DEFAULT_FOLDER, name.lower())),
-                'groups': _merge_cotizacion_groups(store.get('groups', []))
-            }, f, indent=4, ensure_ascii=False)
+        _write_json_file_atomic(COTIZACION_RECORDS_FILE, {
+            'folders': sorted(folder_set, key=lambda name: (name != COTIZACION_DEFAULT_FOLDER, name.lower())),
+            'groups': _merge_cotizacion_groups(store.get('groups', []))
+        }, indent=4, ensure_ascii=False)
         return jsonify({'status': 'success', 'folder': folder_name})
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 500
@@ -4748,11 +4949,10 @@ def move_cotizacion_record_folder():
         folder_set.add(COTIZACION_DEFAULT_FOLDER)
         folder_set.add(target_folder)
 
-        with open(COTIZACION_RECORDS_FILE, 'w', encoding='utf-8') as f:
-            json.dump({
-                'folders': sorted(folder_set, key=lambda name: (name != COTIZACION_DEFAULT_FOLDER, name.lower())),
-                'groups': _merge_cotizacion_groups(groups)
-            }, f, indent=4, ensure_ascii=False)
+        _write_json_file_atomic(COTIZACION_RECORDS_FILE, {
+            'folders': sorted(folder_set, key=lambda name: (name != COTIZACION_DEFAULT_FOLDER, name.lower())),
+            'groups': _merge_cotizacion_groups(groups)
+        }, indent=4, ensure_ascii=False)
 
         return jsonify({'status': 'success', 'folder': target_folder})
     except Exception as e:
@@ -5220,9 +5420,7 @@ def update_data():
 
         
 
-        with open(target_file, 'w', encoding='utf-8') as f:
-
-            json.dump(content, f, indent=4)
+        _write_json_file_atomic(target_file, content, indent=4, ensure_ascii=False)
 
             
 
@@ -5536,9 +5734,7 @@ def register():
 
         
 
-        with open(USERS_FILE, 'w') as f:
-
-            json.dump(users, f, indent=4)
+        _write_json_file_atomic(USERS_FILE, users, indent=4, ensure_ascii=False)
 
             
 
@@ -5676,9 +5872,7 @@ def upload_profile_photo():
 
                 users[username]['profile_pic'] = safe_name
 
-                with open(USERS_FILE, 'w') as f:
-
-                    json.dump(users, f, indent=4)
+                _write_json_file_atomic(USERS_FILE, users, indent=4, ensure_ascii=False)
 
                     
 
@@ -5782,9 +5976,7 @@ def update_profile():
 
         if changes:
 
-            with open(USERS_FILE, 'w') as f:
-
-                json.dump(users, f, indent=4)
+            _write_json_file_atomic(USERS_FILE, users, indent=4, ensure_ascii=False)
 
                 
 
@@ -5826,9 +6018,7 @@ def approve_user():
 
             users[target_user]['status'] = 'approved'
 
-            with open(USERS_FILE, 'w') as f:
-
-                json.dump(users, f, indent=4)
+            _write_json_file_atomic(USERS_FILE, users, indent=4, ensure_ascii=False)
 
                 
 
@@ -5888,9 +6078,7 @@ def update_role():
 
             users[target_user]['role'] = new_role
 
-            with open(USERS_FILE, 'w') as f:
-
-                json.dump(users, f, indent=4)
+            _write_json_file_atomic(USERS_FILE, users, indent=4, ensure_ascii=False)
 
                 
 
@@ -5940,9 +6128,7 @@ def delete_user():
 
             del users[target_user]
 
-            with open(USERS_FILE, 'w') as f:
-
-                json.dump(users, f, indent=4)
+            _write_json_file_atomic(USERS_FILE, users, indent=4, ensure_ascii=False)
 
                 
 
@@ -6118,8 +6304,7 @@ def approve_po_background(po_id, data, actor, actor_name):
                 "approved_items": approved_items
             }
             
-            with open(current_work_folder / "approval_info.json", "w", encoding='utf-8') as f:
-                json.dump(metadata, f, indent=4)
+            _write_json_file_atomic(current_work_folder / "approval_info.json", metadata, indent=4, ensure_ascii=False)
             log_trace(f"[BACKGROUND] Step 2: Metadata created.", current_work_folder)
 
             # Update Auxiliary Excels (Heavy Operation)
@@ -6276,9 +6461,7 @@ def save_po_progress():
 
         print(f"[SAVE PROGRESS] Escribiendo JSON en {meta_file}")
 
-        with open(meta_file, "w", encoding='utf-8') as f:
-
-            json.dump(metadata, f, indent=4)
+        _write_json_file_atomic(meta_file, metadata, indent=4, ensure_ascii=False)
 
             
 
@@ -6376,9 +6559,7 @@ def reverse_approval():
 
                  meta['modified_at'] = datetime.now().strftime('%d/%m/%Y %H:%M')
 
-                 with open(meta_file, 'w', encoding='utf-8') as f:
-
-                     json.dump(meta, f, indent=4)
+                 _write_json_file_atomic(meta_file, meta, indent=4, ensure_ascii=False)
 
              except: pass
 
@@ -7258,17 +7439,7 @@ def _load_iso_payloads() -> dict:
 
 def _save_iso_payloads(data: dict) -> None:
     path = _iso_payloads_path()
-    tmp = path.with_suffix(".tmp")
-    try:
-        with tmp.open("w", encoding="utf-8") as fh:
-            json.dump(data or {}, fh, ensure_ascii=False, indent=2)
-        tmp.replace(path)
-    finally:
-        try:
-            if tmp.exists() and tmp != path:
-                tmp.unlink()
-        except Exception:
-            pass
+    _write_json_file_atomic(path, data or {}, indent=2, ensure_ascii=False)
 
 
 def _iso_payload_keys(payload: dict) -> list:
@@ -7389,11 +7560,7 @@ def _append_r01903_pending(iso_root: Path, payload: dict, reason=None) -> int:
     pending_path = _r01903_pending_path(iso_root)
     pending_path.parent.mkdir(parents=True, exist_ok=True)
     try:
-        if pending_path.exists():
-            with open(pending_path, "r", encoding="utf-8") as f:
-                items = json.load(f) or []
-        else:
-            items = []
+        items = _load_json_file(pending_path, [], list)
     except Exception:
         items = []
     items.append({
@@ -7401,8 +7568,7 @@ def _append_r01903_pending(iso_root: Path, payload: dict, reason=None) -> int:
         "reason": reason or "",
         "payload": payload
     })
-    with open(pending_path, "w", encoding="utf-8") as f:
-        json.dump(items, f, ensure_ascii=False, indent=2)
+    _write_json_file_atomic(pending_path, items, indent=2, ensure_ascii=False)
     return len(items)
 
 
@@ -7491,8 +7657,7 @@ def _load_notifications() -> list:
     if not path.exists():
         return []
     try:
-        with path.open("r", encoding="utf-8") as f:
-            data = json.load(f) or []
+        data = _load_json_file(path, [], list) or []
         return data if isinstance(data, list) else []
     except Exception:
         return []
@@ -7500,8 +7665,7 @@ def _load_notifications() -> list:
 
 def _save_notifications(items: list) -> None:
     path = _notifications_path()
-    with path.open("w", encoding="utf-8") as f:
-        json.dump(items, f, ensure_ascii=False, indent=2)
+    _write_json_file_atomic(path, items, indent=2, ensure_ascii=False)
 
 
 def _resolve_display_name(user: str) -> str:
@@ -7634,8 +7798,7 @@ def iso_r01903_pending_sync():
             return jsonify({"status": "error", "message": f"Error al sincronizar pendientes: {e}"}), 500
 
     if remaining:
-        with open(pending_path, "w", encoding="utf-8") as f:
-            json.dump(remaining, f, ensure_ascii=False, indent=2)
+        _write_json_file_atomic(pending_path, remaining, indent=2, ensure_ascii=False)
     else:
         try:
             pending_path.unlink()
@@ -9867,9 +10030,7 @@ def save_aux_target():
 
         
 
-        with open(target_file, 'w', encoding='utf-8') as f:
-
-            json.dump(current_data, f, indent=4)
+        _write_json_file_atomic(target_file, current_data, indent=4, ensure_ascii=False)
 
             
 
@@ -10819,9 +10980,7 @@ def submit_activity():
 
         
 
-        with open(file_path, 'w', encoding='utf-8') as f:
-
-            json.dump(record, f, indent=4, ensure_ascii=False)
+        _write_json_file_atomic(file_path, record, indent=4, ensure_ascii=False)
 
             
 
@@ -10940,8 +11099,7 @@ def approve_activity():
                             desc = clean_csv_val(act.get('description', ''))
                             writer.writerow([date_str, time_str, token, proj, time_val, proj, desc])
 
-                    with open(mailer_state_path, 'w', encoding='utf-8') as f:
-                        json.dump(mailer_data, f, ensure_ascii=False, indent=2)
+                    _write_json_file_atomic(mailer_state_path, mailer_data, indent=2, ensure_ascii=False)
 
         except Exception as e:
             print(f"Error saving legacy CSVs: {e}")
@@ -10950,8 +11108,7 @@ def approve_activity():
         record['status'] = 'approved'
         record['approved_at'] = datetime.now().isoformat()
 
-        with open(file_path, 'w', encoding='utf-8') as f:
-            json.dump(record, f, indent=4, ensure_ascii=False)
+        _write_json_file_atomic(file_path, record, indent=4, ensure_ascii=False)
 
         return jsonify({'status': 'success'})
 
@@ -11578,10 +11735,7 @@ def _quality_load_observation_registry():
 
 def _quality_save_observation_registry(registry):
     QUALITY_BASE_PATH.mkdir(parents=True, exist_ok=True)
-    tmp_path = QUALITY_OBSERVATIONS_FILE.with_suffix('.json.tmp')
-    with tmp_path.open('w', encoding='utf-8') as f:
-        json.dump(registry, f, indent=2, ensure_ascii=False)
-    tmp_path.replace(QUALITY_OBSERVATIONS_FILE)
+    _write_json_file_atomic(QUALITY_OBSERVATIONS_FILE, registry, indent=2, ensure_ascii=False)
 
 
 def _quality_load_pending_categories_state():
@@ -11605,10 +11759,7 @@ def _quality_load_pending_categories_state():
 
 def _quality_save_pending_categories_state(state):
     QUALITY_BASE_PATH.mkdir(parents=True, exist_ok=True)
-    tmp_path = QUALITY_PENDING_CATEGORIES_FILE.with_suffix('.json.tmp')
-    with tmp_path.open('w', encoding='utf-8') as f:
-        json.dump(state, f, indent=2, ensure_ascii=False)
-    tmp_path.replace(QUALITY_PENDING_CATEGORIES_FILE)
+    _write_json_file_atomic(QUALITY_PENDING_CATEGORIES_FILE, state, indent=2, ensure_ascii=False)
 
 
 def _quality_load_pending_handlers_state():
@@ -11629,10 +11780,7 @@ def _quality_load_pending_handlers_state():
 
 def _quality_save_pending_handlers_state(state):
     QUALITY_BASE_PATH.mkdir(parents=True, exist_ok=True)
-    tmp_path = QUALITY_PENDING_HANDLERS_FILE.with_suffix('.json.tmp')
-    with tmp_path.open('w', encoding='utf-8') as f:
-        json.dump(state, f, indent=2, ensure_ascii=False)
-    tmp_path.replace(QUALITY_PENDING_HANDLERS_FILE)
+    _write_json_file_atomic(QUALITY_PENDING_HANDLERS_FILE, state, indent=2, ensure_ascii=False)
 
 
 def _quality_normalize_category_color(value):
@@ -12726,8 +12874,7 @@ def submit_activity_record():
         else:
             state['campaigns'][campaign_idx]['responses'][user_email] = response_obj
 
-        with open(ACTIVITY_STATE_FILE, 'w', encoding='utf-8') as f:
-            json.dump(state, f, indent=2, ensure_ascii=False)
+        _write_json_file_atomic(ACTIVITY_STATE_FILE, state, indent=2, ensure_ascii=False)
 
         def clean_csv(val):
             return str(val).replace(';', ',').replace('\\n', ' ').strip()
