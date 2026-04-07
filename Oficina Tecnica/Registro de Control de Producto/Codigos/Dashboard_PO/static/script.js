@@ -13754,6 +13754,7 @@ let currentCotizacionRecordDescription = '';
 let currentCotizacionRecordCategory = '';
 let lastCotizacionFolders = ['Sin Carpeta'];
 let currentCotizacionFolder = 'Sin Carpeta';
+let currentCotizacionLatestRevision = '0';
 let currentCotizacionRecordsFolderView = '';
 let currentCotizacionAttachments = [];
 let currentCotizacionCombinedSourceIds = [];
@@ -13765,6 +13766,7 @@ window._cotizacionFromCombine = false;
 window._cotizacionBindingsReady = false;
 window._cotizacionDefaultRowsHTML = '';
 window._cotizacionProgrammaticUpdate = false;
+window._cotizacionSaveMode = 'save';
 
 function normalizeCotizacionRecordCategory(value) {
     const raw = String(value || '').trim().toLowerCase();
@@ -13772,6 +13774,52 @@ function normalizeCotizacionRecordCategory(value) {
     if (raw === 'sub-conjunto' || raw === 'sub conjunto' || raw === 'subconjunto') return 'Sub-Conjunto';
     if (raw === 'pieza') return 'Pieza';
     return '';
+}
+
+function getCotizacionCurrentLocalDateISO() {
+    const now = new Date();
+    const localNow = new Date(now.getTime() - (now.getTimezoneOffset() * 60000));
+    return localNow.toISOString().split('T')[0];
+}
+
+function openCotizacionAnalysisDatePicker() {
+    const input = document.getElementById('cot-analysis-date');
+    if (!(input instanceof HTMLInputElement)) return;
+    input.focus();
+    if (typeof input.showPicker === 'function') {
+        input.showPicker();
+        return;
+    }
+    input.click();
+}
+
+function normalizeCotizacionRevisionLabel(value) {
+    const normalized = String(value || '').trim().toUpperCase();
+    return /^[A-Z]+$/.test(normalized) ? normalized : '0';
+}
+
+function setCotizacionRevisionLabel(value) {
+    currentCotizacionLatestRevision = normalizeCotizacionRevisionLabel(value);
+    const revisionInput = document.getElementById('cot-revision');
+    if (revisionInput instanceof HTMLInputElement) {
+        revisionInput.value = currentCotizacionLatestRevision;
+    }
+}
+
+function configureCotizacionSaveModal(mode = 'save') {
+    const normalizedMode = mode === 'revision' ? 'revision' : 'save';
+    window._cotizacionSaveMode = normalizedMode;
+
+    const title = document.getElementById('cotizacion-save-modal-title');
+    const confirmBtn = document.getElementById('cotizacion-save-confirm-btn');
+    if (title) {
+        title.textContent = normalizedMode === 'revision'
+            ? 'Generar Revision de Cotizacion'
+            : 'Guardar Cotizacion';
+    }
+    if (confirmBtn instanceof HTMLButtonElement) {
+        confirmBtn.textContent = normalizedMode === 'revision' ? 'Generar Revision' : 'Guardar';
+    }
 }
 
 function getCotizacionCategoryBadgeHTML(value) {
@@ -13788,7 +13836,7 @@ function getCotizacionCategoryBadgeHTML(value) {
 function normalizeCotizacionSourceSummary(summary) {
     if (!summary || typeof summary !== 'object') return null;
 
-    const keys = ['materia_prima', 'complementarios', 'transformacion', 'externo', 'importacion', 'extra', 'comadm', 'produccion', 'venta', 'total'];
+    const keys = ['materia_prima', 'complementarios', 'transformacion', 'desperdicios', 'externo', 'importacion', 'extra', 'comadm', 'produccion', 'venta', 'total'];
     const normalized = {};
     let hasValue = false;
 
@@ -13811,6 +13859,7 @@ function getCotizacionRowSourceSummary(row) {
         materia_prima: Number(summary.materia_prima || 0) * multiplier,
         complementarios: Number(summary.complementarios || 0) * multiplier,
         transformacion: Number(summary.transformacion || 0) * multiplier,
+        desperdicios: Number(summary.desperdicios || 0) * multiplier,
         externo: Number(summary.externo || 0) * multiplier,
         importacion: Number(summary.importacion || 0) * multiplier,
         extra: Number(summary.extra || 0) * multiplier,
@@ -13821,12 +13870,23 @@ function getCotizacionRowSourceSummary(row) {
 function applyCotizacionSummaryContribution(bucket, row) {
     if (!bucket || !row) return;
 
+    if (row.is_muda) {
+        const sourceSummary = getCotizacionRowSourceSummary(row);
+        let wasteValue = Number(sourceSummary?.desperdicios || 0);
+        if (!Number.isFinite(wasteValue) || wasteValue === 0) {
+            wasteValue = Number(row.costo_unitario || 0);
+        }
+        bucket.desperdicios += wasteValue;
+        return;
+    }
+
     const category = sanitizeCotizacionCategory(row.category);
     const sourceSummary = category === 'conjunto' ? getCotizacionRowSourceSummary(row) : null;
     if (sourceSummary) {
         bucket.materia_prima += Number(sourceSummary.materia_prima || 0);
         bucket.complementarios += Number(sourceSummary.complementarios || 0);
         bucket.transformacion += Number(sourceSummary.transformacion || 0);
+        bucket.desperdicios += Number(sourceSummary.desperdicios || 0);
         bucket.externo += Number(sourceSummary.externo || 0);
         bucket.importacion += Number(sourceSummary.importacion || 0);
         bucket.extra += Number(sourceSummary.extra || 0);
@@ -13839,6 +13899,15 @@ function applyCotizacionSummaryContribution(bucket, row) {
 
 function getCotizacionRowBarSegments(row) {
     const sourceSummary = getCotizacionRowSourceSummary(row);
+    if (row?.is_muda) {
+        let wasteValue = Number(sourceSummary?.desperdicios || 0);
+        if (!Number.isFinite(wasteValue) || wasteValue === 0) {
+            wasteValue = Number(row?.costo_unitario || 0);
+        }
+        return {
+            desperdicios: wasteValue
+        };
+    }
     if (!sourceSummary) {
         const category = sanitizeCotizacionCategory(row?.category || '');
         const segmentKey = getCotizacionStatsBarSegmentKey(category);
@@ -13852,6 +13921,7 @@ function getCotizacionRowBarSegments(row) {
         materia_prima: Number(sourceSummary.materia_prima || 0),
         complementarios: Number(sourceSummary.complementarios || 0),
         transformacion: Number(sourceSummary.transformacion || 0),
+        desperdicios: Number(sourceSummary.desperdicios || 0),
         externo: Number(sourceSummary.externo || 0),
         importacion: Number(sourceSummary.importacion || 0),
         extra: Number(sourceSummary.extra || 0),
@@ -13868,6 +13938,7 @@ window._cotizacionSplitTables = false;
 window._cotizacionTableHeadHTML = '';
 window._cotizacionSummaryPieceExpanded = {};
 window._cotizacionDeleteMode = false;
+window._cotizacionMudaMode = false;
 window._cotizacionCombineMode = false;
 window._cotizacionCombineSelection = [];
 window._cotizacionMoveMode = false;
@@ -14029,6 +14100,7 @@ const COTIZACION_SUMMARY_ROW_CONFIG = [
     { key: 'complementarios', label: 'Costo de Complementarios', labelId: 'cot-sum-label-complementarios', minId: 'cot-sum-complementarios-min', mayId: 'cot-sum-complementarios-may' },
     { key: 'transformacion', label: 'Costo de Transformacion', labelId: 'cot-sum-label-transformacion', minId: 'cot-sum-transformacion-min', mayId: 'cot-sum-transformacion-may' },
     { key: 'produccion', label: 'Costo de Produccion', labelId: 'cot-sum-label-produccion', minId: 'cot-sum-produccion-min', mayId: 'cot-sum-produccion-may' },
+    { key: 'desperdicios', label: 'Costo de Desperdicios', labelId: 'cot-sum-label-desperdicios', minId: 'cot-sum-desperdicios-min', mayId: 'cot-sum-desperdicios-may' },
     { key: 'externo', label: 'Costo Externo a B&P', labelId: 'cot-sum-label-externo', minId: 'cot-sum-externo-min', mayId: 'cot-sum-externo-may' },
     { key: 'importacion', label: 'Costo de Importacion', labelId: 'cot-sum-label-importacion', minId: 'cot-sum-import-min', mayId: 'cot-sum-import-may' },
     { key: 'extra', label: 'Costo Extra', labelId: 'cot-sum-label-extra', minId: 'cot-sum-extra-min', mayId: 'cot-sum-extra-may' },
@@ -14040,6 +14112,7 @@ const COTIZACION_STATS_PIE_SEGMENTS = [
     { key: 'materia_prima', label: 'Costo Materia Prima' },
     { key: 'complementarios', label: 'Costo de Complementarios' },
     { key: 'transformacion', label: 'Costo de Transformacion' },
+    { key: 'desperdicios', label: 'Costo de Desperdicios' },
     { key: 'externo', label: 'Costo Externo a B&P' },
     { key: 'importacion', label: 'Costo de Importacion' },
     { key: 'extra', label: 'Costo Extra' },
@@ -14050,6 +14123,7 @@ const COTIZACION_STATS_BAR_SEGMENTS = [
     { key: 'materia_prima', label: 'Materia Prima', color: '#3498db' },
     { key: 'complementarios', label: 'Complementarios', color: '#f1c40f' },
     { key: 'transformacion', label: 'Transformacion', color: '#9b59b6' },
+    { key: 'desperdicios', label: 'Desperdicios', color: '#cf1625' },
     { key: 'externo', label: 'Externo a B&P', color: '#e67e22' },
     { key: 'importacion', label: 'Importacion', color: '#1abc9c' },
     { key: 'extra', label: 'Extra', color: '#e74c3c' },
@@ -22829,10 +22903,8 @@ function applyCotizacionUserContext() {
     const positionInput = document.getElementById('cot-resp-position');
     const deptInput = document.getElementById('cot-resp-dept');
     const ownerInput = document.getElementById('cot-resp-owner');
-    const requesterInput = document.getElementById('cot-requester');
 
     if (nameInput) nameInput.value = currentDisplayName || currentUser || '';
-    if (requesterInput && !String(requesterInput.value || '').trim()) requesterInput.value = currentDisplayName || currentUser || '';
     if (positionInput) {
         positionInput.value = currentUserPosition || '';
         positionInput.readOnly = true;
@@ -22962,6 +23034,7 @@ function setCotizacionSheetVisibility(showSheet) {
 
     if (setup) setup.style.display = showSheet ? 'none' : 'block';
     if (stage) stage.style.display = showSheet ? 'block' : 'none';
+    setCotizacionEditorActionButtonsVisibility(!!showSheet);
 }
 
 function getCotizacionTablesContainer() {
@@ -22993,6 +23066,22 @@ function getCotizacionRows() {
     return Array.from(document.querySelectorAll('#cotizacion-tables-container .cotizacion-item-row'));
 }
 
+function getCotizacionMudaLabel(categoryKey = '') {
+    return sanitizeCotizacionCategory(categoryKey) === 'materia_prima' ? 'Scrap' : 'Muda';
+}
+
+function getCotizacionCategoryCellHTML(categoryLabel = '', options = {}) {
+    const mainLabel = String(categoryLabel || '').trim() || 'Modulo Extra';
+    if (!options?.isMuda) return escapeCotizacionHTML(mainLabel);
+    const mudaLabel = String(options?.mudaLabel || 'Muda').trim() || 'Muda';
+    return `
+        <div class="cotizacion-category-cell">
+            <span class="cotizacion-category-main">${escapeCotizacionHTML(mainLabel)}</span>
+            <span class="cotizacion-muda-tag">${escapeCotizacionHTML(mudaLabel)}</span>
+        </div>
+    `;
+}
+
 function refreshCotizacionSplitButtonLabel() {
     const btn = document.getElementById('cotizacion-split-tables-btn');
     if (!btn) return;
@@ -23010,9 +23099,33 @@ function refreshCotizacionDeleteButtonLabel() {
     }
 }
 
+function setCotizacionEditorActionButtonsVisibility(visible) {
+    const saveBtn = document.getElementById('cotizacion-save-header-btn');
+    const revisionBtn = document.getElementById('cotizacion-revision-header-btn');
+    const displayValue = visible ? '' : 'none';
+
+    if (saveBtn instanceof HTMLElement) saveBtn.style.display = displayValue;
+    if (revisionBtn instanceof HTMLElement) revisionBtn.style.display = displayValue;
+}
+
+function refreshCotizacionMudaButtonLabel() {
+    const btn = document.getElementById('cotizacion-muda-mode-btn');
+    if (!(btn instanceof HTMLButtonElement)) return;
+
+    if (window._cotizacionMudaMode) {
+        btn.classList.add('cotizacion-delete-btn-armed');
+    } else {
+        btn.classList.remove('cotizacion-delete-btn-armed');
+    }
+}
+
 function setCotizacionDeleteMode(enabled) {
     window._cotizacionDeleteMode = !!enabled;
+    if (window._cotizacionDeleteMode) {
+        window._cotizacionMudaMode = false;
+    }
     refreshCotizacionDeleteButtonLabel();
+    refreshCotizacionMudaButtonLabel();
 }
 
 function toggleCotizacionDeleteMode() {
@@ -23022,6 +23135,24 @@ function toggleCotizacionDeleteMode() {
         return;
     }
     setCotizacionDeleteMode(!window._cotizacionDeleteMode);
+}
+
+function setCotizacionMudaMode(enabled) {
+    window._cotizacionMudaMode = !!enabled;
+    if (window._cotizacionMudaMode) {
+        window._cotizacionDeleteMode = false;
+    }
+    refreshCotizacionMudaButtonLabel();
+    refreshCotizacionDeleteButtonLabel();
+}
+
+function toggleCotizacionMudaMode() {
+    const rows = getCotizacionRows();
+    if (!window._cotizacionMudaMode && !rows.length) {
+        showNotification('No hay filas para duplicar como muda.', 'warning');
+        return;
+    }
+    setCotizacionMudaMode(!window._cotizacionMudaMode);
 }
 
 function refreshCotizacionCategorySeparators() {
@@ -23245,6 +23376,7 @@ function applyCotizacionTablesLayout() {
     updateCotizacionSummary();
     refreshCotizacionSplitButtonLabel();
     refreshCotizacionDeleteButtonLabel();
+    refreshCotizacionMudaButtonLabel();
 }
 
 function toggleCotizacionSplitTables() {
@@ -23750,10 +23882,14 @@ function createCotizacionRow(data = {}) {
     const subconcepto = data.subconcepto || data.subCategoria || '';
     const pieza = data.pieza || data.piece || '';
     const proveedor = String(data.proveedor || data.provider || getCotizacionDefaultProvider(category) || '').trim();
+    const isMuda = !!data.is_muda;
+    const mudaLabel = getCotizacionMudaLabel(category);
 
     const tr = document.createElement('tr');
     tr.className = 'cotizacion-item-row';
     tr.dataset.category = category;
+    tr.dataset.categoryLabel = categoria;
+    tr.dataset.isMuda = isMuda ? '1' : '0';
     if (Array.isArray(data.provider_mix) && data.provider_mix.length) {
         tr.dataset.providerMix = JSON.stringify(data.provider_mix);
     }
@@ -23768,7 +23904,7 @@ function createCotizacionRow(data = {}) {
         tr.dataset.sourceVersionId = String(data.source_version_id).trim();
     }
     tr.innerHTML = `
-        <td>${escapeCotizacionHTML(categoria)}</td>
+        <td>${getCotizacionCategoryCellHTML(categoria, { isMuda, mudaLabel })}</td>
         <td class="cot-subconcepto-cell"></td>
         <td class="cot-pieza-cell"></td>
         <td><textarea rows="1" class="cot-input cot-descripcion cot-autogrow">${escapeCotizacionHTML(data.descripcion || '')}</textarea></td>
@@ -23818,7 +23954,9 @@ function createCotizacionRow(data = {}) {
         costInput.dataset.preciseValue = String(Number(data.costo_unitario));
     }
 
-    syncCotizacionRateFromSubconceptRow(tr, true);
+    if (!data.skip_auto_rate) {
+        syncCotizacionRateFromSubconceptRow(tr, true);
+    }
     updateCotizacionRowUnitPlaceholders(tr);
     tr.querySelectorAll('.cot-autogrow').forEach((field) => {
         if (field instanceof HTMLTextAreaElement) {
@@ -23833,6 +23971,120 @@ function createCotizacionRow(data = {}) {
         });
     });
     return tr;
+}
+
+function collectCotizacionRowData(row, options = {}) {
+    if (!(row instanceof HTMLTableRowElement)) return null;
+
+    const includeSplitBase = !!options.preferSplitBase;
+    const category = sanitizeCotizacionCategory(row.dataset.category);
+    const categoryLabel = String(row.dataset.categoryLabel || getCotizacionCategoryConfig(category)?.label || '').trim();
+    return {
+        category,
+        categoria: categoryLabel,
+        subCategoria: row.querySelector('.cot-subconcepto')?.value || '',
+        subconcepto: row.querySelector('.cot-subconcepto')?.value || '',
+        pieza: row.querySelector('.cot-pieza')?.value || '',
+        descripcion: row.querySelector('.cot-descripcion')?.value || '',
+        proveedor: row.querySelector('.cot-proveedor')?.value || '',
+        provider_mix: (() => {
+            try {
+                const parsed = JSON.parse(String(row.dataset.providerMix || '[]'));
+                return Array.isArray(parsed) ? parsed : [];
+            } catch (_) {
+                return [];
+            }
+        })(),
+        source_summary: (() => {
+            try {
+                const parsed = JSON.parse(String(row.dataset.sourceSummary || 'null'));
+                return normalizeCotizacionSourceSummary(parsed);
+            } catch (_) {
+                return null;
+            }
+        })(),
+        source_record_id: String(row.dataset.sourceRecordId || '').trim(),
+        source_version_id: String(row.dataset.sourceVersionId || '').trim(),
+        is_muda: String(row.dataset.isMuda || '').trim() === '1',
+        rate_formula: (() => {
+            const input = row.querySelector('.cot-rate');
+            return input instanceof HTMLInputElement ? String(input.dataset.formula || '').trim() : '';
+        })(),
+        cantidad_formula: (() => {
+            const input = row.querySelector('.cot-cantidad');
+            return input instanceof HTMLInputElement ? String(input.dataset.formula || '').trim() : '';
+        })(),
+        costo_formula: (() => {
+            const input = row.querySelector('.cot-cost');
+            if (!(input instanceof HTMLInputElement)) return '';
+            const splitBaseFormula = String(input.dataset.splitBaseFormula || '').trim();
+            if (splitBaseFormula.startsWith('=')) return splitBaseFormula;
+            return String(input.dataset.formula || '').trim();
+        })(),
+        rate: roundCotizacionStoredNumber(getCotizacionNumericInputValue(row, '.cot-rate')),
+        cantidad: roundCotizacionStoredNumber(getCotizacionNumericInputValue(row, '.cot-cantidad')),
+        indice: row.querySelector('.cot-indice')?.value || '',
+        observaciones: row.querySelector('.cot-obs')?.value || '',
+        costo_unitario: roundCotizacionStoredNumber(getCotizacionNumericInputValue(row, '.cot-cost', { preferSplitBase: includeSplitBase }))
+    };
+}
+
+function buildCotizacionMudaRowData(sourceRow) {
+    const source = collectCotizacionRowData(sourceRow, { preferSplitBase: true });
+    if (!source) return null;
+
+    return {
+        category: source.category,
+        categoria: source.categoria,
+        subCategoria: source.subCategoria,
+        subconcepto: source.subconcepto,
+        pieza: source.pieza,
+        descripcion: '',
+        proveedor: source.proveedor,
+        provider_mix: Array.isArray(source.provider_mix) ? [...source.provider_mix] : [],
+        source_summary: null,
+        source_record_id: '',
+        source_version_id: '',
+        is_muda: true,
+        rate_formula: '',
+        cantidad_formula: '',
+        costo_formula: '',
+        rate: 0,
+        cantidad: 0,
+        indice: '',
+        observaciones: '',
+        costo_unitario: 0,
+        skip_auto_rate: true
+    };
+}
+
+function insertCotizacionMudaRowBelow(sourceRow) {
+    if (!(sourceRow instanceof HTMLTableRowElement)) return;
+
+    const rowData = buildCotizacionMudaRowData(sourceRow);
+    if (!rowData) return;
+
+    const newRow = createCotizacionRow(rowData);
+    sourceRow.insertAdjacentElement('afterend', newRow);
+
+    refreshCotizacionPiezaFields(false);
+    if (window._cotizacionSplitTables) {
+        refreshCotizacionCategorySeparators();
+    } else {
+        refreshCotizacionCategorySeparators();
+    }
+    refreshCotizacionCellReferences();
+    applyCotizacionDefaultCostFormulaToRow(newRow, { force: true });
+    recalculateCotizacionFormulaCells();
+    refreshCotizacionUnitPlaceholders();
+    clearCotizacionApprovalSignature(false);
+    updateCotizacionSummary();
+    setCotizacionMudaMode(false);
+
+    const descriptionInput = newRow.querySelector('.cot-descripcion');
+    if (descriptionInput instanceof HTMLTextAreaElement) {
+        descriptionInput.focus();
+    }
 }
 
 
@@ -23878,6 +24130,8 @@ function generateCotizacionSheetFromConfig() {
     runCotizacionProgrammaticUpdate(() => {
         renderCotizacionRows(selection.rows);
         setCotizacionSheetVisibility(true);
+        const requesterInput = document.getElementById('cot-requester');
+        if (requesterInput instanceof HTMLInputElement) requesterInput.value = '';
     });
 
     clearCotizacionApprovalSignature(false);
@@ -23888,6 +24142,7 @@ function resetCotizacionForm() {
     runCotizacionProgrammaticUpdate(() => {
         window._cotizacionSplitTables = false;
         setCotizacionDeleteMode(false);
+        setCotizacionMudaMode(false);
         setCotizacionUnifiedTableLayout();
         const tbody = getCotizacionPrimaryBody();
         if (tbody) tbody.innerHTML = '';
@@ -23908,7 +24163,7 @@ function resetCotizacionForm() {
 
         const dateInput = document.getElementById('cot-analysis-date');
         if (dateInput) {
-            dateInput.value = new Date().toISOString().split('T')[0];
+            dateInput.value = getCotizacionCurrentLocalDateISO();
         }
 
         const piecesInput = document.getElementById('cotizacion-cantidad-piezas');
@@ -23922,12 +24177,15 @@ function resetCotizacionForm() {
         currentCotizacionRecordName = '';
         currentCotizacionRecordDescription = '';
         currentCotizacionRecordCategory = '';
+        currentCotizacionFolder = 'Sin Carpeta';
+        setCotizacionRevisionLabel('0');
         currentCotizacionCombinedSourceIds = [];
         clearCotizacionAttachments();
     });
 
     refreshCotizacionSplitButtonLabel();
     refreshCotizacionDeleteButtonLabel();
+    refreshCotizacionMudaButtonLabel();
     refreshCotizacionCellReferences();
     updateCotizacionSummary();
     refreshCotizacionDollarRate(false);
@@ -24074,6 +24332,15 @@ function ensureCotizacionBindings() {
         view.addEventListener('click', (event) => {
             const target = event.target;
             if (!(target instanceof HTMLElement)) return;
+
+            if (window._cotizacionMudaMode) {
+                const row = target.closest('.cotizacion-item-row');
+                if (row instanceof HTMLTableRowElement) {
+                    event.preventDefault();
+                    insertCotizacionMudaRowBelow(row);
+                    return;
+                }
+            }
 
             if (window._cotizacionDeleteMode) {
                 const row = target.closest('.cotizacion-item-row');
@@ -24416,6 +24683,7 @@ function showCotizacionEditor(preserve = false) {
     ensureCotizacionBindings();
     refreshCotizacionSplitButtonLabel();
     refreshCotizacionDeleteButtonLabel();
+    refreshCotizacionMudaButtonLabel();
 
     loadCotizacionSubconceptOptions(false)
         .then(() => {
@@ -24529,6 +24797,7 @@ function buildCotizacionCombinedRowFromRecord(rec, index = 0) {
         source_summary: rec?.summary?.unitario || null,
         source_record_id: String(rec?.id || '').trim(),
         source_version_id: String(rec?.version_id || '').trim(),
+        is_muda: false,
         rate: Number.isFinite(saleCost) ? saleCost : 0,
         cantidad: 1,
         indice: 'Unidad',
@@ -24553,6 +24822,7 @@ function cloneCotizacionCombinedItem(item, index = 0) {
         source_summary: item?.source_summary || null,
         source_record_id: String(item?.source_record_id || '').trim(),
         source_version_id: String(item?.source_version_id || '').trim(),
+        is_muda: !!item?.is_muda,
         rate: Number.isFinite(rate) ? rate : 0,
         cantidad: Number.isFinite(quantity) ? quantity : 1,
         indice: String(item?.indice || 'Unidad').trim() || 'Unidad',
@@ -24680,6 +24950,7 @@ function openCombinedCotizacionRecord(records = [], sourceIds = []) {
     currentCotizacionRecordDescription = '';
     currentCotizacionRecordCategory = String(combined.save_category || '').trim();
     currentCotizacionFolder = normalizeCotizacionFolderName(currentCotizacionRecordsFolderView || currentCotizacionFolder);
+    setCotizacionRevisionLabel('0');
     currentCotizacionCombinedSourceIds = Array.isArray(sourceIds) ? [...sourceIds] : [];
     window._cotizacionFromRecords = false;
     window._cotizacionFromCombine = true;
@@ -24902,53 +25173,9 @@ function getCotizacionNumericInputValue(row, selector, options = {}) {
 
 function collectCotizacionRows() {
     const rows = getCotizacionRows();
-    return Array.from(rows).map((row) => ({
-        category: sanitizeCotizacionCategory(row.dataset.category),
-        categoria: row.cells[0] ? row.cells[0].textContent.trim() : '',
-        subCategoria: row.querySelector('.cot-subconcepto')?.value || '',
-        subconcepto: row.querySelector('.cot-subconcepto')?.value || '',
-        pieza: row.querySelector('.cot-pieza')?.value || '',
-        descripcion: row.querySelector('.cot-descripcion')?.value || '',
-        proveedor: row.querySelector('.cot-proveedor')?.value || '',
-        provider_mix: (() => {
-            try {
-                const parsed = JSON.parse(String(row.dataset.providerMix || '[]'));
-                return Array.isArray(parsed) ? parsed : [];
-            } catch (_) {
-                return [];
-            }
-        })(),
-        source_summary: (() => {
-            try {
-                const parsed = JSON.parse(String(row.dataset.sourceSummary || 'null'));
-                return normalizeCotizacionSourceSummary(parsed);
-            } catch (_) {
-                return null;
-            }
-        })(),
-        source_record_id: String(row.dataset.sourceRecordId || '').trim(),
-        source_version_id: String(row.dataset.sourceVersionId || '').trim(),
-        rate_formula: (() => {
-            const input = row.querySelector('.cot-rate');
-            return input instanceof HTMLInputElement ? String(input.dataset.formula || '').trim() : '';
-        })(),
-        cantidad_formula: (() => {
-            const input = row.querySelector('.cot-cantidad');
-            return input instanceof HTMLInputElement ? String(input.dataset.formula || '').trim() : '';
-        })(),
-        costo_formula: (() => {
-            const input = row.querySelector('.cot-cost');
-            if (!(input instanceof HTMLInputElement)) return '';
-            const splitBaseFormula = String(input.dataset.splitBaseFormula || '').trim();
-            if (splitBaseFormula.startsWith('=')) return splitBaseFormula;
-            return String(input.dataset.formula || '').trim();
-        })(),
-        rate: roundCotizacionStoredNumber(getCotizacionNumericInputValue(row, '.cot-rate')),
-        cantidad: roundCotizacionStoredNumber(getCotizacionNumericInputValue(row, '.cot-cantidad')),
-        indice: row.querySelector('.cot-indice')?.value || '',
-        observaciones: row.querySelector('.cot-obs')?.value || '',
-        costo_unitario: roundCotizacionStoredNumber(getCotizacionNumericInputValue(row, '.cot-cost', { preferSplitBase: true }))
-    }));
+    return Array.from(rows)
+        .map((row) => collectCotizacionRowData(row, { preferSplitBase: true }))
+        .filter(Boolean);
 }
 
 function buildCotizacionAttachmentId() {
@@ -25211,6 +25438,103 @@ function readCotizacionFileAsDataURL(file) {
     });
 }
 
+async function ensureCotizacionPdfJsModule() {
+    if (window.pdfjsLib?.getDocument) return window.pdfjsLib;
+    if (window._cotizacionPdfJsModulePromise) return window._cotizacionPdfJsModulePromise;
+
+    window._cotizacionPdfJsModulePromise = import('https://unpkg.com/pdfjs-dist/build/pdf.mjs')
+        .then((module) => {
+            const pdfjs = module?.default || module;
+            if (!pdfjs?.getDocument) {
+                throw new Error('No se pudo cargar pdf.js');
+            }
+            if (pdfjs.GlobalWorkerOptions) {
+                pdfjs.GlobalWorkerOptions.workerSrc = 'https://unpkg.com/pdfjs-dist/build/pdf.worker.mjs';
+            }
+            return pdfjs;
+        })
+        .catch((error) => {
+            window._cotizacionPdfJsModulePromise = null;
+            throw error;
+        });
+
+    return window._cotizacionPdfJsModulePromise;
+}
+
+function decodeCotizacionDataUrlToUint8Array(dataUrl) {
+    const raw = String(dataUrl || '').trim();
+    const base64 = raw.includes(',') ? raw.split(',')[1] : '';
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i += 1) {
+        bytes[i] = binary.charCodeAt(i);
+    }
+    return bytes;
+}
+
+async function renderCotizacionPdfFirstPagePreview(dataUrl, cacheKey = '') {
+    const safeKey = String(cacheKey || dataUrl || '').trim();
+    if (!window._cotizacionPdfPreviewCache) {
+        window._cotizacionPdfPreviewCache = new Map();
+    }
+    if (safeKey && window._cotizacionPdfPreviewCache.has(safeKey)) {
+        return await window._cotizacionPdfPreviewCache.get(safeKey);
+    }
+
+    const previewPromise = (async () => {
+        const pdfjs = await ensureCotizacionPdfJsModule();
+        const pdfData = decodeCotizacionDataUrlToUint8Array(dataUrl);
+        const loadingTask = pdfjs.getDocument({ data: pdfData });
+        const pdf = await loadingTask.promise;
+        try {
+            const page = await pdf.getPage(1);
+            const baseViewport = page.getViewport({ scale: 1 });
+            const targetWidth = 1400;
+            const scale = Math.max(1, Math.min(2.4, targetWidth / Math.max(baseViewport.width || 1, 1)));
+            const viewport = page.getViewport({ scale });
+            const canvas = document.createElement('canvas');
+            canvas.width = Math.ceil(viewport.width);
+            canvas.height = Math.ceil(viewport.height);
+
+            const context = canvas.getContext('2d');
+            if (!context) {
+                throw new Error('No se pudo crear el contexto de render del PDF');
+            }
+
+            await page.render({
+                canvasContext: context,
+                viewport
+            }).promise;
+
+            page.cleanup();
+            return canvas.toDataURL('image/png');
+        } finally {
+            try {
+                await pdf.destroy();
+            } catch (_) {
+                // Ignore destroy errors from the PDF worker.
+            }
+        }
+    })();
+
+    if (safeKey) {
+        window._cotizacionPdfPreviewCache.set(safeKey, previewPromise);
+    }
+
+    try {
+        const result = await previewPromise;
+        if (safeKey) {
+            window._cotizacionPdfPreviewCache.set(safeKey, Promise.resolve(result));
+        }
+        return result;
+    } catch (error) {
+        if (safeKey) {
+            window._cotizacionPdfPreviewCache.delete(safeKey);
+        }
+        throw error;
+    }
+}
+
 async function addCotizacionAttachmentsFromFiles(rawFiles) {
     const files = Array.from(rawFiles || []).filter((file) => file instanceof File);
     if (!files.length) return;
@@ -25347,6 +25671,7 @@ function createCotizacionSummaryBucket() {
         materia_prima: 0,
         complementarios: 0,
         transformacion: 0,
+        desperdicios: 0,
         produccion: 0,
         comadm: 0,
         importacion: 0,
@@ -25375,6 +25700,7 @@ function finalizeCotizacionSummaryBucket(rawBucket, pieceQty) {
         materia_prima: Number(source.materia_prima || 0),
         complementarios: Number(source.complementarios || 0),
         transformacion: Number(source.transformacion || 0),
+        desperdicios: Number(source.desperdicios || 0),
         produccion: 0,
         externo: Number(source.externo || 0),
         importacion: Number(source.importacion || 0),
@@ -25385,13 +25711,14 @@ function finalizeCotizacionSummaryBucket(rawBucket, pieceQty) {
     };
 
     unitario.produccion = unitario.materia_prima + unitario.transformacion + unitario.complementarios;
-    unitario.venta = unitario.produccion + unitario.externo + unitario.importacion + unitario.extra;
+    unitario.venta = unitario.produccion + unitario.desperdicios + unitario.externo + unitario.importacion + unitario.extra;
     unitario.total = unitario.venta + unitario.comadm;
 
     const piezas = {
         materia_prima: unitario.materia_prima * pieceQty,
         complementarios: unitario.complementarios * pieceQty,
         transformacion: unitario.transformacion * pieceQty,
+        desperdicios: unitario.desperdicios * pieceQty,
         produccion: unitario.produccion * pieceQty,
         externo: unitario.externo * pieceQty,
         importacion: unitario.importacion * pieceQty,
@@ -25456,6 +25783,8 @@ function computeCotizacionSummary() {
     const namedPieceLabels = [];
     const complementarioEntries = [];
     const complementarioEntryByKey = new Map();
+    const desperdicioEntries = [];
+    const desperdicioEntryByKey = new Map();
 
     const ensurePieceEntry = (key, label) => {
         if (pieceEntryByKey.has(key)) return pieceEntryByKey.get(key);
@@ -25473,11 +25802,30 @@ function computeCotizacionSummary() {
         return entry;
     };
 
+    const ensureDesperdicioEntry = (key, label) => {
+        if (desperdicioEntryByKey.has(key)) return desperdicioEntryByKey.get(key);
+        const entry = { key, label, raw: createCotizacionSummaryBucket() };
+        desperdicioEntryByKey.set(key, entry);
+        desperdicioEntries.push(entry);
+        return entry;
+    };
+
     let unnamedCounter = 0;
     let complementarioCounter = 0;
+    let desperdicioCounter = 0;
     rows.forEach((row, index) => {
         const category = sanitizeCotizacionCategory(row.category);
         applyCotizacionSummaryContribution(globalBucket, row);
+
+        if (row.is_muda) {
+            const desperdicioLabel = formatCotizacionPieceDisplayValue(String(row.pieza || '').trim()) || String(row.pieza || '').trim() || `Desperdicio ${++desperdicioCounter}`;
+            const desperdicioKey = `desperdicio:${desperdicioLabel.toLowerCase()}`;
+            const entry = ensureDesperdicioEntry(desperdicioKey, desperdicioLabel);
+            applyCotizacionSummaryContribution(entry.raw, row);
+            if (category !== 'materia_prima' && category !== 'conjunto') {
+                return;
+            }
+        }
 
         if (category === 'complementarios') {
             const complementarioLabel = String(row.pieza || '').trim() || String(row.descripcion || '').trim() || `Complementario ${++complementarioCounter}`;
@@ -25524,6 +25872,7 @@ function computeCotizacionSummary() {
         const category = sanitizeCotizacionCategory(row.category);
         const cost = Number(row.costo_unitario || 0);
         if (!Number.isFinite(cost)) return;
+        if (row.is_muda) return;
 
         if (category === 'materia_prima' || category === 'conjunto') {
             const pieceKey = materiaRowPieceKey.get(index) || null;
@@ -25579,6 +25928,13 @@ function computeCotizacionSummary() {
             ...finalizeCotizacionSummaryBucket(entry.raw, pieceQty)
         };
     });
+    const desperdiciosSummaries = {};
+    desperdicioEntries.forEach((entry) => {
+        desperdiciosSummaries[entry.key] = {
+            label: entry.label,
+            ...finalizeCotizacionSummaryBucket(entry.raw, pieceQty)
+        };
+    });
 
     return {
         pieceQty,
@@ -25588,6 +25944,8 @@ function computeCotizacionSummary() {
         pieceSummaries,
         complementariosList: complementarioEntries.map((entry) => ({ key: entry.key, label: entry.label })),
         complementariosSummaries,
+        desperdiciosList: desperdicioEntries.map((entry) => ({ key: entry.key, label: entry.label })),
+        desperdiciosSummaries,
         provider_breakdown: buildCotizacionProviderBreakdown(rows)
     };
 }
@@ -25609,12 +25967,17 @@ function renderCotizacionSummaryPieceRows(baseRow, rowKey, pieceList, summary, s
     removeCotizacionSummaryPieceOptionRows(rowKey);
 
     const useComplementarios = String(summaryKey || '') === 'complementarios';
+    const useDesperdicios = String(summaryKey || '') === 'desperdicios';
     const sourceList = useComplementarios
         ? (Array.isArray(summary?.complementariosList) ? summary.complementariosList : [])
-        : pieceList;
+        : (useDesperdicios
+            ? (Array.isArray(summary?.desperdiciosList) ? summary.desperdiciosList : [])
+            : pieceList);
     const sourceSummaries = useComplementarios
         ? (summary?.complementariosSummaries || {})
-        : (summary?.pieceSummaries || {});
+        : (useDesperdicios
+            ? (summary?.desperdiciosSummaries || {})
+            : (summary?.pieceSummaries || {}));
 
     let insertAfter = baseRow;
     sourceList.forEach((item) => {
@@ -25653,11 +26016,12 @@ function updateCotizacionSummary() {
 
     const pieceList = Array.isArray(summary.pieceList) ? summary.pieceList : [];
     const complementariosList = Array.isArray(summary.complementariosList) ? summary.complementariosList : [];
+    const desperdiciosList = Array.isArray(summary.desperdiciosList) ? summary.desperdiciosList : [];
     const hasPieceBreakdown = pieceList.length > 1;
     if (!window._cotizacionSummaryPieceExpanded || typeof window._cotizacionSummaryPieceExpanded !== 'object') {
         window._cotizacionSummaryPieceExpanded = {};
     }
-    if (!hasPieceBreakdown && complementariosList.length <= 1) {
+    if (!hasPieceBreakdown && complementariosList.length <= 1 && desperdiciosList.length <= 0) {
         window._cotizacionSummaryPieceExpanded = {};
         removeCotizacionSummaryPieceOptionRows();
     }
@@ -25665,12 +26029,18 @@ function updateCotizacionSummary() {
     COTIZACION_SUMMARY_ROW_CONFIG.forEach((cfg) => {
         const labelCell = document.getElementById(cfg.labelId);
         const baseRow = labelCell?.closest('tr');
-        const rowHasBreakdown = cfg.key === 'complementarios' ? (complementariosList.length > 1) : hasPieceBreakdown;
+        const rowHasBreakdown = cfg.key === 'complementarios'
+            ? (complementariosList.length > 1)
+            : (cfg.key === 'desperdicios'
+                ? (desperdiciosList.length > 0)
+                : hasPieceBreakdown);
 
         if (rowHasBreakdown) {
             if (labelCell) {
                 const expanded = !!window._cotizacionSummaryPieceExpanded[cfg.key];
-                const toggleTitle = cfg.key === 'complementarios' ? 'Desglosar por Complementarios' : 'Desglosar por Materia Prima';
+                const toggleTitle = cfg.key === 'complementarios'
+                    ? 'Desglosar por Complementarios'
+                    : (cfg.key === 'desperdicios' ? 'Desglosar por Pieza' : 'Desglosar por Materia Prima');
                 labelCell.innerHTML = `
                     <div class="cotizacion-summary-label-wrap">
                         <button type="button" class="cot-sum-toggle-btn" data-summary-row="${escapeCotizacionHTML(cfg.key)}" title="${escapeCotizacionHTML(toggleTitle)}">${expanded ? '&#9662;' : '&#9656;'}</button>
@@ -26740,7 +27110,7 @@ function renderCotizacionStats(summary) {
     });
 }
 
-function openCotizacionSaveModal() {
+function openCotizacionSaveModal(options = {}) {
     const stage = document.getElementById('cotizacion-sheet-stage');
     const rows = getCotizacionRows();
 
@@ -26756,6 +27126,7 @@ function openCotizacionSaveModal() {
 
     const modal = document.getElementById('cotizacion-save-modal');
     if (modal) modal.style.display = 'flex';
+    configureCotizacionSaveModal(options?.generateRevision ? 'revision' : 'save');
 
     const codeModalInput = document.getElementById('cotizacion-save-code');
     const pieceModalInput = document.getElementById('cotizacion-save-piece');
@@ -26782,6 +27153,10 @@ function openCotizacionSaveModal() {
     }).catch(() => { });
 }
 
+function openCotizacionRevisionModal() {
+    openCotizacionSaveModal({ generateRevision: true });
+}
+
 function closeCotizacionSaveModal() {
     const modal = document.getElementById('cotizacion-save-modal');
     if (modal) modal.style.display = 'none';
@@ -26796,9 +27171,11 @@ function closeCotizacionSaveModal() {
     if (categoryInput instanceof HTMLSelectElement) categoryInput.value = '';
     if (folderSelect instanceof HTMLSelectElement) folderSelect.innerHTML = '';
     if (updateLinkedInput instanceof HTMLInputElement) updateLinkedInput.checked = false;
+    configureCotizacionSaveModal('save');
 }
 
 async function confirmSaveCotizacion() {
+    const generateRevision = window._cotizacionSaveMode === 'revision';
     const code = (document.getElementById('cotizacion-save-code')?.value || '').trim();
     const piece = (document.getElementById('cotizacion-save-piece')?.value || '').trim();
     const category = normalizeCotizacionRecordCategory(document.getElementById('cotizacion-save-category')?.value || '');
@@ -26826,11 +27203,18 @@ async function confirmSaveCotizacion() {
     if (codeSheetInput) codeSheetInput.value = code;
     if (pieceSheetInput) pieceSheetInput.value = piece;
 
+    const savedAnalysisDate = getCotizacionCurrentLocalDateISO();
+    const analysisDateInput = document.getElementById('cot-analysis-date');
+    if (analysisDateInput instanceof HTMLInputElement) {
+        analysisDateInput.value = savedAnalysisDate;
+    }
+
     const summary = updateCotizacionSummary();
     const payload = {
         id: currentCotizacionRecordId || undefined,
         folder: selectedFolder,
         update_linked: updateLinked,
+        generate_revision: generateRevision,
         save_name: computedSaveName,
         save_description: '',
         save_category: category,
@@ -26841,7 +27225,7 @@ async function confirmSaveCotizacion() {
             code,
             piece_code: code,
             piece,
-            analysis_date: document.getElementById('cot-analysis-date')?.value || '',
+            analysis_date: savedAnalysisDate,
             usd_value: parseFloat(document.getElementById('cot-usd-value')?.value || 0) || 0,
             responsible_name: document.getElementById('cot-resp-name')?.value || '',
             responsible_position: document.getElementById('cot-resp-position')?.value || '',
@@ -26875,9 +27259,15 @@ async function confirmSaveCotizacion() {
             currentCotizacionRecordDescription = '';
             currentCotizacionRecordCategory = category;
             currentCotizacionFolder = selectedFolder;
+            setCotizacionRevisionLabel(data.latest_revision_label || currentCotizacionLatestRevision);
             const versionNumber = parseInt(data.version_number, 10);
             const versionText = Number.isFinite(versionNumber) ? ` (v${versionNumber})` : '';
-            showNotification(`Cotizacion guardada exitosamente${versionText}.`, 'success');
+            if (generateRevision) {
+                const revisionLabel = normalizeCotizacionRevisionLabel(data.revision_label);
+                showNotification(`Revision Rev.${revisionLabel} generada exitosamente${versionText}.`, 'success');
+            } else {
+                showNotification(`Cotizacion guardada exitosamente${versionText}.`, 'success');
+            }
             closeCotizacionSaveModal();
         } else {
             showNotification(data.message || 'No se pudo guardar la cotizacion.', 'error');
@@ -26888,7 +27278,7 @@ async function confirmSaveCotizacion() {
     }
 }
 
-function printCotizacion() {
+async function printCotizacion() {
     const stage = document.getElementById('cotizacion-sheet-stage');
     const rows = collectCotizacionRows();
     if (!stage || stage.style.display === 'none' || !rows.length) {
@@ -26913,6 +27303,7 @@ function printCotizacion() {
     const requester = String(document.getElementById('cot-requester')?.value || '').trim();
     const deliveryTime = String(document.getElementById('cot-delivery-time')?.value || '').trim();
     const deliveryUnit = String(document.getElementById('cot-delivery-unit')?.value || 'Dias').trim() || 'Dias';
+    const revisionValue = normalizeCotizacionRevisionLabel(document.getElementById('cot-revision')?.value || currentCotizacionLatestRevision || '0');
     const responsiblePosition = String(document.getElementById('cot-resp-position')?.value || '').trim();
     const responsibleDepartment = String(document.getElementById('cot-resp-dept')?.value || '').trim();
     const responsibleOwner = String(document.getElementById('cot-resp-owner')?.value || '').trim();
@@ -26953,6 +27344,8 @@ function printCotizacion() {
 
             const categoryCfg = getCotizacionCategoryConfig(category);
             const categoryLabel = String(categoryCfg?.label || row.categoria || row.category || '-');
+            const mudaLabel = row.is_muda ? getCotizacionMudaLabel(category) : '';
+            const categoryHtml = `${esc(categoryLabel)}${mudaLabel ? `<br><span class="detail-category-tag">(${esc(mudaLabel)})</span>` : ''}`;
             const subCategory = String(row.subCategoria || row.subconcepto || '-');
             const pieceRaw = String(row.pieza || '-');
             const piece = formatCotizacionPieceDisplayValue(pieceRaw, '\n');
@@ -26969,7 +27362,7 @@ function printCotizacion() {
             detailHtmlRows.push(`
                 <tr>
                     <td class="center">${itemIndex}</td>
-                    <td>${esc(categoryLabel)}</td>
+                    <td>${categoryHtml}</td>
                     <td>${esc(subCategory || '-')}</td>
                     <td>${pieceHtml}</td>
                     <td>${esc(description)}</td>
@@ -27039,6 +27432,32 @@ function printCotizacion() {
         .map((attachment) => normalizeCotizacionAttachment(attachment))
         .filter(Boolean);
     const featuredAttachments = normalizedAttachments.filter((attachment) => attachment.featured).slice(0, 2);
+    const featuredAttachmentCardsHtml = await Promise.all(featuredAttachments.map(async (attachment) => {
+        let previewSrc = attachment.type === 'application/pdf' ? '' : attachment.data_url;
+        if (attachment.type === 'application/pdf') {
+            try {
+                previewSrc = await renderCotizacionPdfFirstPagePreview(attachment.data_url, attachment.id || attachment.name);
+            } catch (error) {
+                console.error('No se pudo generar la vista previa del PDF destacado:', error);
+            }
+        }
+
+        const previewHtml = previewSrc
+            ? `<img src="${previewSrc}" alt="${esc(attachment.name || 'Adjunto destacado')}">`
+            : `<div class="muted">No se pudo generar la vista previa del ${attachment.type === 'application/pdf' ? 'PDF' : 'archivo'}.</div>`;
+
+        return `
+            <div class="attachments-print-featured-item">
+                <div class="attachments-print-featured-head">
+                    <div class="attachments-print-featured-name">${esc(attachment.name || '-')}</div>
+                    <div class="attachments-print-featured-meta">${esc(attachment.type === 'application/pdf' ? 'PDF' : 'Imagen')} · ${esc(formatCotizacionAttachmentSize(attachment.size || 0))}</div>
+                </div>
+                <div class="attachments-print-featured-preview">
+                    ${previewHtml}
+                </div>
+            </div>
+        `;
+    }));
     const notesHtml = `
         <div class="card">
             <h2>Notas</h2>
@@ -27050,20 +27469,7 @@ function printCotizacion() {
             <div class="card attachments-print-card attachments-print-featured-card">
                 <h2>Archivos Destacados</h2>
                 <div class="attachments-print-featured-grid${featuredAttachments.length === 1 ? ' is-single' : ''}">
-                    ${featuredAttachments.map((attachment) => `
-                        <div class="attachments-print-featured-item">
-                            <div class="attachments-print-featured-head">
-                                <div class="attachments-print-featured-name">${esc(attachment.name || '-')}</div>
-                                <div class="attachments-print-featured-meta">${esc(attachment.type === 'application/pdf' ? 'PDF' : 'Imagen')} · ${esc(formatCotizacionAttachmentSize(attachment.size || 0))}</div>
-                            </div>
-                            <div class="attachments-print-featured-preview">
-                                ${attachment.type === 'application/pdf'
-                                    ? `<embed src="${attachment.data_url}" type="application/pdf">`
-                                    : `<img src="${attachment.data_url}" alt="${esc(attachment.name || 'Adjunto destacado')}">`
-                                }
-                            </div>
-                        </div>
-                    `).join('')}
+                    ${featuredAttachmentCardsHtml.join('')}
                 </div>
             </div>
         `
@@ -27328,6 +27734,13 @@ function printCotizacion() {
                 color: #111;
                 word-break: break-word;
             }
+            .detail-category-tag {
+                display: inline-block;
+                margin-top: 4px;
+                font-size: 10px;
+                font-weight: 700;
+                color: #9a1b26;
+            }
             table {
                 width: 100%;
                 border-collapse: collapse;
@@ -27471,8 +27884,7 @@ function printCotizacion() {
                 padding: 8px;
                 box-sizing: border-box;
             }
-            .attachments-print-featured-preview img,
-            .attachments-print-featured-preview embed {
+            .attachments-print-featured-preview img {
                 width: auto;
                 max-width: 100%;
                 height: auto;
@@ -27504,7 +27916,7 @@ function printCotizacion() {
             }
             .stats-print-section h2 {
                 margin: 0 0 4px 0;
-                font-size: 13px;
+                font-size: 18px;
                 line-height: 1.05;
             }
             .stats-print-grid {
@@ -27629,7 +28041,7 @@ function printCotizacion() {
                 <h2>Datos Generales</h2>
                 <div class="grid">
                     <div><div class="field-label">Solicitante</div><div class="field-value">${esc(requester || '-')}</div></div>
-                    <div><div class="field-label">&nbsp;</div><div class="field-value">&nbsp;</div></div>
+                    <div><div class="field-label">Revision</div><div class="field-value">${esc(revisionValue || '0')}</div></div>
                     <div><div class="field-label">Valor del Dolar</div><div class="field-value">${esc(formatCotizacionCurrency(usdValue))}</div></div>
                     <div><div class="field-label">Fecha de Cotizacion</div><div class="field-value">${esc(formatPrintDate(analysisDate))}</div></div>
                     <div><div class="field-label">Codigo de Pieza</div><div class="field-value">${esc(codeValue || '-')}</div></div>
@@ -28195,6 +28607,7 @@ function restoreCotizacionRecordInEditor(rec) {
     currentCotizacionRecordDescription = String(rec.save_description || '').trim();
     currentCotizacionRecordCategory = String(rec.save_category || '').trim();
     currentCotizacionFolder = normalizeCotizacionFolderName(rec.folder);
+    setCotizacionRevisionLabel(rec.latest_revision_label || rec.revision_label || '0');
     currentCotizacionCombinedSourceIds = [];
     window._cotizacionFromRecords = true;
     window._cotizacionFromCombine = false;
@@ -28272,7 +28685,14 @@ async function openCotizacionHistoryModal(id) {
                 ? `v${parseInt(version.version_number, 10)}`
                 : 'v?';
             const authorText = String(version.author || 'Sistema');
-            option.textContent = `${versionLabel} - ${dateText} - ${authorText}`;
+            const revisionLabel = normalizeCotizacionRevisionLabel(version.revision_label);
+            option.textContent = version.is_revision
+                ? `Rev.${revisionLabel} - ${versionLabel} - ${dateText} - ${authorText}`
+                : `${versionLabel} - ${dateText} - ${authorText}`;
+            if (version.is_revision) {
+                option.style.color = '#ff6b6b';
+                option.style.fontWeight = '700';
+            }
             if (idx === 0) option.selected = true;
             list.appendChild(option);
         });

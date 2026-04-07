@@ -11,9 +11,9 @@ Thread 0x00002a14 (most recent call first):
   File "C:\Users\lcontigiani\AppData\Local\Programs\Python\Python314\Lib\site-packages\pdfplumber\display.py", line 74 in get_page_image
   File "C:\Users\lcontigiani\AppData\Local\Programs\Python\Python314\Lib\site-packages\pdfplumber\display.py", line 91 in __init__
   File "C:\Users\lcontigiani\AppData\Local\Programs\Python\Python314\Lib\site-packages\pdfplumber\page.py", line 610 in to_image
-  File "\\BPBSRV03\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Codigos\step3_prepare_outputs.py", line 535 in render_first_page_png
-  File "\\BPBSRV03\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Codigos\step3_prepare_outputs.py", line 592 in extract_notes_with_gemini
-  File "\\BPBSRV03\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Codigos\step3_prepare_outputs.py", line 1022 in _process_pdf
+  File "\\192.168.0.13\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Codigos\step3_prepare_outputs.py", line 535 in render_first_page_png
+  File "\\192.168.0.13\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Codigos\step3_prepare_outputs.py", line 592 in extract_notes_with_gemini
+  File "\\192.168.0.13\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Codigos\step3_prepare_outputs.py", line 1022 in _process_pdf
   File "C:\Users\lcontigiani\AppData\Local\Programs\Python\Python314\Lib\concurrent\futures\thread.py", line 73 in run
   File "C:\Users\lcontigiani\AppData\Local\Programs\Python\Python314\Lib\concurrent\futures\thread.py", line 86 in run
   File "C:\Users\lcontigiani\AppData\Local\Programs\Python\Python314\Lib\concurrent\futures\thread.py", line 119 in _worker
@@ -30,9 +30,9 @@ Current thread 0x000013f4 (most recent call first):
   File "C:\Users\lcontigiani\AppData\Local\Programs\Python\Python314\Lib\site-packages\pdfplumber\display.py", line 72 in get_page_image
   File "C:\Users\lcontigiani\AppData\Local\Programs\Python\Python314\Lib\site-packages\pdfplumber\display.py", line 91 in __init__
   File "C:\Users\lcontigiani\AppData\Local\Programs\Python\Python314\Lib\site-packages\pdfplumber\page.py", line 610 in to_image
-  File "\\BPBSRV03\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Codigos\step3_prepare_outputs.py", line 535 in render_first_page_png
-  File "\\BPBSRV03\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Codigos\step3_prepare_outputs.py", line 592 in extract_notes_with_gemini
-  File "\\BPBSRV03\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Codigos\step3_prepare_outputs.py", line 1022 in _process_pdf
+  File "\\192.168.0.13\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Codigos\step3_prepare_outputs.py", line 535 in render_first_page_png
+  File "\\192.168.0.13\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Codigos\step3_prepare_outputs.py", line 592 in extract_notes_with_gemini
+  File "\\192.168.0.13\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Codigos\step3_prepare_outputs.py", line 1022 in _process_pdf
   File "C:\Users\lcontigiani\AppData\Local\Programs\Python\Python314\Lib\concurrent\futures\thread.py", line 73 in run
   File "C:\Users\lcontigiani\AppData\Local\Programs\Python\Python314\Lib\concurrent\futures\thread.py", line 86 in run
   File "C:\Users\lcontigiani\AppData\Local\Programs\Python\Python314\Lib\concurrent\futures\thread.py", line 119 in _worker
@@ -51,9 +51,9 @@ Thread 0x000019cc (most recent call first):
   File "<frozen importlib._bootstrap>", line 1426 in _handle_fromlist
   File "C:\Users\lcontigiani\AppData\Local\Programs\Python\Python314\Lib\site-packages\PIL\Image.py", line 339 in preinit
   File "C:\Users\lcontigiani\AppData\Local\Programs\Python\Python314\Lib\site-packages\PIL\Image.py", line 2536 in save
-  File "\\BPBSRV03\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Codigos\step3_prepare_outputs.py", line 538 in render_first_page_png
-  File "\\BPBSRV03\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Codigos\step3_prepare_outputs.py", line 592 in extract_notes_with_gemini
-  File "\\BPBSRV03\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Codigos\step3_prepare_outputs.py", line 1022 in _process_pdf
+  File "\\192.168.0.13\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Codigos\step3_prepare_outputs.py", line 538 in render_first_page_png
+  File "\\192.168.0.13\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Codigos\step3_prepare_outputs.py", line 592 in extract_notes_with_gemini
+  File "\\192.168.0.13\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Codigos\step3_prepare_outputs.py", line 1022 in _process_pdf
   File "C:\Users\lcontigiani\AppData\Local\Programs\Python\Python314\Lib\concurrent\futures\thread.py", line 73 in run
   File "C:\Users\lcontigiani\AppData\Local\Programs\Python\Python314\Lib\concurrent\futures\thread.py", line 86 in run
   File "C:\Users\lcontigiani\AppData\Local\Programs\Python\Python314\Lib\concurrent\futures\thread.py", line 119 in _worker
@@ -68,9 +68,9 @@ Thread 0x00002398 (most recent call first):
   File "<frozen importlib._bootstrap>", line 1426 in _handle_fromlist
   File "C:\Users\lcontigiani\AppData\Local\Programs\Python\Python314\Lib\site-packages\PIL\Image.py", line 345 in preinit
   File "C:\Users\lcontigiani\AppData\Local\Programs\Python\Python314\Lib\site-packages\PIL\Image.py", line 2536 in save
-  File "\\BPBSRV03\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Codigos\step3_prepare_outputs.py", line 538 in render_first_page_png
-  File "\\BPBSRV03\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Codigos\step3_prepare_outputs.py", line 592 in extract_notes_with_gemini
-  File "\\BPBSRV03\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Codigos\step3_prepare_outputs.py", line 1022 in _process_pdf
+  File "\\192.168.0.13\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Codigos\step3_prepare_outputs.py", line 538 in render_first_page_png
+  File "\\192.168.0.13\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Codigos\step3_prepare_outputs.py", line 592 in extract_notes_with_gemini
+  File "\\192.168.0.13\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Codigos\step3_prepare_outputs.py", line 1022 in _process_pdf
   File "C:\Users\lcontigiani\AppData\Local\Programs\Python\Python314\Lib\concurrent\futures\thread.py", line 73 in run
   File "C:\Users\lcontigiani\AppData\Local\Programs\Python\Python314\Lib\concurrent\futures\thread.py", line 86 in run
   File "C:\Users\lcontigiani\AppData\Local\Programs\Python\Python314\Lib\concurrent\futures\thread.py", line 119 in _worker
@@ -82,8 +82,8 @@ Thread 0x00002934 (most recent call first):
   File "C:\Users\lcontigiani\AppData\Local\Programs\Python\Python314\Lib\threading.py", line 369 in wait
   File "C:\Users\lcontigiani\AppData\Local\Programs\Python\Python314\Lib\threading.py", line 669 in wait
   File "C:\Users\lcontigiani\AppData\Local\Programs\Python\Python314\Lib\concurrent\futures\_base.py", line 237 in as_completed
-  File "\\BPBSRV03\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Codigos\step3_prepare_outputs.py", line 1125 in main
-  File "\\BPBSRV03\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Codigos\step3_prepare_outputs.py", line 1217 in <module>
+  File "\\192.168.0.13\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Codigos\step3_prepare_outputs.py", line 1125 in main
+  File "\\192.168.0.13\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Codigos\step3_prepare_outputs.py", line 1217 in <module>
 
 Current thread's C stack trace (most recent call first):
   <cannot get C stack on this system>

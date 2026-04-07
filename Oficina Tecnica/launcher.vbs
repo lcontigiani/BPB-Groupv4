@@ -4,7 +4,7 @@ Dim WshShell, FSO, URL, ChromePath, ChromePath86
 Set WshShell = CreateObject("WScript.Shell")
 Set FSO = CreateObject("Scripting.FileSystemObject")
 
-URL = "http://bpbsrv03:5000/"
+URL = "http://192.168.0.13:5000/"
 ChromePath = "C:\Program Files\Google\Chrome\Application\chrome.exe"
 ChromePath86 = "C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"
 

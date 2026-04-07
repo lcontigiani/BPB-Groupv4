@@ -1,9 +1,9 @@
 import os
 
-# Rutas y configuracion base (centralizado en BPBSRV03)
-SERVER_CODE_DIR = r"\\BPBSRV03\lcontigiani\Proyecto Costos\Codigo"
+# Rutas y configuracion base (centralizado en 192.168.0.13)
+SERVER_CODE_DIR = r"\\192.168.0.13\lcontigiani\Proyecto Costos\Codigo"
 LOG_PATH = os.path.join(SERVER_CODE_DIR, "Logs", "NotificadorService.log")
-SERVER_BASE_DIR = r"\\BPBSRV03\lcontigiani\Proyecto Costos\Analisis de Procesos"
+SERVER_BASE_DIR = r"\\192.168.0.13\lcontigiani\Proyecto Costos\Analisis de Procesos"
 DEFAULT_REGISTRO_SUBDIR = "Registro - Planillas"
 WORKSPACES = [
     {

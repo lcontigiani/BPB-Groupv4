@@ -4,7 +4,7 @@ from pathlib import Path
 from datetime import datetime, timedelta
 
 # Config paths
-ACTIVITY_BASE_PATH = Path(r"//BPBSRV03/lcontigiani/Oficina Tecnica/Registro de Actividad/Codigos")
+ACTIVITY_BASE_PATH = Path(r"//192.168.0.13/lcontigiani/Oficina Tecnica/Registro de Actividad/Codigos")
 ACTIVITY_STATE_FILE = ACTIVITY_BASE_PATH / "data/activity_mailer_state.json"
 
 # Mimic app.py exactly

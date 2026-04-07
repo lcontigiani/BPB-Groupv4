@@ -5,7 +5,7 @@
 
   Inicio: martes, 10 de febrero de 202614:29:04
    Origen : C:\Users\lcontigiani\Desktop\Oficina Tecnica\
-     Destino : \\BPBSRV03\lcontigiani\Oficina Tecnica\
+     Destino : \\192.168.0.13\lcontigiani\Oficina Tecnica\
 
     Archivos: *.*
 	    
@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------------
 
 	                   7	C:\Users\lcontigiani\Desktop\Oficina Tecnica\
-	*Directorio EXTRA      -1	\\BPBSRV03\lcontigiani\Oficina Tecnica\_compare\
+	*Directorio EXTRA      -1	\\192.168.0.13\lcontigiani\Oficina Tecnica\_compare\
 	    Nuevo arch		      95	.gitignore
 	                   1	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Actividad\
 	                   4	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Actividad\Codigos\
@@ -191,7 +191,7 @@
 	    Nuevo arch		     949	PO1291-51310-Rev B_notes_extracted_gemini.json
 	                   1	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\P2 - Purchase Order\Entrantes\
 	                   1	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\P2 - Purchase Order\Procesado\
-	*Directorio EXTRA      -1	\\BPBSRV03\lcontigiani\Oficina Tecnica\Registro de Control de Producto\P2 - Purchase Order\Procesado\PO1291\
+	*Directorio EXTRA      -1	\\192.168.0.13\lcontigiani\Oficina Tecnica\Registro de Control de Producto\P2 - Purchase Order\Procesado\PO1291\
 	                   3	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\P3 - Panel de Control\
 	                   2	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\P3 - Panel de Control\Archivos Necesarios\
 	                   0	C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\P4 - Control Final\

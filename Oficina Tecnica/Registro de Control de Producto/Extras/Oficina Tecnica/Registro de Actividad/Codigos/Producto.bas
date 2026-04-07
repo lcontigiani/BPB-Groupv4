@@ -1122,7 +1122,7 @@ Private Function RutaOffsetPorEtiqueta(etiqueta As String, ByRef ruta As String,
 
 
 
-            ruta = "\\BPBSRV03\lcontigiani\Proyecto Costos\Analisis de Procesos\Analisis de Costos Produccion\Analisis de Costos Produccion.xlsm"
+            ruta = "\\192.168.0.13\lcontigiani\Proyecto Costos\Analisis de Procesos\Analisis de Costos Produccion\Analisis de Costos Produccion.xlsm"
 
 
 
@@ -1134,7 +1134,7 @@ Private Function RutaOffsetPorEtiqueta(etiqueta As String, ByRef ruta As String,
 
 
 
-            ruta = "\\BPBSRV03\lcontigiani\Proyecto Costos\Analisis de Procesos\Analisis de Costos Ensamble\Analisis de Costos Ensamble.xlsm"
+            ruta = "\\192.168.0.13\lcontigiani\Proyecto Costos\Analisis de Procesos\Analisis de Costos Ensamble\Analisis de Costos Ensamble.xlsm"
 
 
 
@@ -1146,7 +1146,7 @@ Private Function RutaOffsetPorEtiqueta(etiqueta As String, ByRef ruta As String,
 
 
 
-            ruta = "\\BPBSRV03\lcontigiani\Proyecto Costos\Analisis de Procesos\Analisis de Costos Embalaje\Analisis de Costos Embalaje.xlsm"
+            ruta = "\\192.168.0.13\lcontigiani\Proyecto Costos\Analisis de Procesos\Analisis de Costos Embalaje\Analisis de Costos Embalaje.xlsm"
 
 
 
@@ -1158,7 +1158,7 @@ Private Function RutaOffsetPorEtiqueta(etiqueta As String, ByRef ruta As String,
 
 
 
-            ruta = "\\BPBSRV03\lcontigiani\Proyecto Costos\Analisis de Procesos\Analisis de Costos Deposito y Logistica\Analisis de Costos Deposito y Logistica.xlsm"
+            ruta = "\\192.168.0.13\lcontigiani\Proyecto Costos\Analisis de Procesos\Analisis de Costos Deposito y Logistica\Analisis de Costos Deposito y Logistica.xlsm"
 
 
 
@@ -1321,7 +1321,7 @@ Private Function ContarMateriasPrimas(codigo As String, ByRef codigoCoinc As Str
 
 
 
-    ruta = "\\BPBSRV03\lcontigiani\Proyecto Costos\Analisis de Producto\Auxiliares\TC Formulas de Produccion.xlsx"
+    ruta = "\\192.168.0.13\lcontigiani\Proyecto Costos\Analisis de Producto\Auxiliares\TC Formulas de Produccion.xlsx"
 
 
 

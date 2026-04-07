@@ -5,8 +5,8 @@
 	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Actividad\Codigos\config\glosario_proyectos.log
 	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Actividad\Codigos\data\activity_mailer_state.json
 	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Actividad\Codigos\data\base_datos_respuestas.csv
-	  			\\BPBSRV03\lcontigiani\Oficina Tecnica\Registro de Actividad\Codigos\data\responses\d7bd7a48_fbeaz_bpbargentina.com_38.txt
-	  			\\BPBSRV03\lcontigiani\Oficina Tecnica\Registro de Actividad\Codigos\data\respuestas_csv\Franco Beaz.csv
+	  			\\192.168.0.13\lcontigiani\Oficina Tecnica\Registro de Actividad\Codigos\data\responses\d7bd7a48_fbeaz_bpbargentina.com_38.txt
+	  			\\192.168.0.13\lcontigiani\Oficina Tecnica\Registro de Actividad\Codigos\data\respuestas_csv\Franco Beaz.csv
 	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Actividad\Codigos\data\respuestas_csv\Agustin Alberto.csv
 	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Actividad\Codigos\data\respuestas_csv\Agustin Fareleira.csv
 	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Actividad\Codigos\data\respuestas_csv\Cesar Torigian.csv
@@ -66,10 +66,10 @@
 	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\P2 - Purchase Order\En progreso\PO1291\json\PO1291-51118 -Rev A_notes_extracted_gemini.json
 	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\P2 - Purchase Order\En progreso\PO1291\json\PO1291-51205_notes_extracted_gemini.json
 	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de Control de Producto\P2 - Purchase Order\En progreso\PO1291\json\PO1291-51310-Rev B_notes_extracted_gemini.json
-	  			\\BPBSRV03\lcontigiani\Oficina Tecnica\Registro de ISO 9001\R019-01-Modelo.docx
-	  			\\BPBSRV03\lcontigiani\Oficina Tecnica\Registro de ISO 9001\R019-02-Modelo.xlsm
-	  			\\BPBSRV03\lcontigiani\Oficina Tecnica\Registro de ISO 9001\R019-03 - Listado de Dise¤os y Desarrollos- Rev2.xlsm
-	  			\\BPBSRV03\lcontigiani\Oficina Tecnica\Registro de ISO 9001\R019-04-Modelo.mpp
+	  			\\192.168.0.13\lcontigiani\Oficina Tecnica\Registro de ISO 9001\R019-01-Modelo.docx
+	  			\\192.168.0.13\lcontigiani\Oficina Tecnica\Registro de ISO 9001\R019-02-Modelo.xlsm
+	  			\\192.168.0.13\lcontigiani\Oficina Tecnica\Registro de ISO 9001\R019-03 - Listado de Dise¤os y Desarrollos- Rev2.xlsm
+	  			\\192.168.0.13\lcontigiani\Oficina Tecnica\Registro de ISO 9001\R019-04-Modelo.mpp
 	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de ISO 9001\Codigos\R019-01\Clientes V2.xlsx
 	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de ISO 9001\Codigos\R019-01\fill_r01901.py
 	  			C:\Users\lcontigiani\Desktop\Oficina Tecnica\Registro de ISO 9001\Codigos\R019-01\payload_template.json

@@ -26,9 +26,9 @@ def load_config(path: Path) -> Dict:
 
     return {
         "registros_root": resolve(raw.get("registros_root_dir") or raw.get("register_root_dir") or r"\\192.168.0.55\utn\REGISTROS"),
-        "aux_indices_dir": resolve(raw.get("aux_indices_dir") or r"\\BPBSRV03\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Auxiliares\indices_auxiliar"),
+        "aux_indices_dir": resolve(raw.get("aux_indices_dir") or r"\\192.168.0.13\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Auxiliares\indices_auxiliar"),
         "register_password": raw.get("register_password", "bpb"),
-        "fabricas_csv": resolve(raw.get("fabricas_csv") or r"\\BPBSRV03\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Auxiliares\Fabricas\Listado Maestro de Codificacion Fabricas.csv"),
+        "fabricas_csv": resolve(raw.get("fabricas_csv") or r"\\192.168.0.13\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Auxiliares\Fabricas\Listado Maestro de Codificacion Fabricas.csv"),
         "log_file": resolve(raw.get("logging", {}).get("file", "step3.log")),
         "log_level": str(raw.get("logging", {}).get("level", "INFO")).upper(),
     }

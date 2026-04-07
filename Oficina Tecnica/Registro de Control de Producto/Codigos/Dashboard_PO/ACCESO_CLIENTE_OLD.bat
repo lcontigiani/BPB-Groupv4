@@ -4,10 +4,10 @@ ECHO ==========================================
 ECHO   CONECTANDO AL SERVIDOR PRINCIPAL...
 ECHO ==========================================
 ECHO.
-ECHO Servidor: BPBSRV03
+ECHO Servidor: 192.168.0.13
 ECHO.
 ECHO Intentando conectar por Nombre de Red (Hostname)...
-start http://BPBSRV03:5000
+start http://192.168.0.13:5000
 
 ECHO.
 ECHO Intentando conectar por Direccion IP (192.168.0.137)...

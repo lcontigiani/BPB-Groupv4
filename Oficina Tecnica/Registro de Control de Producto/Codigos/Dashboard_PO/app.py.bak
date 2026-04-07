@@ -75,7 +75,7 @@ if env_base:
 
 else:
     # 2. Try Network Path
-    network_path = Path(r"\\BPBSRV03\lcontigiani\Oficina Tecnica\Registro de Control de Producto")
+    network_path = Path(r"\\192.168.0.13\lcontigiani\Oficina Tecnica\Registro de Control de Producto")
     
     # Check if network path is actually accessible (cheap check)
     network_available = False
@@ -433,7 +433,7 @@ def check_ingresos():
 
     try:
 
-        # script_dir = Path(r"\\BPBSRV03\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Codigos")
+        # script_dir = Path(r"\\192.168.0.13\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Codigos")
         script_dir = BASE_DIR / "Codigos"
 
         script_name = "procesar_ingresos.py"
@@ -562,7 +562,7 @@ def background_sync_task():
 
     SYNC_STATE["data_version"] = 0 # Reset version
 
-    # script_dir = Path(r"\\BPBSRV03\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Codigos")
+    # script_dir = Path(r"\\192.168.0.13\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Codigos")
     script_dir = BASE_DIR / "Codigos"
 
     
@@ -619,10 +619,10 @@ def background_sync_task():
 
         
 
-        # entrantes_dir = Path(r"\\BPBSRV03\lcontigiani\Oficina Tecnica\Registro de Control de Producto\P2 - Purchase Order\Entrantes")
+        # entrantes_dir = Path(r"\\192.168.0.13\lcontigiani\Oficina Tecnica\Registro de Control de Producto\P2 - Purchase Order\Entrantes")
         entrantes_dir = BASE_DIR / "P2 - Purchase Order/Entrantes"
         
-        # en_progreso_dir = Path(r"\\BPBSRV03\lcontigiani\Oficina Tecnica\Registro de Control de Producto\P2 - Purchase Order\En Progreso")
+        # en_progreso_dir = Path(r"\\192.168.0.13\lcontigiani\Oficina Tecnica\Registro de Control de Producto\P2 - Purchase Order\En Progreso")
         en_progreso_dir = BASE_DIR / "P2 - Purchase Order/En Progreso"
 
         
@@ -783,7 +783,7 @@ def run_automation():
 
     try:
 
-        # script_dir = Path(r"\\BPBSRV03\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Codigos")
+        # script_dir = Path(r"\\192.168.0.13\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Codigos")
         script_dir = BASE_DIR / "Codigos"
 
         script_name = "automation.py"
@@ -4442,7 +4442,7 @@ def process_excel_updates(po_folder, approved_items, po_id):
 
 
 
-    # AUX_COPIES_DIR = Path(r"\\BPBSRV03\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Auxiliares\Registro Planillas R016-01")
+    # AUX_COPIES_DIR = Path(r"\\192.168.0.13\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Auxiliares\Registro Planillas R016-01")
     AUX_COPIES_DIR = BASE_DIR / "Auxiliares/Registro Planillas R016-01"
 
     
@@ -4951,7 +4951,7 @@ def process_excel_updates_v2(po_folder, approved_items, po_id):
         except Exception as e:
              print(f"[EXCEL] Error reading matches: {e}")
 
-    # AUX_COPIES_DIR = Path(r"\\BPBSRV03\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Auxiliares\Registro Planillas R016-01")
+    # AUX_COPIES_DIR = Path(r"\\192.168.0.13\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Auxiliares\Registro Planillas R016-01")
     AUX_COPIES_DIR = BASE_DIR / "Auxiliares/Registro Planillas R016-01"
     
     # --- Phase 1: Group Updates by Target File ---
@@ -5178,7 +5178,7 @@ def process_excel_updates_v2(po_folder, approved_items, po_id):
 
             # Update Index CSV (Once)
             try:
-                # INDICES_DIR = Path(r"\\BPBSRV03\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Auxiliares\indices_auxiliar")
+                # INDICES_DIR = Path(r"\\192.168.0.13\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Auxiliares\indices_auxiliar")
                 INDICES_DIR = BASE_DIR / "Auxiliares/indices_auxiliar"
                 if not INDICES_DIR.exists(): INDICES_DIR.mkdir(parents=True, exist_ok=True)
                 
@@ -5294,7 +5294,7 @@ def approve_activity():
 
         # --- Guardado en CSV + estado mailer ---
         try:
-            mailer_state_path = Path(r"\BPBSRV03\lcontigiani\Oficina Tecnica\Registro de Actividad\Codigos\data\activity_mailer_state.json")
+            mailer_state_path = Path(r"\192.168.0.13\lcontigiani\Oficina Tecnica\Registro de Actividad\Codigos\data\activity_mailer_state.json")
             if not mailer_state_path.exists():
                 return jsonify({'status': 'error', 'content': 'Estado de correos no encontrado.'})
 
@@ -5331,7 +5331,7 @@ def approve_activity():
                     def clean_csv_val(val):
                         return str(val).replace(';', ',').replace('\n', ' ').replace('\r', ' ').strip()
 
-                    legacy_root = Path(r"\\BPBSRV03\lcontigiani\Oficina Tecnica\Registro de Actividad\Codigos\data")
+                    legacy_root = Path(r"\\192.168.0.13\lcontigiani\Oficina Tecnica\Registro de Actividad\Codigos\data")
                     global_csv = legacy_root / "base_datos_respuestas.csv"
                     individual_csv = legacy_root / "respuestas_csv" / f"{full_name}.csv"
 

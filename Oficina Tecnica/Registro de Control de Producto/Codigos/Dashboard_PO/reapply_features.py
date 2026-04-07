@@ -18,7 +18,7 @@ import json
 from datetime import datetime
 import re
 
-ACTIVITY_BASE_PATH = Path(r"//BPBSRV03/lcontigiani/Oficina Tecnica/Registro de Actividad/Codigos")
+ACTIVITY_BASE_PATH = Path(r"//192.168.0.13/lcontigiani/Oficina Tecnica/Registro de Actividad/Codigos")
 ACTIVITY_STATE_FILE = ACTIVITY_BASE_PATH / "data/activity_mailer_state.json"
 ACTIVITY_CSV_BASE = ACTIVITY_BASE_PATH / "data/base_datos_respuestas.csv"
 ACTIVITY_CSV_USER_DIR = ACTIVITY_BASE_PATH / "data/respuestas_csv"

@@ -1,7 +1,7 @@
 from pathlib import Path
 import os
 
-base = Path(r"\\BPBSRV03\lcontigiani\Oficina Tecnica\Registro de Control de Producto")
+base = Path(r"\\192.168.0.13\lcontigiani\Oficina Tecnica\Registro de Control de Producto")
 aux = base / "Auxiliares/indices_auxiliar"
 
 print(f"Checking path: {aux}")

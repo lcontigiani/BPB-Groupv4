@@ -114,7 +114,7 @@ def add_pending_comment(task_id: int):
     lines.append("Ante cualquier consulta o inconveniente, pueden comunicarse con Lorenzo Contigiani.")
     lines.append("")
     lines.append("PD: Se recuerda la ruta donde se encuentran los archivos mencionados:")
-    lines.append(r"\\BPBSRV03\lcontigiani\Proyecto Costos\Analisis de Procesos")
+    lines.append(r"\\192.168.0.13\lcontigiani\Proyecto Costos\Analisis de Procesos")
     text = "\n".join(lines)
 
     client.add_comment(task_id, text)

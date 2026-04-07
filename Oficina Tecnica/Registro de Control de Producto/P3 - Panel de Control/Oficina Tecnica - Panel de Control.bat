@@ -6,7 +6,7 @@ ECHO    INICIANDO DASHBOARD - MODO DIAGNOSTICO
 ECHO ==========================================================
 ECHO.
 
-SET "APP_DIR=\\BPBSRV03\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Codigos\Dashboard_PO"
+SET "APP_DIR=\\192.168.0.13\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Codigos\Dashboard_PO"
 ECHO Ruta APP_DIR detectada: %APP_DIR%
 ECHO.
 
@@ -14,7 +14,7 @@ ECHO.
 python --version >nul 2>&1
 IF %ERRORLEVEL% NEQ 0 (
     ECHO [ERROR] Python no encontrado en el PATH.
-    ECHO Asegurate de tener Python instalado y añadido al PATH.
+    ECHO Asegurate de tener Python instalado y aÃ±adido al PATH.
     PAUSE
     EXIT /B
 )

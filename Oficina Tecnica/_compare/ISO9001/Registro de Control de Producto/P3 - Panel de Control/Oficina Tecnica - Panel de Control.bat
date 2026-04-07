@@ -6,7 +6,7 @@ ECHO    INICIANDO DASHBOARD - MODO DIAGNOSTICO
 ECHO ==========================================================
 ECHO.
 
-SET "APP_DIR=\\BPBSRV03\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Codigos\Dashboard_PO"
+SET "APP_DIR=\\192.168.0.13\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Codigos\Dashboard_PO"
 ECHO Ruta APP_DIR detectada: %APP_DIR%
 ECHO.
 

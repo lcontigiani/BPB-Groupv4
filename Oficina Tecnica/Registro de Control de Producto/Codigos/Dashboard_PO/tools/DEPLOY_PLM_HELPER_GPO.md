@@ -1,4 +1,4 @@
-﻿# Despliegue Masivo del Helper CAD (GPO)
+﻿﻿# Despliegue Masivo del Helper CAD (GPO)
 
 Archivo objetivo: `Registro de Control de Producto/Codigos/Dashboard_PO/tools/install_plm_local_helper.ps1`
 
@@ -8,7 +8,7 @@ Habilitar `Abrir CAD` en la web para todos los usuarios sin intervención manual
 ## Requisitos
 1. Dominio Active Directory con GPMC.
 2. Acceso de lectura a la ruta UNC:
-   - `\\BPBSRV03\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Codigos\Dashboard_PO\tools`
+   - `\\192.168.0.13\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Codigos\Dashboard_PO\tools`
 3. Python instalado en cliente (`pythonw.exe`, `python.exe` o `python` en PATH).
 4. Permitir PowerShell para script de inicio de sesión.
 
@@ -29,7 +29,7 @@ Habilitar `Abrir CAD` en la web para todos los usuarios sin intervención manual
 5. Agregar script:
    - Script Name: `powershell.exe`
    - Script Parameters:
-     - `-ExecutionPolicy Bypass -NoProfile -File "\\BPBSRV03\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Codigos\Dashboard_PO\tools\install_plm_local_helper.ps1"`
+     - `-ExecutionPolicy Bypass -NoProfile -File "\\192.168.0.13\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Codigos\Dashboard_PO\tools\install_plm_local_helper.ps1"`
 6. Aplicar GPO.
 7. En cliente de prueba ejecutar:
    - `gpupdate /force`
@@ -69,7 +69,7 @@ Habilitar `Abrir CAD` en la web para todos los usuarios sin intervención manual
 
 ## Ejecución manual (una PC)
 ```powershell
-powershell -ExecutionPolicy Bypass -NoProfile -File "\\BPBSRV03\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Codigos\Dashboard_PO\tools\install_plm_local_helper.ps1"
+powershell -ExecutionPolicy Bypass -NoProfile -File "\\192.168.0.13\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Codigos\Dashboard_PO\tools\install_plm_local_helper.ps1"
 ```
 
 ## Nota de arquitectura

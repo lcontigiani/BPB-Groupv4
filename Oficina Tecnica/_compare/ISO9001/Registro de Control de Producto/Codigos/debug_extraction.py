@@ -41,7 +41,7 @@ def extract_debug(pdf_path):
 if __name__ == "__main__":
     # Hardcoded path to the latest file in in process, or failed, or incoming
     # We'll try to find one.
-    root = Path(r"\\BPBSRV03\lcontigiani\Oficina Tecnica\Registro de Control de Producto")
+    root = Path(r"\\192.168.0.13\lcontigiani\Oficina Tecnica\Registro de Control de Producto")
     
     # Search for a recent PDF in in process
     in process_dir = root / "P1 - Registros Solicitados" / "in process"

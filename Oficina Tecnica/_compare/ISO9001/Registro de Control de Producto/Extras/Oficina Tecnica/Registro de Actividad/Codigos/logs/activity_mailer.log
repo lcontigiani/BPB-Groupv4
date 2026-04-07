@@ -6,7 +6,7 @@
 2025-12-19 13:03:58 [INFO] Activity mailer iniciado en modo loop.
 2025-12-19 13:05:32 [INFO] Respuesta registrada de lcontigiani@bpbargentina.com para token 37ce0ab2 (UID 983).
 2025-12-19 14:59:37 [INFO] Activity mailer iniciado en modo loop.
-2025-12-19 15:00:11 [WARN] No se pudo cargar estado \\BPBSRV03\lcontigiani\Oficina Tecnica\Registro de Actividad\Codigos\data\activity_mailer_state.json: Expecting value: line 1 column 1 (char 0)
+2025-12-19 15:00:11 [WARN] No se pudo cargar estado \\192.168.0.13\lcontigiani\Oficina Tecnica\Registro de Actividad\Codigos\data\activity_mailer_state.json: Expecting value: line 1 column 1 (char 0)
 2025-12-19 15:00:11 [INFO] Enviando email via smtp.gmail.com:465 ssl=True starttls=False a ['lcontigiani@bpbargentina.com']
 2025-12-19 15:00:14 [INFO] Email enviado correctamente.
 2025-12-19 15:00:14 [INFO] Correo diario enviado a 1/1 destinatarios. Token 69d007e2.
@@ -132,9 +132,9 @@
 2026-01-20 16:28:34 [INFO] Correo diario enviado a 1/1 destinatarios. Token 96caf668.
 2026-01-20 16:37:05 [INFO] Activity mailer iniciado en modo loop.
 2026-01-20 16:42:38 [WARN] Otro proceso del mailer ya esta en ejecucion (lock en U:\Oficina Tecnica\Registro de Actividad\Codigos\data\activity_mailer.lock). Saliendo.
-2026-01-20 16:44:23 [WARN] Otro proceso del mailer ya esta en ejecucion (lock en \\BPBSRV03\lcontigiani\Oficina Tecnica\Registro de Actividad\Codigos\data\activity_mailer.lock). Saliendo.
-2026-01-20 16:45:08 [WARN] Otro proceso del mailer ya esta en ejecucion (lock en \\BPBSRV03\lcontigiani\Oficina Tecnica\Registro de Actividad\Codigos\data\activity_mailer.lock). Saliendo.
-2026-01-20 16:45:35 [WARN] Otro proceso del mailer ya esta en ejecucion (lock en \\BPBSRV03\lcontigiani\Oficina Tecnica\Registro de Actividad\Codigos\data\activity_mailer.lock). Saliendo.
+2026-01-20 16:44:23 [WARN] Otro proceso del mailer ya esta en ejecucion (lock en \\192.168.0.13\lcontigiani\Oficina Tecnica\Registro de Actividad\Codigos\data\activity_mailer.lock). Saliendo.
+2026-01-20 16:45:08 [WARN] Otro proceso del mailer ya esta en ejecucion (lock en \\192.168.0.13\lcontigiani\Oficina Tecnica\Registro de Actividad\Codigos\data\activity_mailer.lock). Saliendo.
+2026-01-20 16:45:35 [WARN] Otro proceso del mailer ya esta en ejecucion (lock en \\192.168.0.13\lcontigiani\Oficina Tecnica\Registro de Actividad\Codigos\data\activity_mailer.lock). Saliendo.
 2026-01-20 16:46:44 [INFO] Activity mailer iniciado en modo loop.
 2026-01-20 16:49:58 [WARN] Otro proceso del mailer ya esta en ejecucion (lock en T:\Oficina Tecnica\Registro de Actividad\Codigos\data\activity_mailer.lock). Saliendo.
 2026-01-20 16:50:40 [WARN] Otro proceso del mailer ya esta en ejecucion (lock en T:\Oficina Tecnica\Registro de Actividad\Codigos\data\activity_mailer.lock). Saliendo.

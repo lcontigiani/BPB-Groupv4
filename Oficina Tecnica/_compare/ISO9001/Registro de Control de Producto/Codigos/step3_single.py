@@ -169,7 +169,7 @@ def main():
     ap.add_argument("--pdf", required=True, help="Ruta al PDF de prueba dentro de una PO de Pruebas")
     ap.add_argument("--po-dir", required=True, help="Ruta a la carpeta PO (que contiene json/ y csv_Auxiliar/)")
     ap.add_argument("--registros-root", default=r"\\192.168.0.55\utn\REGISTROS\R016-01", help="Ruta a los R016-01 para matching auxiliar")
-    ap.add_argument("--fabricas-csv", default=r"\\BPBSRV03\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Auxiliares\Fabricas\Listado Maestro de Codificacion Fabricas.csv", help="CSV maestro de fabricas")
+    ap.add_argument("--fabricas-csv", default=r"\\192.168.0.13\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Auxiliares\Fabricas\Listado Maestro de Codificacion Fabricas.csv", help="CSV maestro de fabricas")
     ap.add_argument("--register-password", default="bpb", help="Password de los R016-01")
     args = ap.parse_args()
 

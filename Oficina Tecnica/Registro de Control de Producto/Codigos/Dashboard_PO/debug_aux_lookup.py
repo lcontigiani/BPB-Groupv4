@@ -4,7 +4,7 @@ from pathlib import Path
 from io import StringIO
 
 # CONFIGURATION (Misma que app.py)
-BASE_DIR = Path(r"\\BPBSRV03\lcontigiani\Oficina Tecnica\Registro de Control de Producto")
+BASE_DIR = Path(r"\\192.168.0.13\lcontigiani\Oficina Tecnica\Registro de Control de Producto")
 PRODUCTION_PATH = BASE_DIR / "P2 - Purchase Order"
 AUXILIAR_DIR = BASE_DIR / "Auxiliares/indices_auxiliar"
 

@@ -1,4 +1,4 @@
-﻿import argparse
+﻿﻿import argparse
 import csv
 import difflib
 import email
@@ -23,7 +23,7 @@ from openpyxl.styles import Alignment, Font, Border, Side
 from openpyxl.utils import get_column_letter
 
 # Ruta del proyecto existente para reutilizar configuraciones de correo y feriados.
-EXTERNAL_CODE_DIR = r"\\BPBSRV03\lcontigiani\Proyecto Costos\Codigo\Codigos"
+EXTERNAL_CODE_DIR = r"\\192.168.0.13\lcontigiani\Proyecto Costos\Codigo\Codigos"
 if EXTERNAL_CODE_DIR not in sys.path:
     sys.path.insert(0, EXTERNAL_CODE_DIR)
 

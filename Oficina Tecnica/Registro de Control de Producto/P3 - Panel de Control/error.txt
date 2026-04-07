@@ -1,12 +1,12 @@
 127.0.0.1 - - [15/Jan/2026 16:46:55] "GET /api/sync-progress HTTP/1.1" 200 -
 Check Script Error: Traceback (most recent call last):
-  File "\\BPBSRV03\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Codigos\procesar_ingresos.py", line 230, in <module>
+  File "\\192.168.0.13\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Codigos\procesar_ingresos.py", line 230, in <module>
     main()
     ~~~~^^
-  File "\\BPBSRV03\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Codigos\procesar_ingresos.py", line 151, in main
+  File "\\192.168.0.13\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Codigos\procesar_ingresos.py", line 151, in main
     export_xlsx_to_csv(xlsx_path, csv_path)
     ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
-  File "\\BPBSRV03\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Codigos\procesar_ingresos.py", line 16, in export_xlsx_to_csv
+  File "\\192.168.0.13\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Codigos\procesar_ingresos.py", line 16, in export_xlsx_to_csv
     raise RuntimeError("openpyxl no disponible para leer XLSX")
 RuntimeError: openpyxl no disponible para leer XLSX
 

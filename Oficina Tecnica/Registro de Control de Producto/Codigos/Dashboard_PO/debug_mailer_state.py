@@ -3,7 +3,7 @@ import json
 import os
 from pathlib import Path
 
-path = Path(r"//BPBSRV03/lcontigiani/Oficina Tecnica/Registro de Actividad/Codigos/data/activity_mailer_state.json")
+path = Path(r"//192.168.0.13/lcontigiani/Oficina Tecnica/Registro de Actividad/Codigos/data/activity_mailer_state.json")
 
 print(f"Reading {path}")
 try:

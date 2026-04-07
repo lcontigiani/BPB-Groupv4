@@ -1,6 +1,6 @@
 @echo off
 REM Arranca el mailer asegurando el directorio y el interprete correcto
-pushd "\\BPBSRV03\lcontigiani\Oficina Tecnica\Registro de Actividad\Codigos"
+pushd "\\192.168.0.13\lcontigiani\Oficina Tecnica\Registro de Actividad\Codigos"
 REM Forzar credenciales no-reply para SMTP/IMAP (evita tomar variables de entorno anteriores)
 set "SMTP_USER=no-reply@bpbargentina.com"
 set "SMTP_PASS=mtky inyj bntn oxii"

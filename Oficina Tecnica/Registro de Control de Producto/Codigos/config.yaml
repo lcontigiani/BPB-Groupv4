@@ -1,4 +1,4 @@
-﻿# Configuración mejorada para Procesamiento de Registros BPB
+﻿﻿# Configuración mejorada para Procesamiento de Registros BPB
 incoming_dir: "P1 - Registros Solicitados"
 processed_dir: "P1 - Registros Solicitados\\in process"
 failed_dir: "P1 - Registros Solicitados\\failed"
@@ -12,7 +12,7 @@ register_root_dir: "\\\\192.168.0.55\\utn\\REGISTROS\\R016-01"
 # but for now we assume this specific external resource is always there or not the main blocker.
 # Actually, the user requirement implies "everything" should work from desktop.
 # If 192.168.0.55 is not available from desktop, this feature might fail.
-# However, the user specifically mentioned "BPBSRV03" paths. I will focus on those.
+# However, the user specifically mentioned "192.168.0.13" paths. I will focus on those.
 
 register_file_prefix: "R016-01"
 register_password: "bpb"

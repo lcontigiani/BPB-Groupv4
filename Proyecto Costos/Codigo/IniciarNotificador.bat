@@ -1,8 +1,8 @@
 @echo off
 setlocal
-set "LOG=\\BPBSRV03\lcontigiani\Proyecto Costos\Codigo\Logs\Launcher.log"
+set "LOG=\\192.168.0.13\lcontigiani\Proyecto Costos\Codigo\Logs\Launcher.log"
 set "PYTHON_EXE=C:\Users\lcontigiani\AppData\Local\Programs\Python\Python314\python.exe"
-set "WORKDIR=\\BPBSRV03\lcontigiani\Proyecto Costos\Codigo\Codigos"
+set "WORKDIR=\\192.168.0.13\lcontigiani\Proyecto Costos\Codigo\Codigos"
 
 REM Config SMTP
 set "SMTP_HOST=smtp.gmail.com"

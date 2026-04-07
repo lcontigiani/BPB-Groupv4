@@ -2,7 +2,7 @@
 import csv
 from pathlib import Path
 
-FILE_PATH = Path(r"\\BPBSRV03\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Auxiliares\Ingresos\resumen_all.csv")
+FILE_PATH = Path(r"\\192.168.0.13\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Auxiliares\Ingresos\resumen_all.csv")
 PO_ID = "1053"
 
 if not FILE_PATH.exists():

@@ -315,8 +315,8 @@ def call_gemini(img_bytes: bytes, text_first: str) -> Dict:
 def main():
     ap = argparse.ArgumentParser(description="Prueba: generar json + aux_matches + csv para un PDF en carpeta Pruebas.")
     ap.add_argument("--pdf", help="Ruta al PDF o imagen de prueba (dentro de Codigos/Pruebas). Si se omite, se usa el primer .pdf/.png/.jpg en Pruebas.")
-    ap.add_argument("--aux-indices-dir", default=r"\\BPBSRV03\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Auxiliares\indices_auxiliar", help="Ruta a indices_auxiliar (CSVs exportados)")
-    ap.add_argument("--fabricas-csv", default=r"\\BPBSRV03\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Auxiliares\Fabricas\Listado Maestro de Codificacion Fabricas.csv", help="CSV maestro de fabricas")
+    ap.add_argument("--aux-indices-dir", default=r"\\192.168.0.13\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Auxiliares\indices_auxiliar", help="Ruta a indices_auxiliar (CSVs exportados)")
+    ap.add_argument("--fabricas-csv", default=r"\\192.168.0.13\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Auxiliares\Fabricas\Listado Maestro de Codificacion Fabricas.csv", help="CSV maestro de fabricas")
     args = ap.parse_args()
 
     if args.pdf:

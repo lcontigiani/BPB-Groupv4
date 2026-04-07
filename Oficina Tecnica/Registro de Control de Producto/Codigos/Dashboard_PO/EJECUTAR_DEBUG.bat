@@ -12,7 +12,7 @@ ECHO   2. El Codigo de Producto (el primer dato de la tabla roja)
 ECHO.
 
 :: Path Safe
-pushd "\\BPBSRV03\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Codigos\Dashboard_PO"
+pushd "\\192.168.0.13\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Codigos\Dashboard_PO"
 
 :: Detect Python
 SET PYTHON_CMD=python

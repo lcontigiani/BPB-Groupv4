@@ -3,7 +3,7 @@ import json
 from pathlib import Path
 
 # Configurate paths exactly as app.py
-ACTIVITY_BASE_PATH = Path(r"//BPBSRV03/lcontigiani/Oficina Tecnica/Registro de Actividad/Codigos")
+ACTIVITY_BASE_PATH = Path(r"//192.168.0.13/lcontigiani/Oficina Tecnica/Registro de Actividad/Codigos")
 ACTIVITY_STATE_FILE = ACTIVITY_BASE_PATH / "data/activity_mailer_state.json"
 
 USER_EMAIL = "lcontigiani" # Simulate session username without @
