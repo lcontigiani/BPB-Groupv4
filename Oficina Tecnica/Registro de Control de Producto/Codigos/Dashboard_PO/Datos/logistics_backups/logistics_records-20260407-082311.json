@@ -1,0 +1,436 @@
+[
+    {
+        "id": "567feabe-d162-450e-a00b-0ea91e7aa108",
+        "save_name": "35723-8GB060",
+        "save_description": "VW - Eje",
+        "timestamp": "2026-03-27T19:59:42.347Z",
+        "author": "Lorenzo Contigiani",
+        "container": {
+            "type": "none",
+            "l": 5900,
+            "w": 2350,
+            "h": 2390,
+            "weight": 28000
+        },
+        "load": {
+            "type": "tray_euro",
+            "tray_inner_l": 362,
+            "tray_inner_w": 262,
+            "tray_inner_h": 101,
+            "tray_outer_l": 400,
+            "tray_outer_w": 300,
+            "tray_outer_h": 120,
+            "tray_weight": 0.78,
+            "tray_max_weight": 15
+        },
+        "pallet": {
+            "type": "none",
+            "boards": 4,
+            "l": 0,
+            "w": 0,
+            "h": 0,
+            "weight": 0,
+            "max_weight": 1200,
+            "limit_height": false,
+            "max_height": 1800
+        },
+        "optimization": {
+            "maximize": false,
+            "mixed_trays": true,
+            "mixed_pallets": true,
+            "stack_load": true,
+            "stack_trays": true,
+            "stack_collars": true,
+            "force_orientation": false,
+            "orientation_face": "LxA",
+            "mixed_containers": true,
+            "sort_items": true,
+            "visual_only": false
+        },
+        "safety_factors": {
+            "dims": 5,
+            "weight": 5
+        },
+        "items": [
+            {
+                "name": "35723-8GB060",
+                "l": 27.4,
+                "w": 12.642,
+                "h": 12.642,
+                "weight": 0.025,
+                "qty": 571,
+                "rel_qty": 0
+            }
+        ]
+    },
+    {
+        "id": "22f32832-8646-408a-8e01-045481b83cd6",
+        "save_name": "35724-8GB080",
+        "save_description": "VW - Eje",
+        "timestamp": "2026-03-27T18:11:34.859Z",
+        "author": "Lorenzo Contigiani",
+        "container": {
+            "type": "none",
+            "l": 5900,
+            "w": 2350,
+            "h": 2390,
+            "weight": 28000
+        },
+        "load": {
+            "type": "tray_euro",
+            "tray_inner_l": 362,
+            "tray_inner_w": 262,
+            "tray_inner_h": 101,
+            "tray_outer_l": 400,
+            "tray_outer_w": 300,
+            "tray_outer_h": 120,
+            "tray_weight": 0.78,
+            "tray_max_weight": 15
+        },
+        "pallet": {
+            "type": "none",
+            "boards": 4,
+            "l": 0,
+            "w": 0,
+            "h": 0,
+            "weight": 0,
+            "max_weight": 1200,
+            "limit_height": false,
+            "max_height": 1800
+        },
+        "optimization": {
+            "maximize": true,
+            "mixed_trays": true,
+            "mixed_pallets": true,
+            "stack_load": true,
+            "stack_trays": true,
+            "stack_collars": true,
+            "force_orientation": false,
+            "orientation_face": "LxA",
+            "mixed_containers": true,
+            "sort_items": true,
+            "visual_only": false
+        },
+        "safety_factors": {
+            "dims": 5,
+            "weight": 5
+        },
+        "items": [
+            {
+                "name": "35724-8GB080",
+                "l": 27.4,
+                "w": 9.581,
+                "h": 9.581,
+                "weight": 0.0156,
+                "qty": 915,
+                "rel_qty": 0
+            }
+        ]
+    },
+    {
+        "id": "01c4d686-009d-484c-8aba-c262c231e4d7",
+        "save_name": "35724-TFA020",
+        "save_description": "VW - Eje",
+        "timestamp": "2026-03-27T18:04:27.487Z",
+        "author": "Lorenzo Contigiani",
+        "container": {
+            "type": "none",
+            "l": 5900,
+            "w": 2350,
+            "h": 2390,
+            "weight": 28000
+        },
+        "load": {
+            "type": "tray_euro",
+            "tray_inner_l": 362,
+            "tray_inner_w": 262,
+            "tray_inner_h": 101,
+            "tray_outer_l": 400,
+            "tray_outer_w": 300,
+            "tray_outer_h": 120,
+            "tray_weight": 0.78,
+            "tray_max_weight": 15
+        },
+        "pallet": {
+            "type": "none",
+            "boards": 4,
+            "l": 0,
+            "w": 0,
+            "h": 0,
+            "weight": 0,
+            "max_weight": 1200,
+            "limit_height": false,
+            "max_height": 1800
+        },
+        "optimization": {
+            "maximize": false,
+            "mixed_trays": true,
+            "mixed_pallets": true,
+            "stack_load": true,
+            "stack_trays": true,
+            "stack_collars": true,
+            "force_orientation": false,
+            "orientation_face": "LxA",
+            "mixed_containers": true,
+            "sort_items": true,
+            "visual_only": false
+        },
+        "safety_factors": {
+            "dims": 5,
+            "weight": 5
+        },
+        "items": [
+            {
+                "name": "35724-TFA020",
+                "l": 60.8,
+                "w": 8.79,
+                "h": 8.79,
+                "weight": 0.029,
+                "qty": 492,
+                "rel_qty": 0
+            }
+        ]
+    },
+    {
+        "id": "39c03d43-d021-4ff2-b6a3-88eb238d8728",
+        "save_name": "35723-TFA050",
+        "save_description": "VW - Eje",
+        "timestamp": "2026-03-27T17:56:36.356Z",
+        "author": "Lorenzo Contigiani",
+        "container": {
+            "type": "none",
+            "l": 5900,
+            "w": 2350,
+            "h": 2390,
+            "weight": 28000
+        },
+        "load": {
+            "type": "tray_euro",
+            "tray_inner_l": 362,
+            "tray_inner_w": 262,
+            "tray_inner_h": 101,
+            "tray_outer_l": 400,
+            "tray_outer_w": 300,
+            "tray_outer_h": 120,
+            "tray_weight": 0.78,
+            "tray_max_weight": 15
+        },
+        "pallet": {
+            "type": "none",
+            "boards": 4,
+            "l": 0,
+            "w": 0,
+            "h": 0,
+            "weight": 0,
+            "max_weight": 1200,
+            "limit_height": false,
+            "max_height": 1800
+        },
+        "optimization": {
+            "maximize": false,
+            "mixed_trays": true,
+            "mixed_pallets": true,
+            "stack_load": true,
+            "stack_trays": true,
+            "stack_collars": true,
+            "force_orientation": false,
+            "orientation_face": "LxA",
+            "mixed_containers": true,
+            "sort_items": true,
+            "visual_only": false
+        },
+        "safety_factors": {
+            "dims": 5,
+            "weight": 5
+        },
+        "items": [
+            {
+                "name": "35723-TFA050",
+                "l": 60.8,
+                "w": 14.2,
+                "h": 14.2,
+                "weight": 0.0756,
+                "qty": 188,
+                "rel_qty": 0
+            }
+        ]
+    },
+    {
+        "id": "8650a4ba-074b-4cdf-93b6-f1f9a600efd1",
+        "save_name": "35721-8GB030",
+        "save_description": "VW - Engranaje",
+        "timestamp": "2026-03-27T17:47:16.664Z",
+        "author": "Lorenzo Contigiani",
+        "container": {
+            "type": "none",
+            "l": 5900,
+            "w": 2350,
+            "h": 2390,
+            "weight": 28000
+        },
+        "load": {
+            "type": "tray_euro",
+            "tray_inner_l": 362,
+            "tray_inner_w": 262,
+            "tray_inner_h": 101,
+            "tray_outer_l": 400,
+            "tray_outer_w": 300,
+            "tray_outer_h": 120,
+            "tray_weight": 0.78,
+            "tray_max_weight": 15
+        },
+        "pallet": {
+            "type": "none",
+            "boards": 4,
+            "l": 0,
+            "w": 0,
+            "h": 0,
+            "weight": 0,
+            "max_weight": 1200,
+            "limit_height": false,
+            "max_height": 1800
+        },
+        "optimization": {
+            "maximize": true,
+            "mixed_trays": true,
+            "mixed_pallets": true,
+            "stack_load": true,
+            "stack_trays": true,
+            "stack_collars": true,
+            "force_orientation": false,
+            "orientation_face": "LxA",
+            "mixed_containers": true,
+            "sort_items": true,
+            "visual_only": false
+        },
+        "safety_factors": {
+            "dims": 5,
+            "weight": 5
+        },
+        "items": [
+            {
+                "name": "35721-8GB030",
+                "l": 27,
+                "w": 27,
+                "h": 17.9,
+                "weight": 0.057,
+                "qty": 250,
+                "rel_qty": 0
+            }
+        ]
+    },
+    {
+        "id": "5d3f3b3d-fc83-489c-8016-8e6ac1aaaab3",
+        "save_name": "35731-8GB030",
+        "save_description": "VW - Engranaje",
+        "timestamp": "2026-03-27T17:46:34.111Z",
+        "author": "Lorenzo Contigiani",
+        "container": {
+            "type": "none",
+            "l": 5900,
+            "w": 2350,
+            "h": 2390,
+            "weight": 28000
+        },
+        "load": {
+            "type": "tray_euro",
+            "tray_inner_l": 362,
+            "tray_inner_w": 262,
+            "tray_inner_h": 101,
+            "tray_outer_l": 400,
+            "tray_outer_w": 300,
+            "tray_outer_h": 120,
+            "tray_weight": 0.78,
+            "tray_max_weight": 15
+        },
+        "pallet": {
+            "type": "none",
+            "boards": 4,
+            "l": 0,
+            "w": 0,
+            "h": 0,
+            "weight": 0,
+            "max_weight": 1200,
+            "limit_height": false,
+            "max_height": 1800
+        },
+        "optimization": {
+            "maximize": true,
+            "mixed_trays": true,
+            "mixed_pallets": true,
+            "stack_load": true,
+            "stack_trays": true,
+            "stack_collars": true,
+            "force_orientation": false,
+            "orientation_face": "LxA",
+            "mixed_containers": true,
+            "sort_items": true,
+            "visual_only": false
+        },
+        "safety_factors": {
+            "dims": 5,
+            "weight": 5
+        },
+        "items": [
+            {
+                "name": "35731-8GB030",
+                "l": 30.3,
+                "w": 30.3,
+                "h": 17.9,
+                "weight": 0.067,
+                "qty": 213,
+                "rel_qty": 0
+            }
+        ]
+    },
+    {
+        "id": "c9f3b979-6809-40ff-8492-78116a22fe0d",
+        "save_name": "Cuerpo de Siembra",
+        "save_description": "(Sin pecho ni paralelogramo)",
+        "timestamp": "2026-02-05T19:59:07.902Z",
+        "author": "Lorenzo Contigiani",
+        "container": {
+            "type": "40ft",
+            "l": 1203,
+            "w": 235,
+            "h": 239,
+            "weight": 27600
+        },
+        "pallet": {
+            "type": "collars_120x100",
+            "boards": 4,
+            "l": 120,
+            "w": 100,
+            "h": 93.9,
+            "weight": 50,
+            "max_weight": 1200,
+            "limit_height": false,
+            "max_height": 180
+        },
+        "optimization": {
+            "maximize": false,
+            "mixed_pallets": true,
+            "stack_load": true,
+            "force_orientation": true,
+            "orientation_face": "LxA",
+            "mixed_containers": true,
+            "sort_items": true,
+            "visual_only": false
+        },
+        "safety_factors": {
+            "dims": 0,
+            "weight": 0
+        },
+        "items": [
+            {
+                "name": "Cuerpo de Siembra",
+                "l": 95,
+                "w": 34,
+                "h": 64,
+                "weight": 85,
+                "qty": 126,
+                "rel_qty": 0
+            }
+        ]
+    }
+]

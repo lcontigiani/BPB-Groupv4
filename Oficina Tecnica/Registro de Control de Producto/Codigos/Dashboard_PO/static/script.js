@@ -22735,6 +22735,40 @@ function resolveCotizacionApprovalValue() {
     return String(currentDisplayName || currentUser || '').trim();
 }
 
+function resolveCotizacionPieceCode(recordOrHeader = null) {
+    const source = recordOrHeader && typeof recordOrHeader === 'object'
+        ? (recordOrHeader.header && typeof recordOrHeader.header === 'object' ? recordOrHeader.header : recordOrHeader)
+        : {};
+    return String(source.piece_code || source.code || '').trim();
+}
+
+function resolveCotizacionRequester(recordOrHeader = null) {
+    const source = recordOrHeader && typeof recordOrHeader === 'object'
+        ? (recordOrHeader.header && typeof recordOrHeader.header === 'object' ? recordOrHeader.header : recordOrHeader)
+        : {};
+    return String(source.requested_by || source.requester || '').trim();
+}
+
+function buildCotizacionRecordSaveName(code = '', piece = '') {
+    const safeCode = String(code || '').trim();
+    const safePiece = String(piece || '').trim();
+    if (safeCode && safePiece) return `${safeCode} - ${safePiece}`;
+    return safePiece || safeCode;
+}
+
+function resolveCotizacionRecordPieceName(record = null) {
+    const explicitPiece = String(record?.header?.piece || '').trim();
+    if (explicitPiece) return explicitPiece;
+    const rawName = String(record?.save_name || '').trim();
+    const code = resolveCotizacionPieceCode(record);
+    if (rawName && code) {
+        const prefix = `${code} - `;
+        if (rawName.startsWith(prefix)) return rawName.slice(prefix.length).trim();
+    }
+    return rawName;
+}
+
+
 function clearCotizacionApprovalSignature(showMessage = false) {
     const input = document.getElementById('cot-approved-by');
     if (!input) return;
@@ -22934,6 +22968,10 @@ function getCotizacionTablesContainer() {
     return document.getElementById('cotizacion-tables-container');
 }
 
+function getCotizacionTableColGroupHTML() {
+    return '<colgroup>' + [110, 130, 130, 110, 110, 110, 70, 110, 130, 110].map((width) => `<col style="width:${width}px; min-width:${width}px; max-width:${width}px;">`).join('') + '</colgroup>';
+}
+
 function getCotizacionTableHeadHTML() {
     if (window._cotizacionTableHeadHTML) return window._cotizacionTableHeadHTML;
 
@@ -23073,6 +23111,7 @@ function setCotizacionUnifiedTableLayout() {
 
     container.innerHTML = `
         <table id="cotizacion-items-table" class="cotizacion-table">
+            ${getCotizacionTableColGroupHTML()}
             ${headHTML}
             <tbody id="cotizacion-items-body" class="cotizacion-items-body"></tbody>
         </table>
@@ -23175,6 +23214,7 @@ function setCotizacionSplitTablesLayout() {
         block.innerHTML = `
             <div class="cotizacion-group-title">${escapeCotizacionHTML(group.title)}</div>
             <table class="cotizacion-table cotizacion-group-table">
+                ${getCotizacionTableColGroupHTML()}
                 ${headHTML}
                 <tbody class="cotizacion-items-body"></tbody>
             </table>
@@ -24467,7 +24507,7 @@ function isCotizacionCombinedRecord(record) {
 
 function buildCotizacionCombinedRowFromRecord(rec, index = 0) {
     const codeLabel = String(rec?.header?.code || '').trim();
-    const pieceName = String(rec?.header?.piece || '').trim() || String(rec?.save_name || '').trim() || `Conjunto ${index + 1}`;
+    const pieceName = resolveCotizacionRecordPieceName(rec) || `Conjunto ${index + 1}`;
     const saleCost = Number(rec?.summary?.unitario?.venta || 0);
     const providerBreakdown = Array.isArray(rec?.summary?.provider_breakdown) ? rec.summary.provider_breakdown : [];
     const providerLabel = providerBreakdown.length === 1
@@ -24557,7 +24597,8 @@ function buildCombinedCotizacionRecord(records = []) {
             responsible_position: currentUserPosition || '',
             responsible_department: currentUserDepartment || '',
             responsible_owner: COTIZACION_RESPONSABLE_FIJO,
-            requester: String(safeRecords[0]?.header?.requester || currentDisplayName || currentUser || '').trim(),
+            requester: resolveCotizacionRequester(safeRecords[0]) || String(currentDisplayName || currentUser || '').trim(),
+            requested_by: resolveCotizacionRequester(safeRecords[0]) || String(currentDisplayName || currentUser || '').trim(),
             delivery_time: String(safeRecords[0]?.header?.delivery_time || '').trim(),
             delivery_unit: String(safeRecords[0]?.header?.delivery_unit || 'Dias').trim() || 'Dias'
         },
@@ -24644,6 +24685,7 @@ function openCombinedCotizacionRecord(records = [], sourceIds = []) {
     window._cotizacionFromCombine = true;
     refreshCotizacionRecordOnlyUI();
     updateCotizacionSummary();
+    refreshCotizacionDollarRate(false).catch(() => { });
     showNotification(`Cotizacion combinada generada con ${records.length} registros.`, 'success');
 }
 
@@ -25132,7 +25174,9 @@ function renderCotizacionAttachments() {
 
         actions.appendChild(openBtn);
         actions.appendChild(removeBtn);
-        actions.appendChild(featuredBtn);
+        if (featuredBtn) {
+            actions.appendChild(featuredBtn);
+        }
         body.appendChild(nameEl);
         body.appendChild(metaEl);
         body.appendChild(actions);
@@ -26621,7 +26665,7 @@ function renderCotizacionProviderPie() {
     const entries = buildCotizacionProviderPieEntries();
     const printMode = !!window._cotizacionStatsPrintMode;
 
-    const canvasPack = getCotizacionStatsCanvasContext('cotizacion-stats-provider', 360);
+    const canvasPack = getCotizacionStatsCanvasContext('cotizacion-stats-provider', 430);
     if (!canvasPack) return;
     const { ctx, width, height } = canvasPack;
     ctx.clearRect(0, 0, width, height);
@@ -26721,7 +26765,7 @@ function openCotizacionSaveModal() {
     const codeSheetValue = String(document.getElementById('cot-code')?.value || '').trim();
     const pieceSheetValue = String(document.getElementById('cot-piece')?.value || '').trim();
     const initialCode = codeSheetValue;
-    const initialPiece = pieceSheetValue || String(currentCotizacionRecordName || '').trim();
+    const initialPiece = pieceSheetValue;
     const initialCategory = normalizeCotizacionRecordCategory(currentCotizacionRecordCategory);
 
     if (codeModalInput) {
@@ -26760,6 +26804,7 @@ async function confirmSaveCotizacion() {
     const category = normalizeCotizacionRecordCategory(document.getElementById('cotizacion-save-category')?.value || '');
     const selectedFolder = normalizeCotizacionFolderName(document.getElementById('cotizacion-save-folder')?.value || currentCotizacionFolder);
     const updateLinked = !!document.getElementById('cotizacion-save-update-linked')?.checked;
+    const computedSaveName = buildCotizacionRecordSaveName(code, piece);
 
     if (!code) {
         showNotification('Ingrese un codigo para la cotizacion.', 'warning');
@@ -26786,13 +26831,15 @@ async function confirmSaveCotizacion() {
         id: currentCotizacionRecordId || undefined,
         folder: selectedFolder,
         update_linked: updateLinked,
-        save_name: piece,
+        save_name: computedSaveName,
         save_description: '',
         save_category: category,
+        record_category: category,
         timestamp: new Date().toISOString(),
         author: currentDisplayName || currentUser || 'Usuario',
         header: {
             code,
+            piece_code: code,
             piece,
             analysis_date: document.getElementById('cot-analysis-date')?.value || '',
             usd_value: parseFloat(document.getElementById('cot-usd-value')?.value || 0) || 0,
@@ -26801,6 +26848,7 @@ async function confirmSaveCotizacion() {
             responsible_department: document.getElementById('cot-resp-dept')?.value || '',
             responsible_owner: COTIZACION_RESPONSABLE_FIJO,
             requester: document.getElementById('cot-requester')?.value || '',
+            requested_by: document.getElementById('cot-requester')?.value || '',
             delivery_time: document.getElementById('cot-delivery-time')?.value || '',
             delivery_unit: document.getElementById('cot-delivery-unit')?.value || 'Dias'
         },
@@ -26823,7 +26871,7 @@ async function confirmSaveCotizacion() {
         const data = await response.json();
         if (data.status === 'success') {
             currentCotizacionRecordId = data.id || payload.id || null;
-            currentCotizacionRecordName = piece;
+            currentCotizacionRecordName = computedSaveName;
             currentCotizacionRecordDescription = '';
             currentCotizacionRecordCategory = category;
             currentCotizacionFolder = selectedFolder;
@@ -26871,6 +26919,16 @@ function printCotizacion() {
     const approvedBy = String(document.getElementById('cot-approved-by')?.value || '').trim();
     const printSubtitle = [codeValue, pieceName].filter(Boolean).join(' - ') || '-';
     const deliveryEstimate = deliveryTime ? `${deliveryTime} ${deliveryUnit}`.trim() : '-';
+
+    const formatPrintDate = (rawValue) => {
+        const value = String(rawValue || '').trim();
+        if (!value) return '-';
+        const match = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+        if (match) return `${match[3]}/${match[2]}/${match[1]}`;
+        const parsed = new Date(value);
+        if (Number.isNaN(parsed.getTime())) return value;
+        return parsed.toLocaleDateString('es-AR');
+    };
 
     const formatNumber = (value, maxDecimals = 4) => {
         const num = Number(value || 0);
@@ -27401,20 +27459,24 @@ function printCotizacion() {
             }
             .attachments-print-featured-preview {
                 width: 100%;
-                min-height: 240px;
-                max-height: 360px;
+                min-height: 320px;
+                max-height: none;
                 border: 1px solid #e2e2e2;
                 border-radius: 6px;
                 background: #fff;
-                overflow: hidden;
+                overflow: visible;
                 display: flex;
                 align-items: center;
                 justify-content: center;
+                padding: 8px;
+                box-sizing: border-box;
             }
             .attachments-print-featured-preview img,
             .attachments-print-featured-preview embed {
-                width: 100%;
-                height: 100%;
+                width: auto;
+                max-width: 100%;
+                height: auto;
+                max-height: 420px;
                 object-fit: contain;
                 border: 0;
             }
@@ -27426,7 +27488,7 @@ function printCotizacion() {
                 min-height: 28px;
             }
             .stats-print-page {
-                min-height: calc(297mm - 145px - 112px);
+                min-height: 0;
                 box-sizing: border-box;
                 display: block;
             }
@@ -27434,28 +27496,28 @@ function printCotizacion() {
                 page-break-inside: avoid !important;
                 break-inside: avoid !important;
                 margin-bottom: 0;
-                padding: 12px;
-                min-height: calc(297mm - 145px - 112px - 24px);
+                padding: 6px;
+                min-height: 0;
                 box-sizing: border-box;
                 display: flex;
                 flex-direction: column;
             }
             .stats-print-section h2 {
-                margin: 0 0 10px 0;
-                font-size: 15px;
-                line-height: 1.15;
+                margin: 0 0 4px 0;
+                font-size: 13px;
+                line-height: 1.05;
             }
             .stats-print-grid {
                 display: grid;
                 grid-template-columns: 1fr;
                 grid-template-rows: repeat(3, minmax(0, 1fr));
-                gap: 10px;
+                gap: 34px;
                 flex: 1 1 auto;
             }
             .stats-print-card {
                 border: 1px solid #d8d8d8;
                 border-radius: 6px;
-                padding: 10px;
+                padding: 5px;
                 page-break-inside: avoid;
                 break-inside: avoid;
                 min-height: 0;
@@ -27463,14 +27525,14 @@ function printCotizacion() {
                 flex-direction: column;
             }
             .stats-print-card h3 {
-                margin: 0 0 8px 0;
-                font-size: 18px;
-                line-height: 1.15;
+                margin: 0 0 3px 0;
+                font-size: 14px;
+                line-height: 1.02;
             }
             .stats-print-card-body {
                 display: flex;
                 align-items: stretch;
-                gap: 10px;
+                gap: 18px;
                 flex: 1 1 auto;
                 min-height: 0;
             }
@@ -27485,27 +27547,28 @@ function printCotizacion() {
                 border-radius: 4px;
             }
             .stats-print-card-body-pie .stats-chart-image-pie {
-                width: 62%;
+                width: 70%;
             }
             .stats-print-card-body-pie .cotizacion-stats-legend {
-                width: 38%;
+                width: 30%;
             }
             .cotizacion-stats-legend {
-                width: 28%;
+                width: 26%;
                 border-left: 1px solid #ececec;
                 padding-left: 6px;
                 display: flex;
                 flex-direction: column;
                 justify-content: flex-start;
+                box-sizing: border-box;
             }
             .cotizacion-stats-legend-item {
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
                 gap: 3px;
-                padding: 2px 0;
-                font-size: 16px;
-                line-height: 1.15;
+                padding: 6px 0;
+                font-size: 13px;
+                line-height: 1;
             }
             .cotizacion-stats-legend-label {
                 display: inline-flex;
@@ -27513,6 +27576,7 @@ function printCotizacion() {
                 gap: 3px;
                 min-width: 0;
                 flex: 1 1 auto;
+                padding-left: 6px;
             }
             .cotizacion-stats-legend-dot {
                 width: 9px;
@@ -27567,9 +27631,9 @@ function printCotizacion() {
                     <div><div class="field-label">Solicitante</div><div class="field-value">${esc(requester || '-')}</div></div>
                     <div><div class="field-label">&nbsp;</div><div class="field-value">&nbsp;</div></div>
                     <div><div class="field-label">Valor del Dolar</div><div class="field-value">${esc(formatCotizacionCurrency(usdValue))}</div></div>
-                    <div><div class="field-label">Fecha de Cotizacion</div><div class="field-value">${esc(analysisDate || '-')}</div></div>
-                    <div><div class="field-label">Codigo</div><div class="field-value">${esc(codeValue || '-')}</div></div>
-                    <div><div class="field-label">Pieza</div><div class="field-value">${esc(pieceName || '-')}</div></div>
+                    <div><div class="field-label">Fecha de Cotizacion</div><div class="field-value">${esc(formatPrintDate(analysisDate))}</div></div>
+                    <div><div class="field-label">Codigo de Pieza</div><div class="field-value">${esc(codeValue || '-')}</div></div>
+                    <div><div class="field-label">Nombre de Pieza</div><div class="field-value">${esc(pieceName || '-')}</div></div>
                     <div><div class="field-label">Cantidad Solicitada</div><div class="field-value">${esc(formatNumber(pieceQty, 0))}</div></div>
                     <div><div class="field-label">Fecha Estimada de Entrega</div><div class="field-value">${esc(deliveryEstimate)}</div></div>
                     <div><div class="field-label">Aprobado</div><div class="field-value">${esc(approvedBy || '-')}</div></div>
@@ -27658,18 +27722,20 @@ async function loadCotizacionRecords() {
         filteredRecords.forEach((rec) => {
             const recId = String(rec.id || '').trim();
             const recIdJS = recId.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-            const safeName = (rec.save_name || 'Sin titulo').replace(/'/g, "\\'");
+            const displayName = resolveCotizacionRecordPieceName(rec) || 'Sin titulo';
+            const safeName = displayName.replace(/'/g, "\\'");
+            const recordCode = resolveCotizacionPieceCode(rec) || '-';
+            const recordCategory = rec.record_category || rec.save_category || '';
             const modifiedDateStr = formatCotizacionRecordDate(rec.modified_at || rec.timestamp || '');
             const createdDateStr = formatCotizacionRecordDate(rec.created_at || rec.modified_at || rec.timestamp || '');
-            const combineChecked = getCotizacionCombineSelectionArray().includes(recId);
             const tr = document.createElement('tr');
             if (window._cotizacionMoveMode && recId) {
                 tr.classList.add('cotizacion-records-move-armed-row');
             }
             tr.innerHTML = `
-                <td style="text-align: center;">${getCotizacionCategoryBadgeHTML(rec.save_category)}</td>
-                <td style="text-align: center; font-weight: 600;">${escapeCotizacionHTML(rec?.header?.code || '-')}</td>
-                <td style="font-weight: 600;">${escapeCotizacionHTML(rec.save_name || 'Sin titulo')}</td>
+                <td style="text-align: center;">${getCotizacionCategoryBadgeHTML(recordCategory)}</td>
+                <td style="text-align: center; font-weight: 600;">${escapeCotizacionHTML(recordCode)}</td>
+                <td style="font-weight: 600;">${escapeCotizacionHTML(displayName)}</td>
                 <td style="text-align: center;">${escapeCotizacionHTML(rec.author || 'Sistema')}</td>
                 <td style="text-align: center; font-size: 0.85rem;">${escapeCotizacionHTML(modifiedDateStr)}</td>
                 <td style="text-align: center; font-size: 0.85rem;">${escapeCotizacionHTML(createdDateStr)}</td>
@@ -28057,7 +28123,7 @@ function restoreCotizacionRecordInEditor(rec) {
         setCotizacionSheetVisibility(true);
 
         const codeInput = document.getElementById('cot-code');
-        if (codeInput) codeInput.value = rec.header?.code || '';
+        if (codeInput) codeInput.value = resolveCotizacionPieceCode(rec);
 
         const pieceInput = document.getElementById('cot-piece');
         if (pieceInput) pieceInput.value = rec.header?.piece || '';
@@ -28090,7 +28156,7 @@ function restoreCotizacionRecordInEditor(rec) {
         }
 
         const requesterInput = document.getElementById('cot-requester');
-        if (requesterInput) requesterInput.value = rec.header?.requester || '';
+        if (requesterInput) requesterInput.value = resolveCotizacionRequester(rec);
 
         const deliveryTimeInput = document.getElementById('cot-delivery-time');
         if (deliveryTimeInput) deliveryTimeInput.value = rec.header?.delivery_time || '';
@@ -28137,6 +28203,7 @@ function restoreCotizacionRecordInEditor(rec) {
     requestAnimationFrame(() => {
         refreshCotizacionRecordOnlyUI();
         updateCotizacionSummary();
+        refreshCotizacionDollarRate(false).catch(() => { });
     });
     const versionSuffix = Number.isFinite(Number(rec.version_number)) ? ` (v${parseInt(rec.version_number, 10)})` : '';
     showNotification(`Cotizacion "${rec.save_name || 'Sin titulo'}"${versionSuffix} restaurada.`, 'success');

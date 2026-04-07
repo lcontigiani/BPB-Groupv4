@@ -4096,8 +4096,11 @@ def _cotizacion_apply_source_summary_to_bucket(bucket, source_summary, multiplie
 
 def _cotizacion_safe_header(raw_header):
     header = raw_header if isinstance(raw_header, dict) else {}
+    code_value = _cotizacion_fix_text(header.get('piece_code', header.get('code', '')))
+    requester_value = _cotizacion_fix_text(header.get('requested_by', header.get('requester', '')))
     return {
-        'code': _cotizacion_fix_text(header.get('code', '')),
+        'code': code_value,
+        'piece_code': code_value,
         'piece': _cotizacion_fix_text(header.get('piece', '')),
         'analysis_date': header.get('analysis_date', ''),
         'usd_value': header.get('usd_value', 0),
@@ -4105,7 +4108,8 @@ def _cotizacion_safe_header(raw_header):
         'responsible_position': _cotizacion_fix_text(header.get('responsible_position', '')),
         'responsible_department': _cotizacion_fix_text(header.get('responsible_department', '')),
         'responsible_owner': _cotizacion_fix_text(header.get('responsible_owner', '')),
-        'requester': _cotizacion_fix_text(header.get('requester', '')),
+        'requester': requester_value,
+        'requested_by': requester_value,
         'delivery_time': _cotizacion_fix_text(header.get('delivery_time', '')),
         'delivery_unit': _cotizacion_normalize_delivery_unit(header.get('delivery_unit', 'Dias'))
     }
@@ -4155,6 +4159,14 @@ def _normalize_cotizacion_record_category(raw_category):
     return ''
 
 
+def _cotizacion_build_save_name(code_value, piece_value):
+    code = _cotizacion_fix_text(code_value).strip()
+    piece = _cotizacion_fix_text(piece_value).strip()
+    if code and piece:
+        return f"{code} - {piece}"
+    return piece or code
+
+
 def _normalize_cotizacion_group(raw_group):
     if not isinstance(raw_group, dict):
         return None
@@ -4197,6 +4209,7 @@ def _normalize_cotizacion_group(raw_group):
         'save_name': latest.get('save_name', ''),
         'save_description': latest.get('save_description', ''),
         'save_category': latest.get('save_category', ''),
+        'record_category': latest.get('save_category', ''),
         'author': latest.get('author', 'Usuario'),
         'versions': versions
     }
@@ -4322,6 +4335,7 @@ def _cotizacion_group_to_summary(group):
         'save_name': latest.get('save_name', '') or group.get('save_name', ''),
         'save_description': latest.get('save_description', '') or group.get('save_description', ''),
         'save_category': latest.get('save_category', '') or group.get('save_category', ''),
+        'record_category': latest.get('save_category', '') or group.get('record_category', '') or group.get('save_category', ''),
         'author': latest.get('author', 'Usuario') or group.get('author', 'Usuario'),
         'header': latest.get('header', {}) if isinstance(latest.get('header', {}), dict) else {},
         'created_at': created_at,
@@ -4342,6 +4356,7 @@ def _cotizacion_version_to_editor_record(group, version):
         'save_name': version.get('save_name', ''),
         'save_description': version.get('save_description', ''),
         'save_category': version.get('save_category', ''),
+        'record_category': version.get('save_category', ''),
         'timestamp': version.get('timestamp', ''),
         'author': version.get('author', 'Usuario'),
         'header': version.get('header', {}),
@@ -4648,6 +4663,41 @@ def _cotizacion_build_combined_header_piece(items, fallback=''):
     return _cotizacion_fix_text(fallback or 'Conjunto').strip() or 'Conjunto'
 
 
+def _cotizacion_resolve_source_summary_from_records(source_record_id, records):
+    source_id = str(source_record_id or '').strip()
+    if not source_id:
+        return None
+    for group in records if isinstance(records, list) else []:
+        if not isinstance(group, dict):
+            continue
+        if str(group.get('id') or '').strip() != source_id:
+            continue
+        latest = _cotizacion_get_latest_version(group) or {}
+        summary = latest.get('summary', {}) if isinstance(latest, dict) else {}
+        unitario = summary.get('unitario', {}) if isinstance(summary, dict) else {}
+        return _cotizacion_normalize_source_summary(unitario)
+    return None
+
+
+def _cotizacion_fill_missing_source_summaries(items, records):
+    if not isinstance(items, list):
+        return items
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        category = _cotizacion_normalize_category(item.get('category') or item.get('categoria'))
+        if category != 'conjunto':
+            continue
+        existing = _cotizacion_normalize_source_summary(item.get('source_summary'))
+        if existing:
+            item['source_summary'] = existing
+            continue
+        resolved = _cotizacion_resolve_source_summary_from_records(item.get('source_record_id'), records)
+        if resolved:
+            item['source_summary'] = resolved
+    return items
+
+
 def _cotizacion_build_combined_summary_from_items(items, piece_qty=1):
     raw_bucket = _cotizacion_empty_summary_bucket()
     piece_list = []
@@ -4841,8 +4891,25 @@ def save_cotizacion_record():
         if not data:
             return jsonify({'status': 'error', 'message': 'No data received'}), 400
 
+        header_payload = data.get('header', {}) if isinstance(data.get('header', {}), dict) else {}
+        normalized_code = _cotizacion_fix_text(header_payload.get('piece_code', header_payload.get('code', ''))).strip()
+        normalized_piece = _cotizacion_fix_text(header_payload.get('piece', '')).strip()
+        normalized_category = _normalize_cotizacion_record_category(data.get('save_category', data.get('record_category', '')))
+        normalized_requester = _cotizacion_fix_text(header_payload.get('requested_by', header_payload.get('requester', ''))).strip()
+
+        header_payload['code'] = normalized_code
+        header_payload['piece_code'] = normalized_code
+        header_payload['piece'] = normalized_piece
+        header_payload['requester'] = normalized_requester
+        header_payload['requested_by'] = normalized_requester
+        data['header'] = header_payload
+        data['save_category'] = normalized_category
+        data['record_category'] = normalized_category
+        data['save_name'] = _cotizacion_build_save_name(normalized_code, normalized_piece)
+
         rec_id = str(data.get('id') or uuid.uuid4())
         records = _read_cotizacion_record_groups()
+        data['items'] = _cotizacion_fill_missing_source_summaries(data.get('items', []), records)
 
         group = None
         for item in records:
@@ -4860,6 +4927,7 @@ def save_cotizacion_record():
             group['save_name'] = snapshot.get('save_name', '')
             group['save_description'] = snapshot.get('save_description', '')
             group['save_category'] = snapshot.get('save_category', '')
+            group['record_category'] = snapshot.get('save_category', '')
             group['author'] = snapshot.get('author', 'Usuario')
         else:
             snapshot = _build_cotizacion_version_snapshot(data, version_number=1)
@@ -4873,6 +4941,7 @@ def save_cotizacion_record():
                 'save_name': snapshot.get('save_name', ''),
                 'save_description': snapshot.get('save_description', ''),
                 'save_category': snapshot.get('save_category', ''),
+                'record_category': snapshot.get('save_category', ''),
                 'author': snapshot.get('author', 'Usuario'),
                 'versions': [snapshot]
             }
