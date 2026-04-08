@@ -1,6 +1,7 @@
 @echo off
 REM Arranca el mailer asegurando el directorio y el interprete correcto
-pushd "D:\lcontigiani\Oficina Tecnica\Registro de Actividad\Codigos"
+setlocal EnableExtensions
+pushd "%~dp0"
 if errorlevel 1 exit /b 1
 REM Forzar credenciales no-reply para SMTP/IMAP (evita tomar variables de entorno anteriores)
 set "SMTP_USER=no-reply@bpbargentina.com"
@@ -9,4 +10,20 @@ set "IMAP_USER=no-reply@bpbargentina.com"
 set "IMAP_PASS=mtky inyj bntn oxii"
 set "SMTP_FROM_ADDR=no-reply@bpbargentina.com"
 set "SMTP_FROM_NAME=Oficina Tecnica"
-"C:\Users\lcontigiani\AppData\Local\Programs\Python\Python314\python.exe" activity_mailer.py --loop
+where python >nul 2>&1
+if not errorlevel 1 (
+    python activity_mailer.py --loop
+    goto :end
+)
+
+where py >nul 2>&1
+if not errorlevel 1 (
+    py -3 activity_mailer.py --loop
+    goto :end
+)
+
+echo No se encontro Python en PATH.
+exit /b 1
+
+:end
+popd

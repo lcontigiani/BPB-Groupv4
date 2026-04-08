@@ -22,9 +22,11 @@ from __future__ import annotations
 
 
 
+import os
 import csv
 
 import json
+import warnings
 
 from datetime import datetime
 
@@ -36,8 +38,46 @@ import sys
 
 from typing import Dict, List, Optional
 
-ISO_DOCS_ROOT = Path(r"\\192.168.0.55\utn\REGISTROS\REG.DISEÑOS Y DESARROLLOS")
-R01902_OUTPUT_DIR = ISO_DOCS_ROOT / "R019-02 - Revisi?n, Verificaci?n y Validaci?n"
+LEGACY_ISO_DOCS_ROOT = Path(r"\\192.168.0.55\utn\REGISTROS\REG.DISEÑOS Y DESARROLLOS")
+
+
+def _resolve_iso_root() -> Path:
+    env_root = str(os.environ.get("BPB_ISO_ROOT", "") or "").strip()
+    if env_root:
+        return Path(env_root).expanduser()
+    local_root = Path(__file__).resolve().parents[2]
+    if local_root.exists():
+        return local_root
+    return LEGACY_ISO_DOCS_ROOT
+
+
+def _resolve_output_dir(root: Path, prefix: str, preferred_name: str) -> Path:
+    preferred = root / preferred_name
+    if preferred.exists():
+        return preferred
+    try:
+        for entry in root.iterdir():
+            if entry.is_dir() and entry.name.upper().startswith(prefix.upper()):
+                return entry
+    except Exception:
+        pass
+    return preferred
+
+
+ISO_DOCS_ROOT = _resolve_iso_root()
+R01902_OUTPUT_DIR = _resolve_output_dir(ISO_DOCS_ROOT, "R019-02", "R019-02 - Revisi?n, Verificaci?n y Validaci?n")
+
+
+def _load_workbook_quietly(*args, **kwargs):
+    import openpyxl
+
+    with warnings.catch_warnings():
+        warnings.filterwarnings(
+            "ignore",
+            message="Cannot parse header or footer so it will be ignored",
+            category=UserWarning,
+        )
+        return openpyxl.load_workbook(*args, **kwargs)
 
 
 
@@ -261,7 +301,7 @@ def generate_r01902(payload: dict, output_path: Path, template_path: Optional[Pa
         for attempt in range(1, 4):
             try:
                 keep_vba = output_path.suffix.lower() == ".xlsm"
-                wb = openpyxl.load_workbook(output_path, keep_vba=keep_vba)
+                wb = _load_workbook_quietly(output_path, keep_vba=keep_vba)
                 ws = wb["Listado"] if "Listado" in wb.sheetnames else wb.active
 
                 ws.cell(row=2, column=2).value = producto  # B2
@@ -406,7 +446,7 @@ def append_r01902_event(output_path: Path, event: dict) -> int:
         wb = None
         try:
             keep_vba = output_path.suffix.lower() == '.xlsm'
-            wb = openpyxl.load_workbook(output_path, keep_vba=keep_vba)
+            wb = _load_workbook_quietly(output_path, keep_vba=keep_vba)
             ws = wb['Listado'] if 'Listado' in wb.sheetnames else wb.active
 
             start_row = 4
@@ -526,7 +566,7 @@ def main() -> None:
 
     keep_vba = dest.suffix.lower() == ".xlsm"
 
-    wb = openpyxl.load_workbook(dest, keep_vba=keep_vba)
+    wb = _load_workbook_quietly(dest, keep_vba=keep_vba)
 
     ws = wb["Listado"] if "Listado" in wb.sheetnames else wb.active
 

@@ -10,16 +10,43 @@ Por defecto genera una copia: R019-03-salida.xlsm en la carpeta superior.
 
 from __future__ import annotations
 
+import os
 import json
 import re
 import time
+import warnings
 from datetime import datetime
 from pathlib import Path
 import sys
 from typing import Optional
 
-ISO_DOCS_ROOT = Path(r"\\192.168.0.55\utn\REGISTROS\REG.DISEÑOS Y DESARROLLOS")
+LEGACY_ISO_DOCS_ROOT = Path(r"\\192.168.0.55\utn\REGISTROS\REG.DISEÑOS Y DESARROLLOS")
+
+
+def _resolve_iso_root() -> Path:
+    env_root = str(os.environ.get("BPB_ISO_ROOT", "") or "").strip()
+    if env_root:
+        return Path(env_root).expanduser()
+    local_root = Path(__file__).resolve().parents[2]
+    if local_root.exists():
+        return local_root
+    return LEGACY_ISO_DOCS_ROOT
+
+
+ISO_DOCS_ROOT = _resolve_iso_root()
 R01903_BASE_NAME = "R019-03 - Listado de Diseños y Desarrollos- Rev3"
+
+
+def _load_workbook_quietly(*args, **kwargs):
+    import openpyxl
+
+    with warnings.catch_warnings():
+        warnings.filterwarnings(
+            "ignore",
+            message="Cannot parse header or footer so it will be ignored",
+            category=UserWarning,
+        )
+        return openpyxl.load_workbook(*args, **kwargs)
 
 
 def parse_date(value: str | None) -> Optional[datetime]:
@@ -136,7 +163,7 @@ def generate_r01903(payload: dict, inplace: bool = True, template_path: Optional
         import openpyxl
 
         keep_vba = dest.suffix.lower() == ".xlsm"
-        wb = openpyxl.load_workbook(dest, keep_vba=keep_vba)
+        wb = _load_workbook_quietly(dest, keep_vba=keep_vba)
         ws_name = next((n for n in wb.sheetnames if n.strip().lower() == "listado"), None)
         ws = wb[ws_name] if ws_name else wb.active
 
@@ -274,7 +301,7 @@ def update_r01903_status(
         raise FileNotFoundError(f"No se encontró el archivo base: {src}")
 
     keep_vba = src.suffix.lower() == ".xlsm"
-    wb = openpyxl.load_workbook(src, keep_vba=keep_vba)
+    wb = _load_workbook_quietly(src, keep_vba=keep_vba)
     ws_name = next((n for n in wb.sheetnames if n.strip().lower() == "listado"), None)
     ws = wb[ws_name] if ws_name else wb.active
 

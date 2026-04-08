@@ -2,9 +2,10 @@ import shutil
 import os
 import time
 from pathlib import Path
+from control_product_paths import resolve_codigos_dir
 
 # Configuration
-SOURCE_DIR = Path(r"\\bpbsrv03\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Codigos")
+SOURCE_DIR = resolve_codigos_dir(__file__)
 BACKUP_ROOT = SOURCE_DIR / "Backup"
 
 # Create timestamped folder name

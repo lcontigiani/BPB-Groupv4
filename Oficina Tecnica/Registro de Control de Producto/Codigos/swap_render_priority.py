@@ -2,7 +2,7 @@
 import sys
 from pathlib import Path
 
-target_file = Path(r"//bpbsrv03/lcontigiani/Oficina Tecnica/Registro de Control de Producto/Codigos/step3_prepare_outputs.py")
+target_file = Path(__file__).resolve().with_name("step3_prepare_outputs.py")
 content = target_file.read_text(encoding="utf-8")
 
 # Attempt 1: Swap blocks programmatically

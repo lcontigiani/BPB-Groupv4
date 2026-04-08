@@ -16,6 +16,7 @@ from copy import copy
 from datetime import date, datetime
 from email import policy
 from email.header import decode_header
+from pathlib import Path
 from typing import Dict, List, Optional
 
 from openpyxl import Workbook, load_workbook
@@ -23,12 +24,15 @@ from openpyxl.styles import Alignment, Font, Border, Side
 from openpyxl.utils import get_column_letter
 
 # Ruta del proyecto existente para reutilizar configuraciones de correo y feriados.
-EXTERNAL_CODE_DIR = r"\\192.168.0.13\lcontigiani\Proyecto Costos\Codigo\Codigos"
+BASE_DIR_PATH = Path(__file__).resolve().parent
+WORKSPACE_ROOT = BASE_DIR_PATH.parent.parent.parent
+DEFAULT_EXTERNAL_CODE_DIR = WORKSPACE_ROOT / "Proyecto Costos" / "Codigo" / "Codigos"
+EXTERNAL_CODE_DIR = str(Path(os.environ.get("BPB_COSTOS_CODE_DIR") or DEFAULT_EXTERNAL_CODE_DIR).expanduser())
 if EXTERNAL_CODE_DIR not in sys.path:
     sys.path.insert(0, EXTERNAL_CODE_DIR)
 
 # Permitir feriados adicionales locales (si el archivo no existe se ignora).
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR = str(BASE_DIR_PATH)
 DEFAULT_EXTRA_HOLIDAYS = os.path.join(BASE_DIR, "feriados_adicionales.csv")
 if "HOLIDAYS_PATH" not in os.environ:
     os.environ["HOLIDAYS_PATH"] = DEFAULT_EXTRA_HOLIDAYS

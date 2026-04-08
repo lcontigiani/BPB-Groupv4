@@ -1889,6 +1889,14 @@ async function fetchData() {
 
         const data = await response.json();
 
+        if (!response.ok) {
+            throw new Error(data?.message || data?.error || `HTTP ${response.status}`);
+        }
+
+        if (!Array.isArray(data)) {
+            throw new TypeError('La API /api/data no devolvio una lista valida.');
+        }
+
         allData = data;
 
         updatePOCounterUI(); // Update Badge
@@ -2036,6 +2044,11 @@ function handleProductSearchPending(input) {
 }
 
 function renderPOList(data) {
+
+    if (!Array.isArray(data)) {
+        console.error('renderPOList expected an array but received:', data);
+        data = [];
+    }
 
     const tbody = document.querySelector('#po-table tbody');
 
@@ -2949,7 +2962,9 @@ async function loadNotifications() {
     try {
         const currentOrigin = (window.location && window.location.origin && window.location.origin.startsWith('http'))
             ? window.location.origin
-            : 'http://bpbsrv03:5000';
+            : ((window.location && window.location.protocol && window.location.host)
+                ? `${window.location.protocol}//${window.location.host}`
+                : '');
         const apiBase = (window.API_BASE && window.API_BASE.startsWith('http')) ? window.API_BASE : currentOrigin;
 
         const [notifRes, pendingRes] = await Promise.all([
@@ -13942,6 +13957,7 @@ window._cotizacionMudaMode = false;
 window._cotizacionCombineMode = false;
 window._cotizacionCombineSelection = [];
 window._cotizacionMoveMode = false;
+window._cotizacionConjuntoPickerMode = false;
 window._cotizacionComplementariosLookupToken = 0;
 window._cotizacionComplementariosLookupTimer = null;
 window._cotizacionComplementariosLookupContext = null;
@@ -24709,6 +24725,39 @@ function getCotizacionCombineSelectionArray() {
     return Array.isArray(window._cotizacionCombineSelection) ? window._cotizacionCombineSelection : [];
 }
 
+function isCotizacionConjuntoPickerMode() {
+    return !!window._cotizacionConjuntoPickerMode;
+}
+
+function cotizacionHasConjuntoRows() {
+    return getCotizacionRows().some((row) => sanitizeCotizacionCategory(row?.dataset?.category || '') === 'conjunto');
+}
+
+function syncCotizacionModuleCategoryOptions() {
+    const select = document.getElementById('cotizacion-module-category');
+    if (!(select instanceof HTMLSelectElement)) return;
+
+    const existingConjuntoOption = select.querySelector('option[value="conjunto"]');
+    const shouldShowConjunto = cotizacionHasConjuntoRows();
+
+    if (shouldShowConjunto && !existingConjuntoOption) {
+        const option = document.createElement('option');
+        option.value = 'conjunto';
+        option.textContent = 'Conjunto';
+        const extrasOption = select.querySelector('option[value="extras"]');
+        if (extrasOption) {
+            select.insertBefore(option, extrasOption);
+        } else {
+            select.appendChild(option);
+        }
+    } else if (!shouldShowConjunto && existingConjuntoOption) {
+        if (select.value === 'conjunto') {
+            select.value = 'extras';
+        }
+        existingConjuntoOption.remove();
+    }
+}
+
 function refreshCotizacionCombineModeUI() {
     const button = document.getElementById('cotizacion-records-combine-btn');
     const moveButton = document.getElementById('cotizacion-records-move-btn');
@@ -24725,7 +24774,9 @@ function refreshCotizacionCombineModeUI() {
     }
 
     if (header instanceof HTMLElement) {
-        header.textContent = window._cotizacionMoveMode ? 'Mover' : (window._cotizacionCombineMode ? 'Combinar' : 'Eliminar');
+        header.textContent = isCotizacionConjuntoPickerMode()
+            ? '+'
+            : (window._cotizacionMoveMode ? 'Mover' : (window._cotizacionCombineMode ? 'Combinar' : 'Eliminar'));
     }
 }
 
@@ -25041,8 +25092,9 @@ function openCotizacionModuleMenu() {
     const modal = document.getElementById('cotizacion-module-modal');
     if (!modal) return;
 
+    syncCotizacionModuleCategoryOptions();
     const select = document.getElementById('cotizacion-module-category');
-    if (select && !select.value) {
+    if (select && (!select.value || (select.value === 'conjunto' && !cotizacionHasConjuntoRows()))) {
         select.value = 'extras';
     }
 
@@ -25059,6 +25111,12 @@ function confirmCotizacionModuleInsert() {
     const select = document.getElementById('cotizacion-module-category');
     const selectedCategory = String(select?.value || 'extras');
 
+    if (selectedCategory === 'conjunto') {
+        closeCotizacionModuleMenu();
+        openCotizacionConjuntoPicker();
+        return;
+    }
+
     addCotizacionRow(selectedCategory);
     closeCotizacionModuleMenu();
 }
@@ -25070,15 +25128,80 @@ function getCotizacionCategoryOrderIndex(categoryKey) {
 }
 
 function addCotizacionRow(categoryKey = 'extras') {
-    const tbody = getCotizacionPrimaryBody();
-    if (!tbody) return;
-
     const safeCategory = sanitizeCotizacionCategory(categoryKey);
     const meta = getCotizacionCategoryConfig(safeCategory);
-
-    const row = createCotizacionRow({
+    insertCotizacionRowData({
         category: safeCategory,
         categoria: meta.label || 'Extras'
+    }, { applyDefaultCostFormula: true });
+}
+
+function openCotizacionConjuntoPicker() {
+    if (!cotizacionHasConjuntoRows()) {
+        showNotification('La cotizacion actual no contiene conjuntos para habilitar esta accion.', 'warning');
+        return;
+    }
+
+    window._cotizacionConjuntoPickerMode = true;
+    currentCotizacionRecordsFolderView = normalizeCotizacionFolderName(currentCotizacionFolder || 'Sin Carpeta');
+    showCotizacionRecords(true);
+    setCotizacionRecordsFolderView(currentCotizacionRecordsFolderView);
+    loadCotizacionRecords();
+}
+
+function appendCotizacionRecordAsConjunto(rec) {
+    if (!rec || typeof rec !== 'object') return null;
+
+    const existingConjuntos = getCotizacionRows()
+        .filter((row) => sanitizeCotizacionCategory(row?.dataset?.category || '') === 'conjunto')
+        .length;
+
+    const rowData = buildCotizacionCombinedRowFromRecord(rec, existingConjuntos);
+    const insertedRow = insertCotizacionRowData(rowData, { applyDefaultCostFormula: true });
+
+    if (String(rec.id || '').trim()) {
+        const sourceIds = new Set(
+            (Array.isArray(currentCotizacionCombinedSourceIds) ? currentCotizacionCombinedSourceIds : [])
+                .map((item) => String(item || '').trim())
+                .filter(Boolean)
+        );
+        sourceIds.add(String(rec.id).trim());
+        currentCotizacionCombinedSourceIds = Array.from(sourceIds);
+    }
+
+    syncCotizacionModuleCategoryOptions();
+    return insertedRow;
+}
+
+async function selectCotizacionRecordAsConjunto(id) {
+    const recId = String(id || '').trim();
+    if (!recId) return;
+
+    if (currentCotizacionRecordId && String(currentCotizacionRecordId).trim() === recId) {
+        showNotification('No se puede agregar la misma cotizacion sobre si misma.', 'warning');
+        return;
+    }
+
+    const rec = await fetchCotizacionVersionRecord(recId, { latest: true });
+    if (!rec) return;
+
+    window._cotizacionConjuntoPickerMode = false;
+    showCotizacionEditor(true);
+    const insertedRow = appendCotizacionRecordAsConjunto(rec);
+    if (insertedRow instanceof HTMLTableRowElement) {
+        insertedRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    showNotification(`Cotizacion "${rec.save_name || 'Sin titulo'}" agregada como conjunto.`, 'success');
+}
+
+function insertCotizacionRowData(data = {}, options = {}) {
+    const tbody = getCotizacionPrimaryBody();
+    if (!tbody) return null;
+
+    const safeCategory = sanitizeCotizacionCategory(data.category || data.categoria_key);
+    const row = createCotizacionRow({
+        ...data,
+        category: safeCategory
     });
 
     const targetOrder = getCotizacionCategoryOrderIndex(safeCategory);
@@ -25101,10 +25224,15 @@ function addCotizacionRow(categoryKey = 'extras') {
         refreshCotizacionCategorySeparators();
     }
     refreshCotizacionCellReferences();
-    applyCotizacionDefaultCostFormulaToRow(row, { force: false });
+    if (options.applyDefaultCostFormula) {
+        applyCotizacionDefaultCostFormulaToRow(row, { force: false });
+    }
     updateCotizacionRowUnitPlaceholders(row);
-    clearCotizacionApprovalSignature(false);
+    if (options.clearApproval !== false) {
+        clearCotizacionApprovalSignature(false);
+    }
     updateCotizacionSummary();
+    return row;
 }
 
 function removeCotizacionRow(row) {
@@ -28136,6 +28264,9 @@ async function loadCotizacionRecords() {
             const recIdJS = recId.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
             const displayName = resolveCotizacionRecordPieceName(rec) || 'Sin titulo';
             const safeName = displayName.replace(/'/g, "\\'");
+            const combineChecked = recId
+                ? getCotizacionCombineSelectionArray().some((item) => String(item || '').trim() === recId)
+                : false;
             const recordCode = resolveCotizacionPieceCode(rec) || '-';
             const recordCategory = rec.record_category || rec.save_category || '';
             const modifiedDateStr = formatCotizacionRecordDate(rec.modified_at || rec.timestamp || '');
@@ -28158,13 +28289,19 @@ async function loadCotizacionRecords() {
                     ${recId ? `<button class="btn btn-sm" onclick="openCotizacionHistoryModal('${recIdJS}')">Ver Historial</button>` : '<span style="color:#777;">-</span>'}
                 </td>
                 <td style="text-align: center;">
-                    ${window._cotizacionCombineMode
+                    ${isCotizacionConjuntoPickerMode()
                         ? (recId
-                            ? `<input type="checkbox" class="cotizacion-records-combine-check" ${combineChecked ? 'checked' : ''} onchange="toggleCotizacionCombineRecordSelection('${recIdJS}', this.checked)">`
+                            ? (currentCotizacionRecordId && String(currentCotizacionRecordId).trim() === recId
+                                ? '<span style="color:#777;">Actual</span>'
+                                : `<button class="btn btn-sm btn-primary" style="padding:4px 8px; min-width:32px;" onclick="selectCotizacionRecordAsConjunto('${recIdJS}')" title="Agregar conjunto">+</button>`)
                             : '<span style="color:#777;">-</span>')
-                        : (recId
-                            ? `<button class="btn-cancel-check" onclick="confirmDeleteCotizacionRecord('${recIdJS}', '${safeName}')" title="Eliminar">&times;</button>`
-                            : '<span style="color:#777;">-</span>')
+                        : (window._cotizacionCombineMode
+                            ? (recId
+                                ? `<input type="checkbox" class="cotizacion-records-combine-check" ${combineChecked ? 'checked' : ''} onchange="toggleCotizacionCombineRecordSelection('${recIdJS}', this.checked)">`
+                                : '<span style="color:#777;">-</span>')
+                            : (recId
+                                ? `<button class="btn-cancel-check" onclick="confirmDeleteCotizacionRecord('${recIdJS}', '${safeName}')" title="Eliminar">&times;</button>`
+                                : '<span style="color:#777;">-</span>'))
                     }
                 </td>
             `;
@@ -28232,6 +28369,7 @@ function setCotizacionRecordsFolderView(folderName = '') {
     const folderCrumb = document.getElementById('cotizacion-records-folder-crumb');
     const createFolderBtn = document.getElementById('cotizacion-records-create-folder-btn');
     const inFolder = !!currentCotizacionRecordsFolderView;
+    const pickerMode = isCotizacionConjuntoPickerMode();
 
     if (foldersView) foldersView.style.display = inFolder ? 'none' : '';
     if (tableView) tableView.style.display = inFolder ? '' : 'none';
@@ -28239,9 +28377,9 @@ function setCotizacionRecordsFolderView(folderName = '') {
         search.style.display = inFolder ? '' : 'none';
         if (!inFolder) search.value = '';
     }
-    if (combineBtn instanceof HTMLElement) combineBtn.style.display = inFolder ? '' : 'none';
-    if (moveBtn instanceof HTMLElement) moveBtn.style.display = inFolder ? '' : 'none';
-    if (createFolderBtn instanceof HTMLElement) createFolderBtn.style.display = inFolder ? 'none' : '';
+    if (combineBtn instanceof HTMLElement) combineBtn.style.display = inFolder && !pickerMode ? '' : 'none';
+    if (moveBtn instanceof HTMLElement) moveBtn.style.display = inFolder && !pickerMode ? '' : 'none';
+    if (createFolderBtn instanceof HTMLElement) createFolderBtn.style.display = inFolder || pickerMode ? 'none' : '';
     if (rootCrumb instanceof HTMLElement) rootCrumb.style.color = inFolder ? 'var(--text-secondary)' : 'var(--text-primary)';
     if (folderTail instanceof HTMLElement) folderTail.style.display = inFolder ? '' : 'none';
     if (folderSep instanceof HTMLElement) folderSep.style.display = inFolder ? '' : 'none';
@@ -28254,6 +28392,9 @@ function setCotizacionRecordsFolderView(folderName = '') {
         window._cotizacionCombineMode = false;
         window._cotizacionCombineSelection = [];
         window._cotizacionMoveMode = false;
+        if (!pickerMode) {
+            window._cotizacionConjuntoPickerMode = false;
+        }
         refreshCotizacionCombineModeUI();
     }
 }
@@ -28352,6 +28493,11 @@ async function openCotizacionCreateFolderPrompt() {
 }
 
 function handleCotizacionRecordsBack() {
+    if (isCotizacionConjuntoPickerMode()) {
+        window._cotizacionConjuntoPickerMode = false;
+        showCotizacionEditor(true);
+        return;
+    }
     if (currentCotizacionRecordsFolderView) {
         showCotizacionRecordsFolderHome();
         return;

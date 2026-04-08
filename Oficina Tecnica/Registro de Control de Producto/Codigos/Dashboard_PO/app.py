@@ -1,4 +1,4 @@
-﻿﻿from flask import Flask, render_template, jsonify, request, send_from_directory, session, redirect, url_for, send_file, make_response
+from flask import Flask, render_template, jsonify, request, send_from_directory, session, redirect, url_for, send_file, make_response
 import heapq
 
 from decimal import Decimal
@@ -6,6 +6,7 @@ from decimal import Decimal
 import os
 
 import json
+import sys
 
 import urllib.request
 import urllib.error
@@ -19,8 +20,9 @@ import subprocess
 
 import shutil
 import threading
-from datetime import datetime, timedelta, date
+from datetime import datetime, timedelta, date, timezone
 import tempfile
+import warnings
 
 from pathlib import Path
 
@@ -49,12 +51,37 @@ from email.mime.multipart import MIMEMultipart
 # Logistics Solver Import
 from logistics_solver import Packer, Bin, Item, RotationType
 from chatbot_bridge import build_chatbot_response
+from path_config import (
+    resolve_activity_codigos_dir,
+    resolve_control_base_dir,
+    resolve_iso_code_root,
+    resolve_iso_docs_root,
+    resolve_oficina_root,
+    resolve_project_costos_analysis_root,
+    resolve_quality_root,
+    resolve_r016_dir,
+    resolve_workspace_root,
+)
 
 PBKDF2_METHOD = 'pbkdf2:sha256:600000'
 
 
 def _has_native_scrypt():
     return hasattr(hashlib, 'scrypt')
+
+
+def _utc_now_iso_z():
+    return datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
+
+
+def _load_workbook_quietly(*args, **kwargs):
+    with warnings.catch_warnings():
+        warnings.filterwarnings(
+            "ignore",
+            message="Cannot parse header or footer so it will be ignored",
+            category=UserWarning,
+        )
+        return openpyxl.load_workbook(*args, **kwargs)
 
 
 def _generate_password_hash_compatible(password):
@@ -1361,12 +1388,12 @@ COTIZACION_DEFAULT_FOLDER = 'Sin Carpeta'
 
 # Initialize Flask with explicit folder paths
 
-# --- DEBUG STARTUP ---
-try:
-    with open("global_debug_startup.log", "a") as f:
-        f.write(f"{datetime.now()}: App starting from {os.getcwd()}\n")
-except: pass
-# ---------------------
+if os.environ.get("BPB_DEBUG_STARTUP_LOG", "").strip() == "1":
+    try:
+        with open(SCRIPT_DIR_PATH / "global_debug_startup.log", "a", encoding="utf-8") as f:
+            f.write(f"{datetime.now()}: App starting from {os.getcwd()}\n")
+    except Exception:
+        pass
 
 app = Flask(__name__, 
             template_folder=os.path.join(SCRIPT_DIR, 'templates'),
@@ -1394,47 +1421,16 @@ def add_utf8_header(response):
 
 # CONFIGURATION
 
-# SEARCH LOGIC FOR BASE_DIR
-# 1. Environment Variable (Explicit Override)
-env_base = os.environ.get("BPB_BASE_DIR")
+BASE_DIR = resolve_control_base_dir(SCRIPT_DIR_PATH)
+os.environ.setdefault("BPB_BASE_DIR", str(BASE_DIR))
+OFFICE_ROOT = resolve_oficina_root(BASE_DIR)
+WORKSPACE_ROOT = resolve_workspace_root(BASE_DIR)
+PROJECT_COSTOS_ANALYSIS_ROOT = resolve_project_costos_analysis_root(BASE_DIR)
+ACTIVITY_CODE_DIR = resolve_activity_codigos_dir(BASE_DIR)
+QUALITY_ROOT = resolve_quality_root(BASE_DIR)
+R016_REGISTROS_DIR = resolve_r016_dir(BASE_DIR)
 
-if env_base:
-    BASE_DIR = Path(env_base)
-    print(f"DEBUG: Using Configured BASE_DIR (Env Var): {BASE_DIR}")
-
-else:
-    # 2. Try Network Path
-    network_path = Path(r"\\192.168.0.13\lcontigiani\Oficina Tecnica\Registro de Control de Producto")
-    
-    # Check if network path is actually accessible (cheap check)
-    network_available = False
-    try:
-        if network_path.exists():
-            network_available = True
-    except: pass
-
-    if network_available:
-        BASE_DIR = network_path
-        print(f"DEBUG: Using Network BASE_DIR: {BASE_DIR}")
-    else:
-        # 3. Try Local Relative Path (Assuming script is in Codigos/Dashboard_PO)
-        # We go up 2 levels: Codigos/Dashboard_PO -> Codigos -> Root
-        local_fallback = SCRIPT_DIR_PATH.parent.parent
-        
-        # Verify if this looks like the real repo (check for P2 or Auxiliares)
-        if (local_fallback / "P2 - Purchase Order").exists():
-            BASE_DIR = local_fallback
-            print(f"DEBUG: Network unavailable. Auto-detected Local BASE_DIR: {BASE_DIR}")
-            
-            # Auto-set env var for child processes
-            os.environ["BPB_BASE_DIR"] = str(BASE_DIR)
-        else:
-            # 4. Total Failure -> Mock/Default (Will likely fail later but we keep the structure)
-            BASE_DIR = network_path
-            print("DEBUG: Could not detect authentic local paths. Defaulting to Network Path (which may fail).")
-
-# Update SCRIPT_DIR usage to be consistent? 
-# SCRIPT_DIR was defined as os.path.dirname... at top.
+print(f"DEBUG: Using resolved BASE_DIR: {BASE_DIR}")
 
 
 def _resolve_cotizacion_indices_files():
@@ -1445,30 +1441,9 @@ def _resolve_cotizacion_indices_files():
         'deposito_logistica': Path('Analisis de Costos Deposito y Logistica/Analisis de Costos Deposito y Logistica.xlsm')
     }
 
-    network_roots = [
-        Path(r'\\192.168.0.13\lcontigiani\Proyecto Costos\Analisis de Procesos'),
-        Path(r'\\BPBSRV03\lcontigiani\Proyecto Costos\Analisis de Procesos'),
-    ]
-    local_project_root = BASE_DIR.parent.parent
-    local_root = local_project_root / 'Proyecto Costos' / 'Analisis de Procesos'
-    base_dir_is_network = str(BASE_DIR).startswith('\\')
-
     resolved = {}
     for key, relative_path in relative_paths.items():
-        network_candidates = [root / relative_path for root in network_roots]
-        local_candidate = local_root / relative_path
-
-        preferred = [*network_candidates, local_candidate] if base_dir_is_network else [local_candidate, *network_candidates]
-        chosen = preferred[0]
-        for candidate in preferred:
-            try:
-                if candidate.exists():
-                    chosen = candidate
-                    break
-            except Exception:
-                continue
-
-        resolved[key] = chosen
+        resolved[key] = PROJECT_COSTOS_ANALYSIS_ROOT / relative_path
 
     return resolved
 
@@ -1476,35 +1451,17 @@ def _resolve_cotizacion_indices_files():
 COTIZACION_INDICES_FILES = _resolve_cotizacion_indices_files()
 
 
-# --- DEBUG FORCE ABSOLUTE ---
-try:
-    force_log = BASE_DIR / "Codigos/debug_force.txt"
-    with open(force_log, "a") as f:
-        f.write(f"{datetime.now()}: APP STARTED. CWD={os.getcwd()}\n")
-    print(f"!!! DEBUG LOG WRITTEN TO {force_log} !!!")
-except Exception as e:
-    print(f"!!! FAILED TO WRITE LOG: {e} !!!")
-# ----------------------------
+if os.environ.get("BPB_DEBUG_STARTUP_LOG", "").strip() == "1":
+    try:
+        force_log = BASE_DIR / "Codigos/debug_force.txt"
+        with open(force_log, "a", encoding="utf-8") as f:
+            f.write(f"{datetime.now()}: APP STARTED. CWD={os.getcwd()}\n")
+        print(f"DEBUG: startup log written to {force_log}")
+    except Exception as exc:
+        print(f"DEBUG: failed to write startup log: {exc}")
 
 def _resolve_iso_root() -> Path:
-    local_candidate = BASE_DIR.parent / "Registro de ISO 9001"
-    network_parent = Path(r"\\192.168.0.55\utn\REGISTROS")
-
-    try:
-        if network_parent.exists():
-            for d in network_parent.iterdir():
-                if not d.is_dir():
-                    continue
-                name_up = d.name.upper()
-                if name_up.startswith("REG.DISE") and "DESARROLLOS" in name_up:
-                    return d
-    except Exception:
-        pass
-
-    if local_candidate.exists():
-        return local_candidate
-
-    return local_candidate
+    return resolve_iso_docs_root(BASE_DIR)
 
 
 def _resolve_iso_subdir(root: Path, prefix: str, preferred_name: str) -> Path:
@@ -1524,12 +1481,13 @@ def _resolve_iso_subdir(root: Path, prefix: str, preferred_name: str) -> Path:
 
 
 ISO_DOCS_ROOT = _resolve_iso_root()
+ISO_CODE_ROOT = resolve_iso_code_root(BASE_DIR)
 ISO_R01901_DOCS_DIR = _resolve_iso_subdir(ISO_DOCS_ROOT, "R019-01", "R019-01- Datos de entrada")
 ISO_R01902_DOCS_DIR = _resolve_iso_subdir(ISO_DOCS_ROOT, "R019-02", "R019-02")
 ISO_R01904_DOCS_DIR = _resolve_iso_subdir(ISO_DOCS_ROOT, "R019-04", "R019-04")
 ISO_R01903_BASE_NAME = "R019-03"
 
-PRODUCTION_PATH = BASE_DIR / "P2 - Purchase Order/En progreso"
+PRODUCTION_PATH = BASE_DIR / "P2 - Purchase Order/En Progreso"
 
 PROCESSED_PATH = BASE_DIR / "P2 - Purchase Order/Procesado"
 
@@ -1540,6 +1498,12 @@ IN_PROCESS_DIR = UPLOAD_FOLDER / "in process"
 USERS_FILE = BASE_DIR / "Codigos/Usuarios/users.json"
 NOTIFICATIONS_FILE = BASE_DIR / "Datos/notifications.json"
 ISO_PAYLOADS_FILE = BASE_DIR / "Datos/iso_payloads.json"
+
+for _required_dir in (PRODUCTION_PATH, PROCESSED_PATH, UPLOAD_FOLDER, IN_PROCESS_DIR):
+    try:
+        _required_dir.mkdir(parents=True, exist_ok=True)
+    except Exception as _dir_exc:
+        print(f"Warning: Could not ensure directory {_required_dir}: {_dir_exc}")
 
 
 SOLIDS_DIR = str(BASE_DIR / "Solidos")
@@ -1650,6 +1614,16 @@ def _pick_file_with_windows_dialog(kind):
     lines = [line.strip() for line in selected.splitlines() if line.strip()]
     return lines[-1] if lines else ''
 
+
+def _open_path_in_file_manager(target_path: Path) -> None:
+    target = str(target_path)
+    if os.name == 'nt':
+        subprocess.Popen(['cmd', '/c', 'start', '', target], shell=True)
+    elif sys.platform == 'darwin':
+        subprocess.Popen(['open', target], shell=False)
+    else:
+        subprocess.Popen(['xdg-open', target], shell=False)
+
 def load_db():
     default_db = {"projects": {}}
     if not os.path.exists(PROJECTS_DB_PATH):
@@ -1722,7 +1696,7 @@ def _extract_flask_json_response(resp):
 
 
 def _logistics_now_iso():
-    return datetime.utcnow().isoformat() + 'Z'
+    return _utc_now_iso_z()
 
 
 def _logistics_safe_timestamp(raw_value):
@@ -2026,7 +2000,7 @@ HISTORIAL_PO_DIR = BASE_DIR / "Auxiliares/Historial PO"
 
 PROFILE_PICS_DIR = BASE_DIR / "Codigos/Usuarios/profile_pics"
 
-MOCK_PATH = Path("mock_data")
+MOCK_PATH = SCRIPT_DIR_PATH / "mock_data"
 
 RESET_TOKENS_FILE = BASE_DIR / "Codigos/Usuarios/reset_tokens.json"
 
@@ -3926,7 +3900,7 @@ def _read_cotizacion_complementarios_catalog(workbook_path):
     if not workbook_path.exists():
         raise FileNotFoundError(f'Archivo no encontrado: {workbook_path}')
 
-    wb = openpyxl.load_workbook(
+    wb = _load_workbook_quietly(
         str(workbook_path),
         read_only=True,
         data_only=True,
@@ -4163,7 +4137,7 @@ def _read_cotizacion_indices_file(workbook_path):
     if not workbook_path.exists():
         raise FileNotFoundError(f'Archivo no encontrado: {workbook_path}')
 
-    wb = openpyxl.load_workbook(
+    wb = _load_workbook_quietly(
         str(workbook_path),
         read_only=True,
         data_only=True,
@@ -4478,7 +4452,7 @@ def _clean_cotizacion_attachments(raw_attachments):
 
 
 def _cotizacion_now_iso():
-    return datetime.utcnow().isoformat() + 'Z'
+    return _utc_now_iso_z()
 
 
 def _cotizacion_safe_timestamp(raw_value):
@@ -7414,7 +7388,7 @@ def serve_file(filename):
 
 def open_r016_folder():
 
-    target_path = Path(r"\\192.168.0.55\utn\REGISTROS\R016-01")
+    target_path = R016_REGISTROS_DIR
 
     try:
 
@@ -7422,9 +7396,7 @@ def open_r016_folder():
 
             return jsonify({"status": "error", "message": f"Ruta no encontrada: {target_path}"}), 404
 
-        # Use cmd start to avoid explorer falling back to Documentos
-
-        subprocess.Popen(['cmd', '/c', 'start', '', str(target_path)], shell=True)
+        _open_path_in_file_manager(target_path)
 
         return jsonify({"status": "success"})
 
@@ -7494,7 +7466,7 @@ def iso_next_registry():
         }), 404
 
     try:
-        wb = openpyxl.load_workbook(str(target), read_only=True, data_only=True)
+        wb = _load_workbook_quietly(str(target), read_only=True, data_only=True)
         ws_name = next((n for n in wb.sheetnames if n.strip().lower() == "listado"), None)
         ws = wb[ws_name] if ws_name else wb.active
 
@@ -7575,7 +7547,7 @@ def iso_r01903_records():
         return str(val).strip() if val is not None else ""
 
     try:
-        wb = openpyxl.load_workbook(str(target), read_only=True, data_only=True)
+        wb = _load_workbook_quietly(str(target), read_only=True, data_only=True)
         ws_name = next((n for n in wb.sheetnames if n.strip().lower() == "listado"), None)
         ws = wb[ws_name] if ws_name else wb.active
 
@@ -7665,7 +7637,6 @@ def iso_r01902_events():
 
 
 def _read_r01902_events_for_bp(bp: str):
-    iso_root = BASE_DIR.parent / "Registro de ISO 9001"
     r01902_dir = ISO_R01902_DOCS_DIR
     safe_bp = re.sub(r"[^A-Za-z0-9-]+", "", bp) or bp
 
@@ -7692,7 +7663,7 @@ def _read_r01902_events_for_bp(bp: str):
             return val.strftime("%d/%m/%Y")
         return str(val).strip() if val is not None else ""
 
-    wb = openpyxl.load_workbook(str(target), read_only=True, data_only=True)
+    wb = _load_workbook_quietly(str(target), read_only=True, data_only=True)
     ws_name = next((n for n in wb.sheetnames if n.strip().lower() == "listado"), None)
     ws = wb[ws_name] if ws_name else wb.active
 
@@ -7844,14 +7815,13 @@ def _resolve_r01904_plan_path(r01904_dir: Path, safe_bp: str) -> Path:
 
 
 def _ensure_r01904_created(bp: str) -> Path:
-    iso_root = BASE_DIR.parent / "Registro de ISO 9001"
     r01904_dir = ISO_R01904_DOCS_DIR
     r01904_dir.mkdir(parents=True, exist_ok=True)
     safe_bp = re.sub(r"[^A-Za-z0-9-]+", "", bp) or bp
     dest = _resolve_r01904_plan_path(r01904_dir, safe_bp)
     if dest.exists():
         return dest
-    model = _find_r01904_model(iso_root)
+    model = _find_r01904_model(ISO_DOCS_ROOT)
     last_err = None
     for attempt in range(1, 4):
         try:
@@ -7874,7 +7844,7 @@ def _generate_r01904(bp: str, allow_empty: bool = False) -> Path:
             return _ensure_r01904_created(bp)
         raise ValueError("R019-02 no tiene eventos para este BP.")
 
-    iso_root = BASE_DIR.parent / "Registro de ISO 9001"
+    iso_root = ISO_CODE_ROOT
     r01904_dir = ISO_R01904_DOCS_DIR
     r01904_dir.mkdir(parents=True, exist_ok=True)
     safe_bp = re.sub(r"[^A-Za-z0-9-]+", "", bp) or bp
@@ -7947,7 +7917,7 @@ def iso_r01902_approve():
     if not bp or not row:
         return jsonify({"status": "error", "message": "BP y fila requeridos"}), 400
 
-    iso_root = BASE_DIR.parent / "Registro de ISO 9001"
+    iso_root = ISO_DOCS_ROOT
     r01902_dir = ISO_R01902_DOCS_DIR
     safe_bp = re.sub(r"[^A-Za-z0-9-]+", "", bp) or bp
     candidates = [
@@ -7975,7 +7945,7 @@ def iso_r01902_approve():
     for attempt in range(1, 4):
         wb = None
         try:
-            wb = openpyxl.load_workbook(str(target), keep_vba=target.suffix.lower() == ".xlsm")
+            wb = _load_workbook_quietly(str(target), keep_vba=target.suffix.lower() == ".xlsm")
             ws_name = next((n for n in wb.sheetnames if n.strip().lower() == "listado"), None)
             ws = wb[ws_name] if ws_name else wb.active
             ws.cell(row=int(row), column=6).value = status
@@ -8011,7 +7981,7 @@ def iso_r01902_append():
     if not bp:
         return jsonify({"status": "error", "message": "BP requerido"}), 400
 
-    iso_root = BASE_DIR.parent / "Registro de ISO 9001"
+    iso_root = ISO_DOCS_ROOT
     r01902_dir = ISO_R01902_DOCS_DIR
     safe_bp = re.sub(r"[^A-Za-z0-9-]+", "", bp) or bp
 
@@ -8038,7 +8008,7 @@ def iso_r01902_append():
             row = mod02.append_r01902_event(target, event)
         else:
             # Fallback: write with openpyxl if function not available
-            wb = openpyxl.load_workbook(str(target), keep_vba=target.suffix.lower() == ".xlsm")
+            wb = _load_workbook_quietly(str(target), keep_vba=target.suffix.lower() == ".xlsm")
             try:
                 ws_name = next((n for n in wb.sheetnames if n.strip().lower() == "listado"), None)
                 ws = wb[ws_name] if ws_name else wb.active
@@ -8081,7 +8051,10 @@ def iso_r01902_append():
                 fecha_fin = None
                 if etapa.lower() == "cierre":
                     fecha_fin = (event.get("fecha") or "").strip()
-                r01903_updated = mod03.update_r01903_status(bp, etapa, situacion, fecha_fin)
+                template_path = None
+                if hasattr(mod03, "resolve_template_path"):
+                    template_path = mod03.resolve_template_path(ISO_DOCS_ROOT)
+                r01903_updated = mod03.update_r01903_status(bp, etapa, situacion, fecha_fin, template_path=template_path)
             else:
                 r01903_error = "fill_r01903.py no expone update_r01903_status"
         except Exception as e:
@@ -8104,7 +8077,7 @@ def iso_r01902_append():
 
 
 def _iso_r01901_paths():
-    iso_root = BASE_DIR.parent / "Registro de ISO 9001"
+    iso_root = ISO_CODE_ROOT
     docs_dir = ISO_R01901_DOCS_DIR
     codes_dir = iso_root / "Codigos" / "R019-01"
     return iso_root, docs_dir, codes_dir
@@ -8282,7 +8255,7 @@ def _normalize_user_key(value: str) -> str:
 
 
 def _destinatarios_path() -> Path:
-    return BASE_DIR.parent / "Registro de Actividad" / "Codigos" / "config" / "destinatarios.csv"
+    return ACTIVITY_CODE_DIR / "config" / "destinatarios.csv"
 
 
 def _load_destinatarios() -> list:
@@ -8423,7 +8396,7 @@ def _add_notification(recipient_name: str, ntype: str, message: str, payload=Non
 @app.route('/api/iso-responsables', methods=['GET'])
 def iso_responsables():
     try:
-        config_dir = BASE_DIR.parent / "Registro de Actividad" / "Codigos" / "config"
+        config_dir = ACTIVITY_CODE_DIR / "config"
         destinatarios_file = config_dir / "destinatarios.csv"
         if not destinatarios_file.exists():
             return jsonify({
@@ -8466,8 +8439,7 @@ def iso_destinatarios():
 # --- ISO R019-03 PENDINGS SYNC ---
 @app.route('/api/iso-r01903-pending-sync', methods=['POST'])
 def iso_r01903_pending_sync():
-    iso_root = BASE_DIR.parent / "Registro de ISO 9001"
-    pending_path = _r01903_pending_path(iso_root)
+    pending_path = _r01903_pending_path(ISO_DOCS_ROOT)
     if not pending_path.exists():
         return jsonify({"status": "success", "processed": 0, "remaining": 0})
 
@@ -8489,7 +8461,10 @@ def iso_r01903_pending_sync():
     for idx, item in enumerate(items):
         payload = (item or {}).get("payload") or {}
         try:
-            mod03.generate_r01903(payload, inplace=True)
+            template_path = None
+            if hasattr(mod03, "resolve_template_path"):
+                template_path = mod03.resolve_template_path(ISO_DOCS_ROOT)
+            mod03.generate_r01903(payload, inplace=True, template_path=template_path)
             processed += 1
         except Exception as e:
             if locked_cls and isinstance(e, locked_cls):
@@ -8584,7 +8559,10 @@ def iso_generate_r01901():
             codes_r01903 = iso_root / "Codigos" / "R019-03"
             mod03 = _load_fill_r01903_module(codes_r01903)
             if hasattr(mod03, "generate_r01903"):
-                mod03.generate_r01903(merged, inplace=True)
+                template_path = None
+                if hasattr(mod03, "resolve_template_path"):
+                    template_path = mod03.resolve_template_path(ISO_DOCS_ROOT)
+                mod03.generate_r01903(merged, inplace=True, template_path=template_path)
             else:
                 raise RuntimeError("fill_r01903.py no expone generate_r01903")
         except Exception as e:
@@ -11073,6 +11051,7 @@ def process_excel_updates(po_folder, approved_items, po_id):
         try:
 
             is_xlsm = excel_path.suffix.lower() == '.xlsm'
+            workbook_buffer = None
 
             
 
@@ -11083,8 +11062,9 @@ def process_excel_updates(po_folder, approved_items, po_id):
             try:
 
                 with open(excel_path, 'rb') as f_stream:
+                    workbook_buffer = io.BytesIO(f_stream.read())
 
-                    wb = openpyxl.load_workbook(f_stream, keep_vba=is_xlsm)
+                wb = _load_workbook_quietly(workbook_buffer, keep_vba=is_xlsm)
 
             except Exception as e_load:
 
@@ -11112,7 +11092,9 @@ def process_excel_updates(po_folder, approved_items, po_id):
 
                     
 
-                    wb = openpyxl.load_workbook(decrypted, keep_vba=is_xlsm)
+                    decrypted.seek(0)
+                    workbook_buffer = decrypted
+                    wb = _load_workbook_quietly(workbook_buffer, keep_vba=is_xlsm)
 
                     print(f"[EXCEL] Decryption successful.")
 
@@ -11509,12 +11491,14 @@ def process_excel_updates_v2(po_folder, approved_items, po_id):
 
         try:
             is_xlsm = excel_path.suffix.lower() == '.xlsm'
+            workbook_buffer = None
             wb = None
             
             # Load Workbook (Once)
             try:
                 with open(excel_path, 'rb') as f_stream:
-                    wb = openpyxl.load_workbook(f_stream, keep_vba=is_xlsm)
+                    workbook_buffer = io.BytesIO(f_stream.read())
+                wb = _load_workbook_quietly(workbook_buffer, keep_vba=is_xlsm)
             except Exception as e_load:
                 # Decryption Retry
                 print(f"[EXCEL] Load failed ({e_load}). Trying decryption...")
@@ -11524,7 +11508,9 @@ def process_excel_updates_v2(po_folder, approved_items, po_id):
                         office_file = msoffcrypto.OfficeFile(f_enc)
                         office_file.load_key(password='bpb')
                         office_file.decrypt(decrypted)
-                    wb = openpyxl.load_workbook(decrypted, keep_vba=is_xlsm)
+                    decrypted.seek(0)
+                    workbook_buffer = decrypted
+                    wb = _load_workbook_quietly(workbook_buffer, keep_vba=is_xlsm)
                 except Exception as e_dec:
                     print(f"[EXCEL] Decryption failed: {e_dec}")
                     raise e_load
@@ -11613,6 +11599,11 @@ def process_excel_updates_v2(po_folder, approved_items, po_id):
                         writer.writerow(clean_row)
             except Exception as e_csv:
                 print(f"[EXCEL] Warning: CSV Index update failed: {e_csv}")
+
+            if wb is not None:
+                wb.close()
+            if workbook_buffer is not None:
+                workbook_buffer.close()
 
         except Exception as e:
             print(f"[EXCEL] Failed to process {target_filename}: {e}")
@@ -11715,7 +11706,7 @@ def approve_activity():
 
         # --- Guardado en CSV + estado mailer ---
         try:
-            mailer_state_path = Path(r"\192.168.0.13\lcontigiani\Oficina Tecnica\Registro de Actividad\Codigos\data\activity_mailer_state.json")
+            mailer_state_path = ACTIVITY_CODE_DIR / "data" / "activity_mailer_state.json"
             if not mailer_state_path.exists():
                 return jsonify({'status': 'error', 'content': 'Estado de correos no encontrado.'})
 
@@ -11752,7 +11743,7 @@ def approve_activity():
                     def clean_csv_val(val):
                         return str(val).replace(';', ',').replace('\n', ' ').replace('\r', ' ').strip()
 
-                    legacy_root = Path(r"\\192.168.0.13\lcontigiani\Oficina Tecnica\Registro de Actividad\Codigos\data")
+                    legacy_root = ACTIVITY_CODE_DIR / "data"
                     global_csv = legacy_root / "base_datos_respuestas.csv"
                     individual_csv = legacy_root / "respuestas_csv" / f"{full_name}.csv"
 
@@ -11907,7 +11898,7 @@ def get_glossary():
 
     # Dynamic path resolution for portability
     # BASE_DIR points to '.../Registro de Control de Producto'
-    glossary_path = BASE_DIR.parent / "Registro de Actividad" / "Codigos" / "config" / "glosario_proyectos.log"
+    glossary_path = ACTIVITY_CODE_DIR / "config" / "glosario_proyectos.log"
 
     try:
 
@@ -11939,7 +11930,7 @@ def add_glossary_project():
     if not project:
         return jsonify({'status': 'error', 'message': 'Nombre de proyecto requerido.'}), 400
 
-    glossary_path = BASE_DIR.parent / "Registro de Actividad" / "Codigos" / "config" / "glosario_proyectos.log"
+    glossary_path = ACTIVITY_CODE_DIR / "config" / "glosario_proyectos.log"
 
     try:
         glossary_path.parent.mkdir(parents=True, exist_ok=True)
@@ -11972,7 +11963,7 @@ def get_activity_history():
     # Paths (Dynamic based on BASE_DIR)
     # BASE_DIR points to '.../Registro de Control de Producto'
     # We need to go up to 'Oficina Tecnica' then down to 'Registro de Actividad'
-    ACTIVITY_BASE = BASE_DIR.parent / "Registro de Actividad" / "Codigos"
+    ACTIVITY_BASE = ACTIVITY_CODE_DIR
     
     CONFIG_DIR = ACTIVITY_BASE / "config"
     DATA_DIR = ACTIVITY_BASE / "data/respuestas_csv"
@@ -12112,7 +12103,7 @@ def get_activity_stats():
     if not session.get('user'):
          return jsonify({"status": "error", "message": "No autenticado"}), 401
 
-    ACTIVITY_BASE = BASE_DIR.parent / "Registro de Actividad" / "Codigos"
+    ACTIVITY_BASE = ACTIVITY_CODE_DIR
     CONFIG_DIR = ACTIVITY_BASE / "config"
     DATA_DIR = ACTIVITY_BASE / "data/respuestas_csv"
     DESTINATARIOS_FILE = CONFIG_DIR / "destinatarios.csv"
@@ -12228,7 +12219,7 @@ def get_activity_stats_global():
     if not session.get('user'):
          return jsonify({"status": "error", "message": "No autenticado"}), 401
 
-    ACTIVITY_BASE = BASE_DIR.parent / "Registro de Actividad" / "Codigos"
+    ACTIVITY_BASE = ACTIVITY_CODE_DIR
     MASTER_CSV = ACTIVITY_BASE / "data/base_datos_respuestas.csv"
 
     start_param = request.args.get('start_date')
@@ -12355,7 +12346,7 @@ def get_activity_stats_global():
 
 
 
-ACTIVITY_BASE_PATH = BASE_DIR.parent / "Registro de Actividad" / "Codigos"
+ACTIVITY_BASE_PATH = ACTIVITY_CODE_DIR
 
 ACTIVITY_STATE_FILE = ACTIVITY_BASE_PATH / "data/activity_mailer_state.json"
 
@@ -12365,7 +12356,7 @@ ACTIVITY_CSV_USER_DIR = ACTIVITY_BASE_PATH / "data/respuestas_csv"
 
 DESTINATARIOS_FILE = ACTIVITY_BASE_PATH / "config/destinatarios.csv"
 
-QUALITY_BASE_PATH = BASE_DIR.parent / "Registro de Calidad"
+QUALITY_BASE_PATH = QUALITY_ROOT
 QUALITY_WORKBOOK_PATH = QUALITY_BASE_PATH / "En control de Calidad-Lorenzo.xlsx"
 QUALITY_CSV_CACHE_DIR = QUALITY_BASE_PATH / "_csv_cache"
 QUALITY_OBSERVATIONS_FILE = QUALITY_BASE_PATH / "quality_observations.json"
@@ -12732,7 +12723,7 @@ def _quality_sync_csv_exports(force=False):
         workbook_mtime = QUALITY_WORKBOOK_PATH.stat().st_mtime
 
         QUALITY_CSV_CACHE_DIR.mkdir(parents=True, exist_ok=True)
-        wb = openpyxl.load_workbook(str(QUALITY_WORKBOOK_PATH), read_only=True, data_only=True)
+        wb = _load_workbook_quietly(str(QUALITY_WORKBOOK_PATH), read_only=True, data_only=True)
         try:
             for sheet_name, csv_path in QUALITY_SHEET_CACHE_MAP.items():
                 if sheet_name not in wb.sheetnames:
@@ -13658,7 +13649,7 @@ def update_activity_entry():
     if not token or not new_desc or not new_time:
         return jsonify({"status": "error", "message": "Faltan datos requeridos"}), 400
 
-    ACTIVITY_BASE = BASE_DIR.parent / "Registro de Actividad" / "Codigos"
+    ACTIVITY_BASE = ACTIVITY_CODE_DIR
     CONFIG_DIR = ACTIVITY_BASE / "config"
     DATA_DIR = ACTIVITY_BASE / "data/respuestas_csv"
     DESTINATARIOS_FILE = CONFIG_DIR / "destinatarios.csv"

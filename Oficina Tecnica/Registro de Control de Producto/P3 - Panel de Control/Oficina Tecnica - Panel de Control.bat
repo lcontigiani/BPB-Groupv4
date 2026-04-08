@@ -6,7 +6,7 @@ ECHO    INICIANDO DASHBOARD - MODO DIAGNOSTICO
 ECHO ==========================================================
 ECHO.
 
-SET "APP_DIR=\\192.168.0.13\lcontigiani\Oficina Tecnica\Registro de Control de Producto\Codigos\Dashboard_PO"
+FOR %%I IN ("%~dp0..\Codigos\Dashboard_PO") DO SET "APP_DIR=%%~fI"
 ECHO Ruta APP_DIR detectada: %APP_DIR%
 ECHO.
 
@@ -24,14 +24,14 @@ ECHO.
 
 :: Intento 1: OFFLINE
 ECHO [PASO 1] Intento de instalacion LOCAL (libs)...
-powershell -NoProfile -ExecutionPolicy Bypass -Command "$p='%APP_DIR%\libs'; pip install flask pyyaml requests Pillow pdfplumber openpyxl --no-index --find-links $p --quiet"
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$p='%APP_DIR%\libs'; pip install flask pyyaml requests Pillow pdfplumber openpyxl pywin32 --no-index --find-links $p --quiet"
 
 ECHO [DIAGNOSTICO] ErrorLevel tras Paso 1: %ERRORLEVEL%
 
 IF %ERRORLEVEL% NEQ 0 (
     ECHO.
     ECHO [PASO 2] Instalacion local fallo. Intentando ONLINE...
-    powershell -NoProfile -ExecutionPolicy Bypass -Command "pip install flask pyyaml requests Pillow pdfplumber openpyxl --disable-pip-version-check --timeout 5"
+    powershell -NoProfile -ExecutionPolicy Bypass -Command "pip install flask pyyaml requests Pillow pdfplumber openpyxl pywin32 --disable-pip-version-check --timeout 5"
 )
 
 ECHO.
