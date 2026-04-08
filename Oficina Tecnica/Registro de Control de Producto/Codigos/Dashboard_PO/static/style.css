@@ -3033,6 +3033,10 @@ tbody tr:nth-child(n+11) {
     grid-template-columns: minmax(0, 1fr);
 }
 
+#logistics-records-folders-grid {
+    grid-template-columns: minmax(0, 1fr);
+}
+
 /* Custom Red Checkboxes - Restored */
 .iso-checkbox-label {
     display: inline-flex;
@@ -9254,9 +9258,17 @@ button.erp-home-variant-circle {
 }
 
 #cotizacion-records-table tr.cotizacion-records-move-armed-row {
-    cursor: pointer;
+  cursor: pointer;
 }
 
 #cotizacion-records-table tr.cotizacion-records-move-armed-row:hover td {
-    background: rgba(207, 22, 37, 0.08);
+  background: rgba(207, 22, 37, 0.08);
+}
+
+#logistics-records-table tr.cotizacion-records-move-armed-row {
+  cursor: pointer;
+}
+
+#logistics-records-table tr.cotizacion-records-move-armed-row:hover td {
+  background: rgba(207, 22, 37, 0.08);
 }
