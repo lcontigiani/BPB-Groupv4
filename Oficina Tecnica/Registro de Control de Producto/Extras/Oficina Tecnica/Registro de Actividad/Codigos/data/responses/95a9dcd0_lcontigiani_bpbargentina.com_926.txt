@@ -1,7 +1,0 @@
-Proyecto: Prueba 500
-Tiempo destinado: 30minutos
-Descripción: Hola
-
-Proyecto: Otros
-Tiempo destinado: 1 hora
-Descripción: Hola hola holaaa

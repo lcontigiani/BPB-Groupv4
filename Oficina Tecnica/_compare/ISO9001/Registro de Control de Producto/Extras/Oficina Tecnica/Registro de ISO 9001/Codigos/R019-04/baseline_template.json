@@ -1,9 +1,0 @@
-{
-  "fecha_inicio_proyecto": "2026-02-01",
-  "duracion_default": 1,
-  "duraciones": {
-    "Revision": 2,
-    "Verificacion": 3,
-    "Validacion": 5
-  }
-}

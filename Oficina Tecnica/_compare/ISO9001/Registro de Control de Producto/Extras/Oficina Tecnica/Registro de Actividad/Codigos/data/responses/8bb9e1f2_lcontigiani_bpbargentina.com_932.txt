@@ -1,7 +1,0 @@
-Proyecto: Prueba 17
-Tiempo destinado: 2 horas
-Descripción:
-
-Proyecto: Otros
-Tiempo destinado: 5 hora
-Descripción: hola

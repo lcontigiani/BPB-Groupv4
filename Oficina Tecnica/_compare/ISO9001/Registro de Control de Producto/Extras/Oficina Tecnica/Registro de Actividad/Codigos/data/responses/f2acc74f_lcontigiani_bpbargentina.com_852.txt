@@ -1,3 +1,0 @@
-Proyecto: Sistema de Costos 2
-Tiempo destinado: 2 horas
-Descripción: Hice esto y lo otro.

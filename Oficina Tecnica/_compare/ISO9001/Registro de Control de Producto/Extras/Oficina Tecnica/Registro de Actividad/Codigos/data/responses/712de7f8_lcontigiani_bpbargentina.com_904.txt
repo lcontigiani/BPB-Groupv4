@@ -1,7 +1,0 @@
-Proyecto: Prueba 15
-Tiempo destinado: 2 horas
-Descripción: me muero.
-
-Proyecto: Otros
-Tiempo destinado: 5 horas
-Descripción: Estoy ocupado.

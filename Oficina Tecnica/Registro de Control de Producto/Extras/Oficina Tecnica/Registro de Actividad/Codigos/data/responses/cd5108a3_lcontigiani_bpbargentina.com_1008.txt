@@ -1,3 +1,0 @@
-Proyecto: Registros
-Tiempo destinado: 30 minutos
-Descripción: Hice un ajuste del servidor

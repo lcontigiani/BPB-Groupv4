@@ -1,7 +1,0 @@
-Proyecto: Registro de Oficina Tecnica
-Tiempo destinado: 1 hora
-Descripción: Hola
-
-Proyecto: Registros
-Tiempo destinado: 1 hora
-Descripción: Hola de nuevoooo

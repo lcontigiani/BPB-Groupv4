@@ -1,7 +1,0 @@
-Proyecto: Microondas
-Tiempo destinado: 2 horas
-Descripción: Hola
-
-Proyecto: Otros
-Tiempo destinado: 2 horas
-Descripción: Hola

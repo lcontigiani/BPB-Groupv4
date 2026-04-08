@@ -1,3 +1,0 @@
-Proyecto: Registro de Oficina Tecnica
-Tiempo destinado: 1 hora
-Descripción: Prueba numero 1001

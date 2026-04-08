@@ -1,3 +1,0 @@
-Proyecto: Moto de Plasma
-Tiempo destinado: 4 horas
-Descripción: Dame tu moto

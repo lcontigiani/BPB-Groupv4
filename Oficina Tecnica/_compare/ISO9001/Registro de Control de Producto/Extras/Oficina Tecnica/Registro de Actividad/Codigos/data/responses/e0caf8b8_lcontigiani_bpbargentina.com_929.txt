@@ -1,7 +1,0 @@
-Proyecto: Prueba 15
-Tiempo destinado: 2 horas
-Descripción:
-
-Proyecto: Otros
-Tiempo destinado: 2 hora
-Descripción: hola

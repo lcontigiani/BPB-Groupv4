@@ -1,3 +1,0 @@
-Proyecto: Registros
-Tiempo destinado: 1 HORA
-Descripción: Hice unas pruebas de su funcionamiento.

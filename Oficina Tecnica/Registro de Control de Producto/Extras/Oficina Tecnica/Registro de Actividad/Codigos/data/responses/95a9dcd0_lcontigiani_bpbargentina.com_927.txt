@@ -1,7 +1,0 @@
-Proyecto: Prueba 2
-Tiempo destinado: 50 minutos
-Descripción: Hola
-
-Proyecto: Otros
-Tiempo destinado: 1 hora
-Descripción:

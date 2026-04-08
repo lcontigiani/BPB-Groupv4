@@ -1,4 +1,0 @@
-Proyecto: Sistema de Costos
-Tiempo destinado: 7 horas
-Descripción: Estuve haciendo el sistema de INFO-Personal para poder mejorar
-la distribución de costos de Operario.

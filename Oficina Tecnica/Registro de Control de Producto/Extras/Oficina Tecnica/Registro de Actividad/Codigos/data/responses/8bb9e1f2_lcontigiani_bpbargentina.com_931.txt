@@ -1,7 +1,0 @@
-Proyecto: Prueba 16
-Tiempo destinado: 1 horas
-Descripción:
-
-Proyecto: Otros
-Tiempo destinado: 1 hora
-Descripción: hola
