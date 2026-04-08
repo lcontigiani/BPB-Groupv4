@@ -28818,55 +28818,206 @@ function showLogisticsRecords() {
     if (recordsView) {
         recordsView.style.display = 'block';
         recordsView.classList.add('animate-entry');
-
-        // Load data
+        setLogisticsRecordsFolderView(currentLogisticsRecordsFolderView || '');
         loadLogisticsRecords();
     }
+}
+
+function formatLogisticsRecordDateTime(rawDate) {
+    return formatCotizacionRecordDateTime(rawDate);
+}
+
+function normalizeLogisticsFolderName(name) {
+    return normalizeCotizacionFolderName(name);
+}
+
+function setLogisticsRecordsFolderView(folderName = '') {
+    currentLogisticsRecordsFolderView = String(folderName || '').trim();
+
+    const foldersView = document.getElementById('logistics-records-folders-view');
+    const tableView = document.getElementById('logistics-records-table-view');
+    const search = document.getElementById('logistics-records-search');
+    const moveBtn = document.getElementById('logistics-records-move-btn');
+    const rootCrumb = document.getElementById('logistics-records-root-crumb');
+    const folderTail = document.getElementById('logistics-records-folder-tail');
+    const folderCrumb = document.getElementById('logistics-records-folder-crumb');
+    const createFolderBtn = document.getElementById('logistics-records-create-folder-btn');
+    const inFolder = !!currentLogisticsRecordsFolderView;
+
+    if (foldersView) foldersView.style.display = inFolder ? 'none' : '';
+    if (tableView) tableView.style.display = inFolder ? '' : 'none';
+    if (search instanceof HTMLInputElement) {
+        search.style.display = inFolder ? '' : 'none';
+        if (!inFolder) search.value = '';
+    }
+    if (moveBtn instanceof HTMLElement) moveBtn.style.display = inFolder ? '' : 'none';
+    if (createFolderBtn instanceof HTMLElement) createFolderBtn.style.display = inFolder ? 'none' : '';
+    if (rootCrumb instanceof HTMLElement) rootCrumb.style.color = inFolder ? 'var(--text-secondary)' : 'var(--text-primary)';
+    if (folderTail instanceof HTMLElement) folderTail.style.display = inFolder ? '' : 'none';
+    if (folderCrumb instanceof HTMLElement) {
+        folderCrumb.textContent = inFolder ? currentLogisticsRecordsFolderView : '';
+        folderCrumb.style.display = inFolder ? '' : 'none';
+    }
+
+    if (!inFolder) {
+        window._logisticsMoveMode = false;
+        refreshLogisticsMoveModeUI();
+    }
+}
+
+function refreshLogisticsMoveModeUI() {
+    const moveBtn = document.getElementById('logistics-records-move-btn');
+    if (!(moveBtn instanceof HTMLButtonElement)) return;
+    moveBtn.classList.toggle('cotizacion-delete-btn-armed', !!window._logisticsMoveMode);
+    moveBtn.textContent = 'Mover';
+}
+
+function toggleLogisticsMoveMode() {
+    window._logisticsMoveMode = !window._logisticsMoveMode;
+    refreshLogisticsMoveModeUI();
+    loadLogisticsRecords();
+}
+
+function renderLogisticsFolderOptions(selectEl, selectedFolder = 'Sin Carpeta') {
+    if (!(selectEl instanceof HTMLSelectElement)) return;
+    const folders = Array.isArray(lastLogisticsFolders) && lastLogisticsFolders.length
+        ? lastLogisticsFolders.map((folder) => normalizeLogisticsFolderName(folder))
+        : ['Sin Carpeta'];
+    const uniqueFolders = Array.from(new Set(folders));
+    const safeSelected = normalizeLogisticsFolderName(selectedFolder);
+    selectEl.innerHTML = uniqueFolders.map((folder) => (
+        `<option value="${escapeCotizacionHTML(folder)}" ${folder === safeSelected ? 'selected' : ''}>${escapeCotizacionHTML(folder)}</option>`
+    )).join('');
+}
+
+function renderLogisticsFolderGrid() {
+    const grid = document.getElementById('logistics-records-folders-grid');
+    if (!(grid instanceof HTMLElement)) return;
+
+    const folders = Array.isArray(lastLogisticsFolders) && lastLogisticsFolders.length ? lastLogisticsFolders : ['Sin Carpeta'];
+    const records = Array.isArray(lastLogisticsRecords) ? lastLogisticsRecords : [];
+    grid.innerHTML = '';
+
+    folders.forEach((folderName) => {
+        const safeFolder = normalizeLogisticsFolderName(folderName);
+        const count = records.filter((rec) => normalizeLogisticsFolderName(rec?.folder) === safeFolder).length;
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'btn iso-folder-btn cotizacion-folder-btn';
+        button.innerHTML = `
+            <div class="cotizacion-folder-btn-name">${escapeCotizacionHTML(safeFolder)}</div>
+            <div class="cotizacion-folder-btn-count">${count} calculo${count === 1 ? '' : 's'} interno${count === 1 ? '' : 's'}</div>
+        `;
+        button.onclick = () => openLogisticsRecordsFolder(safeFolder);
+        grid.appendChild(button);
+    });
+}
+
+function showLogisticsRecordsFolderHome() {
+    currentLogisticsFolder = 'Sin Carpeta';
+    currentLogisticsRecordsFolderView = '';
+    setLogisticsRecordsFolderView('');
+    renderLogisticsFolderGrid();
+}
+
+function openLogisticsRecordsFolder(folderName) {
+    currentLogisticsRecordsFolderView = normalizeLogisticsFolderName(folderName);
+    currentLogisticsFolder = currentLogisticsRecordsFolderView;
+    setLogisticsRecordsFolderView(currentLogisticsRecordsFolderView);
+    loadLogisticsRecords();
+}
+
+function handleLogisticsRecordsBack() {
+    if (currentLogisticsRecordsFolderView) {
+        showLogisticsRecordsFolderHome();
+        return;
+    }
+    showLogisticsView();
 }
 
 async function loadLogisticsRecords() {
     const tbody = document.getElementById('logistics-records-body');
     if (!tbody) return;
 
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Cargando registros...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">Cargando registros...</td></tr>';
 
     try {
         const response = await fetch('/api/logistics/records');
         const data = await response.json();
-
-        if (Array.isArray(data)) {
-            if (data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No hay registros guardados.</td></tr>';
-                return;
-            }
-
-            // Global cache for easy retrieval
-            window.lastLogisticsRecords = data;
-
-            tbody.innerHTML = '';
-            data.forEach(rec => {
-                const dateStr = rec.timestamp ? new Date(rec.timestamp).toLocaleDateString() : 'N/A';
-                const recId = rec.id || '';
-                const safeName = (rec.save_name || 'Sin título').replace(/'/g, "\\'");
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td style="font-weight: 600;">${rec.save_name || 'Sin título'}</td>
-                    <td style="color: var(--text-secondary);">${rec.save_description || '-'}</td>
-                    <td>${rec.author || 'Sistema'}</td>
-                    <td style="font-size: 0.85rem;">${dateStr}</td>
-                    <td style="text-align: center;">
-                        <button class="btn btn-sm btn-primary" onclick="viewLogisticsRecord('${recId}')">Ver Cálculo</button>
-                    </td>
-                    <td style="text-align: center;">
-                        ${recId ? `<button class="btn-cancel-check" onclick="confirmDeleteLogisticsRecord('${recId}', '${safeName}')" title="Eliminar">&times;</button>` : '<span style="color:#777;">-</span>'}
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
+        if (!response.ok || data?.status !== 'success') {
+            throw new Error(data?.message || 'No se pudieron cargar los registros.');
         }
+
+        lastLogisticsFolders = (Array.isArray(data?.folders) ? data.folders : ['Sin Carpeta']).map((folder) => normalizeLogisticsFolderName(folder));
+        window.lastLogisticsFolders = lastLogisticsFolders;
+        lastLogisticsRecords = (Array.isArray(data?.records) ? data.records : []).map((record) => ({
+            ...record,
+            folder: normalizeLogisticsFolderName(record?.folder)
+        }));
+        window.lastLogisticsRecords = lastLogisticsRecords;
+
+        if (!lastLogisticsRecords.length) {
+            renderLogisticsFolderGrid();
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">No hay registros guardados.</td></tr>';
+            return;
+        }
+
+        renderLogisticsFolderGrid();
+
+        const filteredRecords = currentLogisticsRecordsFolderView
+            ? lastLogisticsRecords.filter((rec) => normalizeLogisticsFolderName(rec?.folder) === currentLogisticsRecordsFolderView)
+            : [];
+
+        if (!currentLogisticsRecordsFolderView) {
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">Seleccione una carpeta.</td></tr>';
+            return;
+        }
+
+        if (!filteredRecords.length) {
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">No hay registros en esta carpeta.</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = '';
+        filteredRecords.forEach((rec) => {
+            const modifiedDateStr = formatLogisticsRecordDateTime(rec.modified_at);
+            const createdDateStr = formatLogisticsRecordDateTime(rec.created_at);
+            const recId = String(rec.id || '').trim();
+            const safeName = String(rec.save_name || 'Sin título').replace(/'/g, "\\'");
+            const tr = document.createElement('tr');
+            if (window._logisticsMoveMode && recId) {
+                tr.classList.add('cotizacion-records-move-armed-row');
+            }
+            tr.innerHTML = `
+                <td style="font-weight: 600;">${escapeCotizacionHTML(rec.save_name || 'Sin título')}</td>
+                <td style="color: var(--text-secondary);">${escapeCotizacionHTML(rec.save_description || '-')}</td>
+                <td>${escapeCotizacionHTML(rec.author || 'Sistema')}</td>
+                <td style="font-size: 0.85rem;">${escapeCotizacionHTML(modifiedDateStr)}</td>
+                <td style="font-size: 0.85rem;">${escapeCotizacionHTML(createdDateStr)}</td>
+                <td style="text-align: center;">
+                    <button class="btn btn-sm btn-primary" onclick="viewLogisticsRecordLatest('${recId}')">Ver</button>
+                </td>
+                <td style="text-align: center;">
+                    <button class="btn btn-sm" onclick="openLogisticsHistoryModal('${recId}')">Historial</button>
+                </td>
+                <td style="text-align: center;">
+                    ${recId ? `<button class="btn-cancel-check" onclick="confirmDeleteLogisticsRecord('${recId}', '${safeName}')" title="Eliminar">&times;</button>` : '<span style="color:#777;">-</span>'}
+                </td>
+            `;
+            if (window._logisticsMoveMode && recId) {
+                tr.addEventListener('click', (event) => {
+                    const target = event.target;
+                    if (target instanceof Element && target.closest('button, input, select, textarea, a, label')) {
+                        return;
+                    }
+                    openLogisticsMoveFolderModal(recId, rec.save_name || 'Sin titulo', normalizeLogisticsFolderName(rec.folder));
+                });
+            }
+            tbody.appendChild(tr);
+        });
     } catch (e) {
         console.error(e);
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color: var(--bpb-blue);">Error al cargar registros.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color: var(--bpb-blue);">Error al cargar registros.</td></tr>';
     }
 }
 
@@ -28880,18 +29031,196 @@ function filterLogisticsRecordsTable(input) {
     });
 }
 
-function viewLogisticsRecord(id) {
-    if (!window.lastLogisticsRecords) return;
-    const rec = window.lastLogisticsRecords.find(r => r.id === id);
-    if (!rec) return;
+async function openLogisticsCreateFolderPrompt() {
+    const modal = document.getElementById('logistics-folder-modal');
+    const input = document.getElementById('logistics-folder-name');
+    const error = document.getElementById('logistics-folder-modal-error');
+    if (!(modal instanceof HTMLElement) || !(input instanceof HTMLInputElement)) return;
+    if (error instanceof HTMLElement) {
+        error.style.display = 'none';
+        error.textContent = '';
+    }
+    input.value = '';
+    modal.style.display = 'flex';
+    requestAnimationFrame(() => {
+        input.focus();
+        input.setSelectionRange(input.value.length, input.value.length);
+    });
+}
 
-    // 1. Show Calculator
+function closeLogisticsFolderModal() {
+    const modal = document.getElementById('logistics-folder-modal');
+    const input = document.getElementById('logistics-folder-name');
+    const error = document.getElementById('logistics-folder-modal-error');
+    if (modal instanceof HTMLElement) modal.style.display = 'none';
+    if (input instanceof HTMLInputElement) input.value = '';
+    if (error instanceof HTMLElement) {
+        error.style.display = 'none';
+        error.textContent = '';
+    }
+}
+
+async function confirmCreateLogisticsFolder() {
+    const input = document.getElementById('logistics-folder-name');
+    const error = document.getElementById('logistics-folder-modal-error');
+    const rawFolderName = input instanceof HTMLInputElement ? input.value : '';
+    const folderName = normalizeLogisticsFolderName(rawFolderName);
+
+    if (!String(rawFolderName || '').trim()) {
+        if (error instanceof HTMLElement) {
+            error.textContent = 'Ingrese un nombre para la carpeta.';
+            error.style.display = 'block';
+        }
+        return;
+    }
+    if (folderName === 'Sin Carpeta') {
+        if (error instanceof HTMLElement) {
+            error.textContent = '"Sin Carpeta" ya existe.';
+            error.style.display = 'block';
+        }
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/logistics/folders', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: folderName })
+        });
+        const data = await response.json();
+        if (!response.ok || data.status !== 'success') {
+            if (error instanceof HTMLElement) {
+                error.textContent = data.message || 'No se pudo crear la carpeta.';
+                error.style.display = 'block';
+            }
+            return;
+        }
+        closeLogisticsFolderModal();
+        showNotification(`Carpeta "${folderName}" creada.`, 'success');
+        loadLogisticsRecords();
+    } catch (err) {
+        console.error(err);
+        if (error instanceof HTMLElement) {
+            error.textContent = 'Error de conexión al crear la carpeta.';
+            error.style.display = 'block';
+        }
+    }
+}
+
+function openLogisticsMoveFolderModal(recordId, recordName, currentFolderName) {
+    const modal = document.getElementById('logistics-move-folder-modal');
+    const select = document.getElementById('logistics-move-folder-select');
+    const subtitle = document.getElementById('logistics-move-folder-subtitle');
+    const error = document.getElementById('logistics-move-folder-modal-error');
+    if (!(modal instanceof HTMLElement) || !(select instanceof HTMLSelectElement)) return;
+
+    modal.dataset.recordId = String(recordId || '').trim();
+    modal.dataset.recordName = String(recordName || '').trim();
+    renderLogisticsFolderOptions(select, currentFolderName);
+    if (subtitle instanceof HTMLElement) subtitle.textContent = recordName ? `Registro: ${recordName}` : 'Seleccione la carpeta de destino.';
+    if (error instanceof HTMLElement) {
+        error.style.display = 'none';
+        error.textContent = '';
+    }
+    modal.style.display = 'flex';
+    requestAnimationFrame(() => select.focus());
+}
+
+function closeLogisticsMoveFolderModal() {
+    const modal = document.getElementById('logistics-move-folder-modal');
+    const select = document.getElementById('logistics-move-folder-select');
+    const subtitle = document.getElementById('logistics-move-folder-subtitle');
+    const error = document.getElementById('logistics-move-folder-modal-error');
+    if (modal instanceof HTMLElement) {
+        modal.style.display = 'none';
+        modal.dataset.recordId = '';
+        modal.dataset.recordName = '';
+    }
+    if (select instanceof HTMLSelectElement) select.innerHTML = '';
+    if (subtitle instanceof HTMLElement) subtitle.textContent = '';
+    if (error instanceof HTMLElement) {
+        error.style.display = 'none';
+        error.textContent = '';
+    }
+}
+
+async function confirmMoveLogisticsFolder() {
+    const modal = document.getElementById('logistics-move-folder-modal');
+    const select = document.getElementById('logistics-move-folder-select');
+    const error = document.getElementById('logistics-move-folder-modal-error');
+    const recId = String(modal?.dataset.recordId || '').trim();
+    const folder = normalizeLogisticsFolderName(select?.value || '');
+
+    if (!recId) {
+        closeLogisticsMoveFolderModal();
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/logistics/move-folder', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: recId, folder })
+        });
+        const data = await response.json();
+        if (!response.ok || data.status !== 'success') {
+            if (error instanceof HTMLElement) {
+                error.textContent = data.message || 'No se pudo mover el cálculo.';
+                error.style.display = 'block';
+            }
+            return;
+        }
+
+        const name = String(modal?.dataset.recordName || '').trim();
+        closeLogisticsMoveFolderModal();
+        showNotification(`Cálculo "${name || recId}" movido a "${folder}".`, 'success');
+        loadLogisticsRecords();
+    } catch (err) {
+        console.error(err);
+        if (error instanceof HTMLElement) {
+            error.textContent = 'Error de conexión al mover el cálculo.';
+            error.style.display = 'block';
+        }
+    }
+}
+
+async function fetchLogisticsVersionRecord(id, options = {}) {
+    const recId = String(id || '').trim();
+    if (!recId) return null;
+
+    const params = new URLSearchParams({ id: recId });
+    if (options.latest) {
+        params.set('latest', '1');
+    } else if (Number.isFinite(Number(options.version))) {
+        params.set('version', String(parseInt(options.version, 10)));
+    } else if (options.version_id) {
+        params.set('version_id', String(options.version_id));
+    }
+
+    try {
+        const response = await fetch(`/api/logistics/version?${params.toString()}`);
+        const data = await response.json();
+        if (!response.ok || data.status !== 'success' || !data.record) {
+            showNotification(data.message || 'No se pudo abrir el cálculo.', 'error');
+            return null;
+        }
+        return data.record;
+    } catch (e) {
+        console.error(e);
+        showNotification('Error de conexión al abrir el cálculo.', 'error');
+        return null;
+    }
+}
+
+function restoreLogisticsRecordInCalculator(rec) {
+    if (!rec || typeof rec !== 'object') return;
+
     showLogisticsCalculator();
     window._logisticsFromRecords = true;
     window._currentLogisticsRecord = rec;
+    currentLogisticsFolder = normalizeLogisticsFolderName(rec.folder);
     setLogisticsPrintButtonVisibility(true);
 
-    // 2. Set Inputs
     if (rec.container) {
         document.getElementById('logistics-container-type').value = rec.container.type;
         document.getElementById('cont-l').value = rec.container.l;
@@ -29068,7 +29397,113 @@ function viewLogisticsRecord(id) {
     // 4. Trigger standard recalculate to show 3D and Summary
     calculateLogistics(false);
 
-    showNotification(`Cálculo "${rec.save_name}" restaurado.`, "success");
+    const versionSuffix = Number.isFinite(Number(rec.version_number)) ? ` (v${parseInt(rec.version_number, 10)})` : '';
+    showNotification(`Cálculo "${rec.save_name}"${versionSuffix} restaurado.`, "success");
+}
+
+async function viewLogisticsRecordLatest(id) {
+    const rec = await fetchLogisticsVersionRecord(id, { latest: true });
+    if (!rec) return;
+    restoreLogisticsRecordInCalculator(rec);
+}
+
+async function viewLogisticsRecordVersion(id, versionNumber) {
+    const rec = await fetchLogisticsVersionRecord(id, { version: versionNumber });
+    if (!rec) return;
+    restoreLogisticsRecordInCalculator(rec);
+}
+
+async function viewLogisticsRecord(id) {
+    await viewLogisticsRecordLatest(id);
+}
+
+async function openLogisticsHistoryModal(id) {
+    const recId = String(id || '').trim();
+    if (!recId) return;
+
+    const modal = document.getElementById('logistics-history-modal');
+    const list = document.getElementById('logistics-history-list');
+    const subtitle = document.getElementById('logistics-history-subtitle');
+    if (!modal || !(list instanceof HTMLSelectElement)) return;
+
+    window._logisticsHistoryRecordId = recId;
+    window._logisticsHistoryVersions = [];
+
+    const rec = (window.lastLogisticsRecords || lastLogisticsRecords || []).find((item) => String(item?.id || '') === recId);
+    if (subtitle instanceof HTMLElement) {
+        subtitle.textContent = rec?.save_name ? `Registro: ${rec.save_name}` : 'Seleccione una versión para abrir';
+    }
+
+    list.innerHTML = '<option value="">Cargando versiones...</option>';
+    modal.style.display = 'flex';
+
+    try {
+        const response = await fetch(`/api/logistics/history?id=${encodeURIComponent(recId)}`);
+        const data = await response.json();
+        if (!response.ok || data.status !== 'success') {
+            list.innerHTML = '<option value="">No se pudo cargar el historial</option>';
+            showNotification(data.message || 'No se pudo cargar el historial.', 'error');
+            return;
+        }
+
+        const versions = Array.isArray(data.versions) ? data.versions : [];
+        window._logisticsHistoryVersions = versions;
+        if (!versions.length) {
+            list.innerHTML = '<option value="">Sin versiones disponibles</option>';
+            return;
+        }
+
+        list.innerHTML = '';
+        versions.forEach((version, idx) => {
+            const option = document.createElement('option');
+            option.value = String(version.version_number || '');
+            option.dataset.versionId = String(version.version_id || '');
+            option.textContent = String(version.history_label || '').trim() || `v${parseInt(version.version_number || 1, 10)}`;
+            if (idx === 0) option.selected = true;
+            list.appendChild(option);
+        });
+    } catch (e) {
+        console.error(e);
+        list.innerHTML = '<option value="">Error de conexión</option>';
+        showNotification('Error de conexión al cargar historial.', 'error');
+    }
+}
+
+function closeLogisticsHistoryModal() {
+    const modal = document.getElementById('logistics-history-modal');
+    if (modal) modal.style.display = 'none';
+
+    const list = document.getElementById('logistics-history-list');
+    if (list instanceof HTMLSelectElement) list.innerHTML = '';
+
+    const subtitle = document.getElementById('logistics-history-subtitle');
+    if (subtitle instanceof HTMLElement) subtitle.textContent = '';
+
+    window._logisticsHistoryRecordId = null;
+    window._logisticsHistoryVersions = [];
+}
+
+async function confirmOpenLogisticsHistoryVersion() {
+    const recId = String(window._logisticsHistoryRecordId || '').trim();
+    if (!recId) {
+        closeLogisticsHistoryModal();
+        return;
+    }
+
+    const list = document.getElementById('logistics-history-list');
+    if (!(list instanceof HTMLSelectElement) || list.selectedIndex < 0) {
+        showNotification('Seleccione una versión.', 'warning');
+        return;
+    }
+
+    const selectedOption = list.options[list.selectedIndex];
+    const versionId = String(selectedOption?.dataset.versionId || '').trim();
+    const versionNumber = parseInt(selectedOption?.value || '0', 10);
+    closeLogisticsHistoryModal();
+
+    const rec = await fetchLogisticsVersionRecord(recId, versionId ? { version_id: versionId } : { version: versionNumber });
+    if (!rec) return;
+    restoreLogisticsRecordInCalculator(rec);
 }
 
 function logisticsBack() {
@@ -30018,6 +30453,11 @@ let lastLogisticsData = null;
 let lastContainerData = null;
 let lastLogisticsMaximize = false;
 let logisticsProgressTimer = null;
+let lastLogisticsRecords = [];
+let lastLogisticsFolders = ['Sin Carpeta'];
+let currentLogisticsFolder = 'Sin Carpeta';
+let currentLogisticsRecordsFolderView = '';
+window._logisticsMoveMode = false;
 
 function startLogisticsProgress() {
     const wrapper = document.getElementById('logistics-progress-wrapper');
@@ -30329,18 +30769,33 @@ function openLogisticsSaveModal() {
         return;
     }
     document.getElementById('logistics-save-modal').style.display = 'flex';
-    document.getElementById('logistics-save-name').focus();
+    const nameInput = document.getElementById('logistics-save-name');
+    const descInput = document.getElementById('logistics-save-desc');
+    const folderSelect = document.getElementById('logistics-save-folder');
+    const currentRecord = window._currentLogisticsRecord || null;
+
+    if (nameInput instanceof HTMLInputElement) {
+        nameInput.value = String(currentRecord?.save_name || '').trim();
+        nameInput.focus();
+    }
+    if (descInput instanceof HTMLTextAreaElement) {
+        descInput.value = String(currentRecord?.save_description || '').trim();
+    }
+    renderLogisticsFolderOptions(folderSelect, currentRecord?.folder || currentLogisticsFolder || 'Sin Carpeta');
 }
 
 function closeLogisticsSaveModal() {
     document.getElementById('logistics-save-modal').style.display = 'none';
     document.getElementById('logistics-save-name').value = '';
     document.getElementById('logistics-save-desc').value = '';
+    const folderSelect = document.getElementById('logistics-save-folder');
+    if (folderSelect instanceof HTMLSelectElement) folderSelect.innerHTML = '';
 }
 
 async function confirmSaveLogistics() {
     const name = document.getElementById('logistics-save-name').value.trim();
     const desc = document.getElementById('logistics-save-desc').value.trim();
+    const folder = normalizeLogisticsFolderName(document.getElementById('logistics-save-folder')?.value || currentLogisticsFolder || 'Sin Carpeta');
 
     if (!name) {
         showNotification("Por favor, ingrese un nombre para el registro.", "warning");
@@ -30356,9 +30811,20 @@ async function confirmSaveLogistics() {
     const maximizeFlag = inferredMaximize ? true : ((typeof lastLogisticsMaximize !== 'undefined') ? lastLogisticsMaximize : false);
 
     const config = {
+        id: window._currentLogisticsRecord?.id || undefined,
+        folder,
         save_name: name,
         save_description: desc,
         timestamp: new Date().toISOString(),
+        timestamp_display: new Date().toLocaleString('es-AR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false
+        }),
         author: currentDisplayName || currentUser || 'Usuario',
 
         container: {
@@ -30431,7 +30897,8 @@ async function confirmSaveLogistics() {
         });
         const data = await response.json();
         if (data.status === 'success') {
-            showNotification("Cálculo guardado exitosamente.", "success");
+            currentLogisticsFolder = normalizeLogisticsFolderName(data.folder || folder);
+            showNotification(`Cálculo guardado exitosamente como v${data.version_number || 1}.`, "success");
             closeLogisticsSaveModal();
         } else {
             showNotification("Error al guardar: " + data.message, "error");
@@ -31646,10 +32113,3 @@ async function confirmIsoCorrectiveAction() {
         if (typeof showNotification === 'function') showNotification('Error desaprobando el evento.', 'error');
     }
 }
-
-
-
-
-
-
-

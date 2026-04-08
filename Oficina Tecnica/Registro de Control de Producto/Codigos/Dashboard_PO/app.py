@@ -25,6 +25,8 @@ import tempfile
 from pathlib import Path
 
 from io import StringIO
+import hashlib
+import hmac
 
 from werkzeug.utils import secure_filename
 
@@ -47,6 +49,45 @@ from email.mime.multipart import MIMEMultipart
 # Logistics Solver Import
 from logistics_solver import Packer, Bin, Item, RotationType
 from chatbot_bridge import build_chatbot_response
+
+PBKDF2_METHOD = 'pbkdf2:sha256:600000'
+
+
+def _has_native_scrypt():
+    return hasattr(hashlib, 'scrypt')
+
+
+def _generate_password_hash_compatible(password):
+    method = 'scrypt' if _has_native_scrypt() else PBKDF2_METHOD
+    return generate_password_hash(password, method=method)
+
+
+def _check_password_hash_compatible(stored_hash, password):
+    if not stored_hash:
+        return False
+
+    try:
+        return check_password_hash(stored_hash, password)
+    except AttributeError:
+        if not str(stored_hash).startswith('scrypt:'):
+            raise
+
+        try:
+            import pyscrypt
+
+            method, salt, digest = str(stored_hash).split('$', 2)
+            _, n_str, r_str, p_str = method.split(':', 3)
+            derived = pyscrypt.hash(
+                password.encode('utf-8'),
+                salt.encode('utf-8'),
+                N=int(n_str),
+                r=int(r_str),
+                p=int(p_str),
+                dkLen=len(digest) // 2,
+            )
+            return hmac.compare_digest(derived.hex(), digest)
+        except Exception:
+            raise
 
 JSON_IO_LOCKS = {}
 JSON_IO_LOCKS_GUARD = threading.Lock()
@@ -1315,6 +1356,7 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 SCRIPT_DIR_PATH = Path(SCRIPT_DIR)
 LOGISTICS_RECORDS_FILE = os.path.join(SCRIPT_DIR, 'logistics_records.json')
 COTIZACION_RECORDS_FILE = os.path.join(SCRIPT_DIR, 'cotizacion_records.json')
+LOGISTICS_DEFAULT_FOLDER = 'Sin Carpeta'
 COTIZACION_DEFAULT_FOLDER = 'Sin Carpeta'
 
 # Initialize Flask with explicit folder paths
@@ -1675,6 +1717,308 @@ def _extract_flask_json_response(resp):
         payload = None
     return payload, status_code
 
+
+def _logistics_now_iso():
+    return datetime.utcnow().isoformat() + 'Z'
+
+
+def _logistics_safe_timestamp(raw_value):
+    value = str(raw_value or '').strip()
+    if value:
+        return value
+    return _logistics_now_iso()
+
+
+def _normalize_logistics_folder_name(raw_folder):
+    folder = str(raw_folder or '').strip()
+    return folder or LOGISTICS_DEFAULT_FOLDER
+
+
+def _clean_logistics_items(raw_items):
+    clean = []
+    if not isinstance(raw_items, list):
+        return clean
+    for it in raw_items:
+        if not isinstance(it, dict):
+            continue
+        clean.append({
+            'name': it.get('name', ''),
+            'l': it.get('l', 0),
+            'w': it.get('w', 0),
+            'h': it.get('h', 0),
+            'weight': it.get('weight', 0),
+            'qty': it.get('qty', 0),
+            'rel_qty': it.get('rel_qty', 0)
+        })
+    return clean
+
+
+def _format_logistics_timestamp_display(raw_timestamp, fallback=''):
+    text = str(raw_timestamp or '').strip()
+    if not text:
+        return str(fallback or '').strip()
+    try:
+        parsed = datetime.fromisoformat(text.replace('Z', '+00:00'))
+        return parsed.strftime('%d/%m/%Y, %H:%M:%S')
+    except Exception:
+        return text
+
+
+def _get_logistics_largest_unit_label(source):
+    data = source if isinstance(source, dict) else {}
+    container = data.get('container', {}) if isinstance(data.get('container', {}), dict) else {}
+    pallet = data.get('pallet', {}) if isinstance(data.get('pallet', {}), dict) else {}
+    load = data.get('load', {}) if isinstance(data.get('load', {}), dict) else {}
+
+    container_type = str(container.get('type') or '').strip().lower()
+    pallet_type = str(pallet.get('type') or '').strip().lower()
+    load_type = str(load.get('type') or '').strip().lower()
+
+    if container_type and container_type != 'none':
+        return 'Contenedor'
+    if pallet_type and pallet_type != 'none':
+        return 'Pallet'
+    if load_type and load_type != 'loose':
+        return 'Bandeja'
+    return 'Piezas Sueltas'
+
+
+def _build_logistics_history_label(version):
+    data = version if isinstance(version, dict) else {}
+    version_number = int(data.get('version_number') or 1)
+    timestamp_display = str(data.get('timestamp_display') or '').strip()
+    if not timestamp_display:
+        timestamp_display = _format_logistics_timestamp_display(data.get('timestamp'))
+    author = str(data.get('author') or 'Usuario').strip() or 'Usuario'
+    largest_label = str(data.get('largest_unit_label') or _get_logistics_largest_unit_label(data)).strip() or 'Piezas Sueltas'
+    return f"v{version_number} - {timestamp_display} - {author} - {largest_label}"
+
+
+def _build_logistics_version_snapshot(source, version_number=1):
+    data = source if isinstance(source, dict) else {}
+    timestamp = _logistics_safe_timestamp(data.get('timestamp'))
+    timestamp_display = str(data.get('timestamp_display') or '').strip() or _format_logistics_timestamp_display(timestamp)
+    snapshot = {
+        'version_id': str(data.get('version_id') or uuid.uuid4()),
+        'version_number': int(data.get('version_number') or version_number or 1),
+        'timestamp': timestamp,
+        'timestamp_display': timestamp_display,
+        'save_name': str(data.get('save_name') or '').strip(),
+        'save_description': str(data.get('save_description') or '').strip(),
+        'author': str(data.get('author') or 'Usuario').strip() or 'Usuario',
+        'container': {
+            'type': data.get('container', {}).get('type'),
+            'l': data.get('container', {}).get('l', 0),
+            'w': data.get('container', {}).get('w', 0),
+            'h': data.get('container', {}).get('h', 0),
+            'weight': data.get('container', {}).get('weight', 0)
+        },
+        'load': {
+            'type': data.get('load', {}).get('type', 'loose'),
+            'tray_inner_l': data.get('load', {}).get('tray_inner_l', 0),
+            'tray_inner_w': data.get('load', {}).get('tray_inner_w', 0),
+            'tray_inner_h': data.get('load', {}).get('tray_inner_h', 0),
+            'tray_outer_l': data.get('load', {}).get('tray_outer_l', 0),
+            'tray_outer_w': data.get('load', {}).get('tray_outer_w', 0),
+            'tray_outer_h': data.get('load', {}).get('tray_outer_h', 0),
+            'tray_weight': data.get('load', {}).get('tray_weight', 0),
+            'tray_max_weight': data.get('load', {}).get('tray_max_weight', 25)
+        },
+        'pallet': {
+            'type': data.get('pallet', {}).get('type'),
+            'boards': data.get('pallet', {}).get('boards', 0),
+            'l': data.get('pallet', {}).get('l', 0),
+            'w': data.get('pallet', {}).get('w', 0),
+            'h': data.get('pallet', {}).get('h', 0),
+            'weight': data.get('pallet', {}).get('weight', 0),
+            'max_weight': data.get('pallet', {}).get('max_weight', 0),
+            'limit_height': data.get('pallet', {}).get('limit_height', False),
+            'max_height': data.get('pallet', {}).get('max_height', 0)
+        },
+        'optimization': {
+            'maximize': data.get('optimization', {}).get('maximize', False),
+            'mixed_trays': data.get('optimization', {}).get('mixed_trays', True),
+            'mixed_pallets': data.get('optimization', {}).get('mixed_pallets', True),
+            'stack_load': data.get('optimization', {}).get('stack_load', True),
+            'stack_trays': data.get('optimization', {}).get('stack_trays', True),
+            'stack_collars': data.get('optimization', {}).get('stack_collars', True),
+            'force_orientation': data.get('optimization', {}).get('force_orientation', False),
+            'orientation_face': data.get('optimization', {}).get('orientation_face', 'LxA'),
+            'mixed_containers': data.get('optimization', {}).get('mixed_containers', True),
+            'sort_items': data.get('optimization', {}).get('sort_items', True),
+            'visual_only': data.get('optimization', {}).get('visual_only', False)
+        },
+        'safety_factors': {
+            'dims': data.get('safety_factors', {}).get('dims', data.get('safety_factor_dims', 0)),
+            'weight': data.get('safety_factors', {}).get('weight', data.get('safety_factor_weight', 0))
+        },
+        'items': _clean_logistics_items(data.get('items', []))
+    }
+    snapshot['largest_unit_label'] = _get_logistics_largest_unit_label(snapshot)
+    snapshot['history_label'] = _build_logistics_history_label(snapshot)
+    return snapshot
+
+
+def _normalize_logistics_group(raw_group):
+    if not isinstance(raw_group, dict):
+        return None
+
+    group_id = str(raw_group.get('id') or uuid.uuid4())
+    raw_versions = raw_group.get('versions')
+
+    if isinstance(raw_versions, list):
+        versions = []
+        fallback_counter = 1
+        for raw_version in raw_versions:
+            if not isinstance(raw_version, dict):
+                continue
+            versions.append(_build_logistics_version_snapshot(
+                raw_version,
+                version_number=raw_version.get('version_number') or fallback_counter
+            ))
+            fallback_counter += 1
+        if not versions:
+            versions = [_build_logistics_version_snapshot(raw_group, version_number=1)]
+    else:
+        versions = [_build_logistics_version_snapshot(raw_group, version_number=1)]
+
+    versions.sort(key=lambda v: (int(v.get('version_number') or 0), v.get('timestamp', '')))
+    latest = versions[-1]
+
+    return {
+        'id': group_id,
+        'folder': _normalize_logistics_folder_name(raw_group.get('folder')),
+        'created_at': _logistics_safe_timestamp(raw_group.get('created_at') or versions[0].get('timestamp')),
+        'updated_at': _logistics_safe_timestamp(raw_group.get('updated_at') or latest.get('timestamp')),
+        'latest_version': int(latest.get('version_number') or len(versions) or 1),
+        'save_name': latest.get('save_name', ''),
+        'save_description': latest.get('save_description', ''),
+        'author': latest.get('author', 'Usuario'),
+        'versions': versions
+    }
+
+
+def _merge_logistics_groups(groups):
+    merged = {}
+    for group in groups if isinstance(groups, list) else []:
+        normalized = _normalize_logistics_group(group)
+        if not normalized:
+            continue
+        gid = str(normalized.get('id') or '')
+        if not gid:
+            continue
+        existing = merged.get(gid)
+        if not existing:
+            merged[gid] = normalized
+            continue
+
+        combined_versions = []
+        seen = set()
+        for source in [existing, normalized]:
+            for version in source.get('versions', []):
+                version_id = str(version.get('version_id') or '')
+                key = version_id or f"{version.get('version_number')}|{version.get('timestamp')}"
+                if key in seen:
+                    continue
+                seen.add(key)
+                combined_versions.append(version)
+
+        existing['versions'] = combined_versions
+        existing['folder'] = _normalize_logistics_folder_name(normalized.get('folder') or existing.get('folder'))
+        merged[gid] = _normalize_logistics_group(existing)
+
+    merged_list = [group for group in merged.values() if isinstance(group, dict)]
+    merged_list.sort(key=lambda group: group.get('updated_at', ''), reverse=True)
+    return merged_list
+
+
+def _read_logistics_records_store():
+    empty_store = {'folders': [LOGISTICS_DEFAULT_FOLDER], 'groups': []}
+    if not os.path.exists(LOGISTICS_RECORDS_FILE):
+        return empty_store
+
+    try:
+        with open(LOGISTICS_RECORDS_FILE, 'r', encoding='utf-8') as f:
+            raw_records = json.load(f)
+    except Exception:
+        return empty_store
+
+    if isinstance(raw_records, list):
+        raw_groups = raw_records
+        raw_folders = []
+    elif isinstance(raw_records, dict):
+        raw_groups = raw_records.get('groups', [])
+        raw_folders = raw_records.get('folders', [])
+    else:
+        return empty_store
+
+    groups = _merge_logistics_groups(raw_groups if isinstance(raw_groups, list) else [])
+    folder_set = {LOGISTICS_DEFAULT_FOLDER}
+    if isinstance(raw_folders, list):
+        for folder in raw_folders:
+            folder_set.add(_normalize_logistics_folder_name(folder))
+    for group in groups:
+        folder_set.add(_normalize_logistics_folder_name(group.get('folder')))
+
+    folders = sorted(folder_set, key=lambda name: (name != LOGISTICS_DEFAULT_FOLDER, name.lower()))
+    return {'folders': folders, 'groups': groups}
+
+
+def _read_logistics_record_groups():
+    return _read_logistics_records_store().get('groups', [])
+
+
+def _write_logistics_record_groups(groups):
+    safe_groups = _merge_logistics_groups(groups if isinstance(groups, list) else [])
+    folder_set = {LOGISTICS_DEFAULT_FOLDER}
+    existing_store = _read_logistics_records_store()
+    for folder in existing_store.get('folders', []):
+        folder_set.add(_normalize_logistics_folder_name(folder))
+    for group in safe_groups:
+        folder_set.add(_normalize_logistics_folder_name(group.get('folder')))
+    payload = {
+        'folders': sorted(folder_set, key=lambda name: (name != LOGISTICS_DEFAULT_FOLDER, name.lower())),
+        'groups': safe_groups
+    }
+    _write_json_file_atomic(LOGISTICS_RECORDS_FILE, payload, indent=4, ensure_ascii=False)
+
+
+def _logistics_get_latest_version(group):
+    versions = group.get('versions', []) if isinstance(group, dict) else []
+    if not versions:
+        return None
+    return sorted(versions, key=lambda v: (int(v.get('version_number') or 0), v.get('timestamp', '')))[-1]
+
+
+def _logistics_group_to_summary(group):
+    latest = _logistics_get_latest_version(group) or {}
+    versions = group.get('versions', []) if isinstance(group, dict) else []
+    created_at = group.get('created_at') or latest.get('timestamp') or _logistics_now_iso()
+    modified_at = group.get('updated_at') or latest.get('timestamp') or created_at
+    return {
+        'id': group.get('id', ''),
+        'folder': _normalize_logistics_folder_name(group.get('folder')),
+        'save_name': latest.get('save_name', '') or group.get('save_name', ''),
+        'save_description': latest.get('save_description', '') or group.get('save_description', ''),
+        'author': latest.get('author', 'Usuario') or group.get('author', 'Usuario'),
+        'created_at': created_at,
+        'modified_at': modified_at,
+        'latest_version': int(group.get('latest_version') or latest.get('version_number') or len(versions) or 1),
+        'version_count': len(versions),
+        'latest_history_label': latest.get('history_label', '')
+    }
+
+
+def _logistics_version_to_editor_record(group, version):
+    data = deepcopy(version if isinstance(version, dict) else {})
+    data['id'] = group.get('id', '')
+    data['folder'] = _normalize_logistics_folder_name(group.get('folder'))
+    data['created_at'] = group.get('created_at', '')
+    data['modified_at'] = group.get('updated_at', '')
+    data['latest_version'] = int(group.get('latest_version') or version.get('version_number') or 1)
+    data['version_count'] = len(group.get('versions', [])) if isinstance(group.get('versions', []), list) else 1
+    return data
+
 HISTORIAL_PO_DIR = BASE_DIR / "Auxiliares/Historial PO"
 
 PROFILE_PICS_DIR = BASE_DIR / "Codigos/Usuarios/profile_pics"
@@ -1810,7 +2154,7 @@ def request_reset():
         # Add new token
         tokens[token] = {
             'email': email_addr,
-            'new_password_hash': generate_password_hash(new_password),
+            'new_password_hash': _generate_password_hash_compatible(new_password),
             'timestamp': now
         }
 
@@ -2496,6 +2840,7 @@ def api_create_plm_shortcut():
 @app.route('/api/plm-open-cad', methods=['POST'])
 def api_open_plm_cad():
     try:
+        import sys
         data = request.get_json(silent=True) or {}
         shortcut = data.get('shortcut')
         cad_path = _plm_shortcut_to_local_path(shortcut)
@@ -2508,6 +2853,8 @@ def api_open_plm_cad():
 
         if hasattr(os, 'startfile'):
             os.startfile(cad_path)
+        elif sys.platform == 'darwin':
+            subprocess.Popen(['open', cad_path], shell=False)
         else:
             subprocess.Popen(['xdg-open', cad_path], shell=False)
 
@@ -3173,101 +3520,53 @@ def calculate_logistics():
 @app.route('/api/logistics/save', methods=['POST'])
 def save_logistics_calculation():
     try:
-        data = request.json
-        if not data: return jsonify({'status': 'error', 'message': 'No data received'}), 400
+        data = request.json or {}
+        if not data:
+            return jsonify({'status': 'error', 'message': 'No data received'}), 400
 
-        # Sanitize payload to prevent accidental huge saves (packed_items, kpis, etc.)
-        def _clean_items(raw_items):
-            clean = []
-            if not isinstance(raw_items, list):
-                return clean
-            for it in raw_items:
-                if not isinstance(it, dict):
-                    continue
-                clean.append({
-                    'name': it.get('name', ''),
-                    'l': it.get('l', 0),
-                    'w': it.get('w', 0),
-                    'h': it.get('h', 0),
-                    'weight': it.get('weight', 0),
-                    'qty': it.get('qty', 0),
-                    'rel_qty': it.get('rel_qty', 0)
-                })
-            return clean
+        rec_id = str(data.get('id') or uuid.uuid4())
+        groups = _read_logistics_record_groups()
+        group = next((item for item in groups if str(item.get('id')) == rec_id), None)
+        folder = _normalize_logistics_folder_name(data.get('folder') or (group.get('folder') if group else ''))
 
-        record = {
-            'id': data.get('id') or str(uuid.uuid4()),
-            'save_name': data.get('save_name', ''),
-            'save_description': data.get('save_description', ''),
-            'timestamp': data.get('timestamp', datetime.utcnow().isoformat() + 'Z'),
-            'author': data.get('author', 'Usuario'),
-            'container': {
-                'type': data.get('container', {}).get('type'),
-                'l': data.get('container', {}).get('l', 0),
-                'w': data.get('container', {}).get('w', 0),
-                'h': data.get('container', {}).get('h', 0),
-                'weight': data.get('container', {}).get('weight', 0)
-            },
-            'load': {
-                'type': data.get('load', {}).get('type', 'loose'),
-                'tray_inner_l': data.get('load', {}).get('tray_inner_l', 0),
-                'tray_inner_w': data.get('load', {}).get('tray_inner_w', 0),
-                'tray_inner_h': data.get('load', {}).get('tray_inner_h', 0),
-                'tray_outer_l': data.get('load', {}).get('tray_outer_l', 0),
-                'tray_outer_w': data.get('load', {}).get('tray_outer_w', 0),
-                'tray_outer_h': data.get('load', {}).get('tray_outer_h', 0),
-                'tray_weight': data.get('load', {}).get('tray_weight', 0),
-                'tray_max_weight': data.get('load', {}).get('tray_max_weight', 25)
-            },
-            'pallet': {
-                'type': data.get('pallet', {}).get('type'),
-                'boards': data.get('pallet', {}).get('boards', 0),
-                'l': data.get('pallet', {}).get('l', 0),
-                'w': data.get('pallet', {}).get('w', 0),
-                'h': data.get('pallet', {}).get('h', 0),
-                'weight': data.get('pallet', {}).get('weight', 0),
-                'max_weight': data.get('pallet', {}).get('max_weight', 0),
-                'limit_height': data.get('pallet', {}).get('limit_height', False),
-                'max_height': data.get('pallet', {}).get('max_height', 0)
-            },
-            'optimization': {
-                'maximize': data.get('optimization', {}).get('maximize', False),
-                'mixed_trays': data.get('optimization', {}).get('mixed_trays', True),
-                'mixed_pallets': data.get('optimization', {}).get('mixed_pallets', True),
-                'stack_load': data.get('optimization', {}).get('stack_load', True),
-                'stack_trays': data.get('optimization', {}).get('stack_trays', True),
-                'stack_collars': data.get('optimization', {}).get('stack_collars', True),
-                'force_orientation': data.get('optimization', {}).get('force_orientation', False),
-                'orientation_face': data.get('optimization', {}).get('orientation_face', 'LxA'),
-                'mixed_containers': data.get('optimization', {}).get('mixed_containers', True),
-                'sort_items': data.get('optimization', {}).get('sort_items', True),
-                'visual_only': data.get('optimization', {}).get('visual_only', False)
-            },
-            'safety_factors': {
-                'dims': data.get('safety_factors', {}).get('dims',
-                        data.get('safety_factor_dims', 0)),
-                'weight': data.get('safety_factors', {}).get('weight',
-                          data.get('safety_factor_weight', 0))
-            },
-            'items': _clean_items(data.get('items', []))
-        }
-        
-        records = []
-        if os.path.exists(LOGISTICS_RECORDS_FILE):
-            try:
-                with open(LOGISTICS_RECORDS_FILE, 'r', encoding='utf-8') as f:
-                    records = json.load(f)
-            except:
-                records = []
-        
-        records.insert(0, record) # Newest first
-        
-        # Keep only last 1000 records to avoid huge files
-        records = records[:1000]
-        
-        _write_json_file_atomic(LOGISTICS_RECORDS_FILE, records, indent=4, ensure_ascii=False)
-            
-        return jsonify({'status': 'success', 'message': 'Calculation saved'})
+        if group:
+            new_version_number = int(group.get('latest_version') or len(group.get('versions', [])) or 0) + 1
+            snapshot = _build_logistics_version_snapshot(data, version_number=new_version_number)
+            group.setdefault('versions', []).append(snapshot)
+            group['folder'] = folder
+            group['latest_version'] = new_version_number
+            group['updated_at'] = snapshot.get('timestamp', _logistics_now_iso())
+            group['save_name'] = snapshot.get('save_name', '')
+            group['save_description'] = snapshot.get('save_description', '')
+            group['author'] = snapshot.get('author', 'Usuario')
+        else:
+            snapshot = _build_logistics_version_snapshot(data, version_number=1)
+            created_at = _logistics_safe_timestamp(data.get('created_at') or snapshot.get('timestamp'))
+            group = {
+                'id': rec_id,
+                'folder': folder,
+                'created_at': created_at,
+                'updated_at': snapshot.get('timestamp', created_at),
+                'latest_version': 1,
+                'save_name': snapshot.get('save_name', ''),
+                'save_description': snapshot.get('save_description', ''),
+                'author': snapshot.get('author', 'Usuario'),
+                'versions': [snapshot]
+            }
+            groups.append(group)
+
+        groups = _merge_logistics_groups(groups)[:1000]
+        _write_logistics_record_groups(groups)
+
+        return jsonify({
+            'status': 'success',
+            'message': 'Calculation saved',
+            'id': rec_id,
+            'version_id': snapshot.get('version_id', ''),
+            'version_number': int(snapshot.get('version_number') or 1),
+            'history_label': snapshot.get('history_label', ''),
+            'folder': folder
+        })
     except Exception as e:
         print(f"ERROR saving logistics: {e}")
         return jsonify({'status': 'error', 'message': str(e)}), 500
@@ -3275,13 +3574,153 @@ def save_logistics_calculation():
 @app.route('/api/logistics/records', methods=['GET'])
 def get_logistics_records():
     try:
-        if not os.path.exists(LOGISTICS_RECORDS_FILE):
-            return jsonify([])
-        with open(LOGISTICS_RECORDS_FILE, 'r', encoding='utf-8') as f:
-            records = json.load(f)
-        return jsonify(records)
+        store = _read_logistics_records_store()
+        payload = [_logistics_group_to_summary(group) for group in store.get('groups', [])]
+        return jsonify({
+            'status': 'success',
+            'folders': store.get('folders', [LOGISTICS_DEFAULT_FOLDER]),
+            'records': payload
+        })
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
+@app.route('/api/logistics/folders', methods=['POST'])
+def create_logistics_folder():
+    try:
+        data = request.json or {}
+        folder_name = _normalize_logistics_folder_name(data.get('name'))
+        store = _read_logistics_records_store()
+        folder_set = {_normalize_logistics_folder_name(name) for name in store.get('folders', [])}
+        folder_set.add(LOGISTICS_DEFAULT_FOLDER)
+        folder_set.add(folder_name)
+        _write_json_file_atomic(LOGISTICS_RECORDS_FILE, {
+            'folders': sorted(folder_set, key=lambda name: (name != LOGISTICS_DEFAULT_FOLDER, name.lower())),
+            'groups': _merge_logistics_groups(store.get('groups', []))
+        }, indent=4, ensure_ascii=False)
+        return jsonify({'status': 'success', 'folder': folder_name})
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
+@app.route('/api/logistics/move-folder', methods=['POST'])
+def move_logistics_record_folder():
+    try:
+        data = request.json or {}
+        rec_id = str(data.get('id') or '').strip()
+        if not rec_id:
+            return jsonify({'status': 'error', 'message': 'Missing id'}), 400
+
+        target_folder = _normalize_logistics_folder_name(data.get('folder'))
+        store = _read_logistics_records_store()
+        groups = store.get('groups', [])
+        group = next((item for item in groups if str(item.get('id')) == rec_id), None)
+        if not group:
+            return jsonify({'status': 'error', 'message': 'Record not found'}), 404
+
+        group['folder'] = target_folder
+        folder_set = {_normalize_logistics_folder_name(name) for name in store.get('folders', [])}
+        folder_set.add(LOGISTICS_DEFAULT_FOLDER)
+        folder_set.add(target_folder)
+
+        _write_json_file_atomic(LOGISTICS_RECORDS_FILE, {
+            'folders': sorted(folder_set, key=lambda name: (name != LOGISTICS_DEFAULT_FOLDER, name.lower())),
+            'groups': _merge_logistics_groups(groups)
+        }, indent=4, ensure_ascii=False)
+
+        return jsonify({'status': 'success', 'folder': target_folder})
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
+@app.route('/api/logistics/history', methods=['GET'])
+def get_logistics_history():
+    try:
+        rec_id = str(request.args.get('id', '')).strip()
+        if not rec_id:
+            return jsonify({'status': 'error', 'message': 'Missing id'}), 400
+
+        groups = _read_logistics_record_groups()
+        group = next((item for item in groups if str(item.get('id')) == rec_id), None)
+        if not group:
+            return jsonify({'status': 'error', 'message': 'Record not found'}), 404
+
+        versions = sorted(
+            group.get('versions', []),
+            key=lambda v: (int(v.get('version_number') or 0), v.get('timestamp', '')),
+            reverse=True
+        )
+        latest = versions[0] if versions else {}
+
+        history = []
+        for version in versions:
+            history.append({
+                'version_id': version.get('version_id', ''),
+                'version_number': int(version.get('version_number') or 1),
+                'timestamp': version.get('timestamp', ''),
+                'timestamp_display': version.get('timestamp_display', ''),
+                'author': version.get('author', 'Usuario'),
+                'largest_unit_label': version.get('largest_unit_label', ''),
+                'history_label': version.get('history_label', ''),
+                'save_name': version.get('save_name', ''),
+                'save_description': version.get('save_description', '')
+            })
+
+        return jsonify({
+            'status': 'success',
+            'id': rec_id,
+            'save_name': latest.get('save_name', '') or group.get('save_name', ''),
+            'created_at': group.get('created_at', ''),
+            'modified_at': group.get('updated_at', ''),
+            'versions': history
+        })
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
+@app.route('/api/logistics/version', methods=['GET'])
+def get_logistics_version():
+    try:
+        rec_id = str(request.args.get('id', '')).strip()
+        if not rec_id:
+            return jsonify({'status': 'error', 'message': 'Missing id'}), 400
+
+        version_number_raw = str(request.args.get('version', '')).strip()
+        version_id = str(request.args.get('version_id', '')).strip()
+        latest_flag = str(request.args.get('latest', '')).strip().lower() in ('1', 'true', 'yes', 'si')
+
+        groups = _read_logistics_record_groups()
+        group = next((item for item in groups if str(item.get('id')) == rec_id), None)
+        if not group:
+            return jsonify({'status': 'error', 'message': 'Record not found'}), 404
+
+        versions = group.get('versions', [])
+        selected = None
+
+        if version_id:
+            selected = next((v for v in versions if str(v.get('version_id')) == version_id), None)
+
+        if not selected and version_number_raw and not latest_flag:
+            try:
+                version_number = int(version_number_raw)
+            except Exception:
+                version_number = None
+            if version_number is not None:
+                selected = next((v for v in versions if int(v.get('version_number') or 0) == version_number), None)
+
+        if not selected:
+            selected = _logistics_get_latest_version(group)
+
+        if not selected:
+            return jsonify({'status': 'error', 'message': 'Version not found'}), 404
+
+        return jsonify({
+            'status': 'success',
+            'record': _logistics_version_to_editor_record(group, selected)
+        })
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
 
 @app.route('/api/logistics/delete', methods=['POST'])
 def delete_logistics_record():
@@ -3290,17 +3729,12 @@ def delete_logistics_record():
         rec_id = data.get('id')
         if not rec_id:
             return jsonify({'status': 'error', 'message': 'Missing id'}), 400
-        if not os.path.exists(LOGISTICS_RECORDS_FILE):
-            return jsonify({'status': 'error', 'message': 'No records file'}), 404
-
-        with open(LOGISTICS_RECORDS_FILE, 'r', encoding='utf-8') as f:
-            records = json.load(f)
-
-        new_records = [r for r in records if r.get('id') != rec_id]
-        if len(new_records) == len(records):
+        groups = _read_logistics_record_groups()
+        new_groups = [g for g in groups if str(g.get('id')) != str(rec_id)]
+        if len(new_groups) == len(groups):
             return jsonify({'status': 'error', 'message': 'Record not found'}), 404
 
-        _write_json_file_atomic(LOGISTICS_RECORDS_FILE, new_records, indent=4, ensure_ascii=False)
+        _write_logistics_record_groups(new_groups)
 
         return jsonify({'status': 'success', 'message': 'Record deleted'})
     except Exception as e:
@@ -5892,9 +6326,10 @@ def login():
 
             
 
-        user_data = users.get(username)
+        normalized_username = str(username).strip().lower()
+        user_data = users.get(normalized_username)
 
-        if user_data and check_password_hash(user_data['password'], password):
+        if user_data and _check_password_hash_compatible(user_data['password'], password):
 
             if user_data.get('status') != 'approved':
 
@@ -5902,7 +6337,7 @@ def login():
 
                 
 
-            session['user'] = username
+            session['user'] = normalized_username
 
             session['role'] = user_data.get('role', 'user')
 
@@ -5966,15 +6401,17 @@ def register():
 
         
 
-        if username in users:
+        normalized_username = str(username).strip().lower()
+
+        if normalized_username in users:
 
             return jsonify({"status": "error", "message": "El usuario ya existe"}), 400
 
             
 
-        users[username] = {
+        users[normalized_username] = {
 
-            "password": generate_password_hash(password),
+            "password": _generate_password_hash_compatible(password),
 
             "display_name": username,
 
@@ -6228,7 +6665,7 @@ def update_profile():
 
         if new_pass:
 
-            users[username]['password'] = generate_password_hash(new_pass)
+            users[username]['password'] = _generate_password_hash_compatible(new_pass)
 
             changes = True
 
@@ -13378,6 +13815,11 @@ if __name__ == '__main__':
     from threading import Timer
     import os
 
+    server_host = os.environ.get("BPB_SERVER_HOST", "0.0.0.0")
+    browser_host = os.environ.get("BPB_BROWSER_HOST", "127.0.0.1")
+    server_port = int(os.environ.get("BPB_SERVER_PORT", "5000"))
+    browser_url = f"http://{browser_host}:{server_port}"
+
     # Only open browser in the main process
     if os.environ.get("WERKZEUG_RUN_MAIN") == "true":
         pass
@@ -13389,9 +13831,9 @@ if __name__ == '__main__':
             if not os.path.exists("C:/Program Files/Google/Chrome/Application/chrome.exe"):
                 chrome_path = "C:/Program Files (x86)/Google/Chrome/Application/chrome.exe %s"
             
-            webbrowser.get(chrome_path).open("http://127.0.0.1:5000")
+            webbrowser.get(chrome_path).open(browser_url)
         except Exception:
-            webbrowser.open("http://127.0.0.1:5000")
+            webbrowser.open(browser_url)
 
     Timer(1.5, open_browser).start()
 
@@ -13400,16 +13842,9 @@ if __name__ == '__main__':
         print("----------------------------------------------------------------")
         print(" INICIANDO SERVIDOR DE PRODUCCION (WAITRESS)")
         print(" Workers (Threads): 5")
-        print(" URL: http://0.0.0.0:5000")
+        print(f" URL: http://{server_host}:{server_port}")
         print("----------------------------------------------------------------")
-        serve(app, host='0.0.0.0', port=5000, threads=5)
+        serve(app, host=server_host, port=server_port, threads=5)
     except ImportError:
         print("Waitress no encontrado, instalando fallback...")
-        app.run(host='0.0.0.0', port=5000, debug=False)
-
-
-
-
-
-
-
+        app.run(host=server_host, port=server_port, debug=False)

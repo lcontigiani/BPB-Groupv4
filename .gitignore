@@ -1,3 +1,5 @@
-Aplicaciones/Office_Professional_Plus_2016_64Bits/proplus.ww/propsww.cab
-Aplicaciones/Office_Professional_Plus_2016_64Bits/proplus.ww/propsww2.cab
-Aplicaciones/Project_2016/prjpro.ww/prjproww.cab
+Aplicaciones/
+.DS_Store
+global_debug_startup.log
+Oficina Tecnica/Registro de Control de Producto/Codigos/Dashboard_PO/.venv_mac/
+Oficina Tecnica/Registro de Control de Producto/Codigos/Dashboard_PO/*.bak

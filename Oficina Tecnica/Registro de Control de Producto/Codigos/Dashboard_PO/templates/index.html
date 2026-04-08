@@ -1169,26 +1169,32 @@
         <div id="view-logistics-records" class="panel animate-entry"
             style="display: none; max-width: 1200px; margin: 0 auto;">
 
-            <div class="panel-header">
+            <div class="panel-header cotizacion-records-header">
 
-                <div class="panel-title decorated-title">
-
-                    <span class="breadcrumb-link" onclick="showLogisticsView()">Logística</span>
-
-                    <span style="color:var(--bpb-blue); margin: 0 10px;">&gt;</span>
-
-                    <span style="color:var(--text-primary);">Registros de Cálculos</span>
-
+                <div class="panel-title decorated-title cotizacion-records-breadcrumb">
+                    <span class="cotizacion-records-breadcrumb-main">
+                        <span class="breadcrumb-link" onclick="showLogisticsView()">Logística</span>
+                        <span class="cotizacion-records-breadcrumb-separator">&gt;</span>
+                        <span id="logistics-records-root-crumb" class="breadcrumb-link" onclick="showLogisticsRecordsFolderHome()">Registros de Cálculos</span>
+                    </span>
+                    <span id="logistics-records-folder-tail" class="cotizacion-records-breadcrumb-tail" style="display:none;">
+                        <span class="cotizacion-records-breadcrumb-separator">&gt;</span>
+                        <span id="logistics-records-folder-crumb" class="cotizacion-records-folder-crumb"></span>
+                    </span>
                 </div>
 
                 <div class="header-right">
 
-                    <div style="display: flex; gap: 1rem; align-items: center;">
+                    <div class="cotizacion-records-actions">
 
-                        <input type="text" placeholder="Buscar registro..." class="search-input"
-                            style="max-width: 250px;" onkeyup="filterLogisticsRecordsTable(this)">
+                        <input id="logistics-records-search" type="text" placeholder="Buscar registro..." class="search-input"
+                            style="max-width: 250px; display:none;" onkeyup="filterLogisticsRecordsTable(this)">
 
-                        <button class="btn" onclick="showLogisticsView()">&larr; Volver</button>
+                        <button id="logistics-records-create-folder-btn" class="btn" onclick="openLogisticsCreateFolderPrompt()">Crear Carpeta</button>
+
+                        <button id="logistics-records-move-btn" class="btn" onclick="toggleLogisticsMoveMode()" style="display:none;">Mover</button>
+
+                        <button class="btn" onclick="handleLogisticsRecordsBack()">&larr; Volver</button>
 
                     </div>
 
@@ -1198,7 +1204,13 @@
 
 
 
-            <div class="table-container" style="margin-top: 1rem;">
+            <div id="logistics-records-folders-view" style="margin-top: 1rem;">
+                <div id="logistics-records-folders-grid" class="iso-folder-grid"></div>
+            </div>
+
+
+
+            <div id="logistics-records-table-view" class="table-container" style="margin-top: 1rem; display:none;">
 
                 <table id="logistics-records-table">
 
@@ -1206,17 +1218,21 @@
 
                         <tr>
 
-                            <th style="width: 25%;">Nombre</th>
+                            <th style="width: 22%;">Nombre</th>
 
-                            <th style="width: 40%;">Descripción</th>
+                            <th style="width: 28%;">Descripción</th>
 
-                            <th style="width: 15%;">Autor</th>
+                            <th style="width: 14%;">Autor</th>
 
-                            <th style="width: 10%;">Fecha</th>
+                            <th style="width: 10%;">Fecha Mod.</th>
 
-                            <th style="text-align: center; width: 7%;">Acción</th>
+                            <th style="width: 10%;">Fecha Creación</th>
 
-                            <th style="text-align: center; width: 3%;">Eliminar</th>
+                            <th style="text-align: center; width: 8%;">Acción</th>
+
+                            <th style="text-align: center; width: 8%;">Historial</th>
+
+                            <th style="text-align: center; width: 8%;">Eliminar</th>
 
                         </tr>
 
@@ -2030,10 +2046,11 @@
 
                 </tbody>
 
-            </table>
+                </table>
+
+            </div>
 
         </div>
-    </div>
 
     <!-- VIEW: ISO GANTT (R019-04) -->
     <div id="view-iso-gantt" class="panel" style="display: none; max-width: 1400px; margin: 0 auto;">
@@ -7098,6 +7115,11 @@
 
             </div>
 
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; margin-bottom: 0.5rem; color: #ccc; font-size: 0.9rem;">Carpeta</label>
+                <select id="logistics-save-folder" class="login-input" style="width: 100%; box-sizing: border-box;"></select>
+            </div>
+
             <div style="display: flex; gap: 1rem;">
 
                 <button class="btn" onclick="closeLogisticsSaveModal()" style="flex: 1;">Cancelar</button>
@@ -7108,6 +7130,58 @@
 
         </div>
 
+    </div>
+
+    <div id="logistics-history-modal"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(8px); z-index: 10000; justify-content: center; align-items: center;">
+        <div class="login-card" style="max-width: 540px; padding: 2rem; background: rgba(30, 30, 30, 0.8);">
+            <h3 style="margin-bottom: 0.6rem; color: #fff;">Historial de Versiones</h3>
+            <div id="logistics-history-subtitle" style="margin-bottom: 1rem; color: #cfcfcf; font-size: 0.86rem;"></div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; margin-bottom: 0.5rem; color: #ccc; font-size: 0.9rem;">Versiones</label>
+                <select id="logistics-history-list" class="search-input" size="10"
+                    style="width: 100%; box-sizing: border-box; min-height: 240px;"></select>
+            </div>
+
+            <div style="display: flex; gap: 1rem;">
+                <button class="btn" onclick="closeLogisticsHistoryModal()" style="flex: 1;">Cancelar</button>
+                <button class="btn btn-primary" onclick="confirmOpenLogisticsHistoryVersion()" style="flex: 1;">Abrir</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="logistics-folder-modal" onclick="if(event.target===this) closeLogisticsFolderModal()"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(8px); z-index: 10000; justify-content: center; align-items: center;">
+        <div class="login-card" onclick="event.stopPropagation();" style="max-width: 400px; padding: 2rem; background: rgba(30, 30, 30, 0.8);">
+            <h3 style="margin-bottom: 1.2rem; color: #fff;">Crear Carpeta</h3>
+            <div style="margin-bottom: 1rem;">
+                <label style="display: block; margin-bottom: 0.5rem; color: #ccc; font-size: 0.9rem;">Nombre de carpeta</label>
+                <input type="text" id="logistics-folder-name" class="login-input" placeholder="Ej: Exportación Europa" style="width: 100%; box-sizing: border-box;">
+            </div>
+            <div id="logistics-folder-modal-error" style="display:none; color:#ff8a8a; font-size:0.88rem; margin-bottom: 1rem;"></div>
+            <div style="display: flex; gap: 1rem;">
+                <button class="btn" onclick="closeLogisticsFolderModal()" style="flex: 1;">Cancelar</button>
+                <button class="btn btn-primary" onclick="confirmCreateLogisticsFolder()" style="flex: 1;">Crear</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="logistics-move-folder-modal" onclick="if(event.target===this) closeLogisticsMoveFolderModal()"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(8px); z-index: 10000; justify-content: center; align-items: center;">
+        <div class="login-card" onclick="event.stopPropagation();" style="max-width: 420px; padding: 2rem; background: rgba(30, 30, 30, 0.8);">
+            <h3 style="margin-bottom: 0.8rem; color: #fff;">Mover Registro</h3>
+            <div id="logistics-move-folder-subtitle" style="margin-bottom: 1rem; color: #cfcfcf; font-size: 0.9rem;"></div>
+            <div style="margin-bottom: 1rem;">
+                <label style="display: block; margin-bottom: 0.5rem; color: #ccc; font-size: 0.9rem;">Carpeta de destino</label>
+                <select id="logistics-move-folder-select" class="login-input" style="width: 100%; box-sizing: border-box;"></select>
+            </div>
+            <div id="logistics-move-folder-modal-error" style="display:none; color:#ff8a8a; font-size:0.88rem; margin-bottom: 1rem;"></div>
+            <div style="display: flex; gap: 1rem;">
+                <button class="btn" onclick="closeLogisticsMoveFolderModal()" style="flex: 1;">Cancelar</button>
+                <button class="btn btn-primary" onclick="confirmMoveLogisticsFolder()" style="flex: 1;">Mover</button>
+            </div>
+        </div>
     </div>
 
 
@@ -7226,5 +7300,3 @@
 
 
 </html>
-
-
