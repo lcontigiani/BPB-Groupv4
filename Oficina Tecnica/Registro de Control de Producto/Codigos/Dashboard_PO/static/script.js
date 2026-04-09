@@ -3783,6 +3783,7 @@ async function initIsoRegistryNumber() {
             const data = await res.json();
             if (data && data.next_num) {
                 input.value = data.next_num;
+                setIsoRegistryCounter(data.next_num);
                 if (data.next_bp) window._isoNextBP = data.next_bp;
                 return;
             }
@@ -4028,14 +4029,14 @@ function submitISO019Form() {
         return;
     }
 
-    const { payload, errors } = buildISO019Payload();
+    let { payload, errors } = buildISO019Payload();
     if (showIsoFormErrors(errors)) {
         return;
     }
 
     const bp = window._isoNextBP || 'BP-XXXXX';
     payload.BP = bp;
-    const msg = `?Desea dejar asentado el Registro R019-01 de ${bp}?`;
+    const msg = `¿Desea dejar asentado el Registro R019-01 de ${bp}?`;
 
     const proceed = async () => {
         let generatedFile = null;
@@ -4057,6 +4058,13 @@ function submitISO019Form() {
                 return;
             }
             generatedFile = data.file || null;
+            if (data && data.payload) {
+                payload = data.payload;
+            } else {
+                if (data && data.bp) payload.BP = data.bp;
+                if (data && data.file) payload.R01901_File = data.file;
+                if (data && data.path) payload.R01901_Path = data.path;
+            }
             var pendingMsg = data.pending_message || (data.pending ? 'R019-03 pendiente.' : '');
 
             // Refresh ISO Control Panel from R019-03
@@ -4070,6 +4078,7 @@ function submitISO019Form() {
                 const payloads = loadIsoPayloads();
                 const key = payload.Numero_de_Registro || bp;
                 payloads[key] = payload;
+                if (payload.BP) payloads[payload.BP] = payload;
                 saveIsoPayloads(payloads);
             } catch (e) {
                 console.error("No se pudo guardar payload ISO:", e);
@@ -13972,10 +13981,11 @@ const COTIZACION_PIEZA_ALL_LABEL = 'Todas las piezas';
 const COTIZACION_PIEZA_MULTI_SEPARATOR = '||';
 const COTIZACION_ATTACHMENTS_MAX_FILES = 40;
 const COTIZACION_ATTACHMENTS_MAX_FILE_SIZE = 12 * 1024 * 1024;
-const COTIZACION_SUBCONCEPTO_FIXED_DASH_CATEGORIES = new Set(['materia_prima', 'conjunto', 'complementarios', 'importacion', 'costo_byp', 'extras']);
+const COTIZACION_SUBCONCEPTO_FIXED_DASH_CATEGORIES = new Set(['materia_prima', 'conjunto', 'complementarios', 'importacion', 'costo_byp']);
 const COTIZACION_SUBCONCEPTO_EXTERNOS_OPTIONS = [
     'Zincado',
     'Galvanizado',
+    'Logistica',
     'Plegado',
     'Brochado',
     'Mortajado',
@@ -13987,7 +13997,7 @@ const COTIZACION_SUBCONCEPTO_EXTERNOS_OPTIONS = [
     'Tratamiento Termico',
     'Matriceria'
 ];
-const COTIZACION_PIEZA_FROM_MATERIA_CATEGORIES = new Set(['produccion', 'ensamble', 'embalaje', 'deposito_logistica', 'externos', 'importacion']);
+const COTIZACION_PIEZA_FROM_MATERIA_CATEGORIES = new Set(['produccion', 'ensamble', 'embalaje', 'deposito_logistica', 'externos', 'importacion', 'extras']);
 const COTIZACION_PIEZA_MULTISELECT_CATEGORIES = new Set(['produccion', 'ensamble', 'embalaje', 'externos']);
 const COTIZACION_INDICE_OPTIONS = [
     'Unidades',
@@ -22887,18 +22897,34 @@ function applyCotizacionApprovalSignature() {
     showNotification('Aprobacion aplicada.', 'success');
 }
 
-async function refreshCotizacionDollarRate(showMessage = false) {
+async function refreshCotizacionDollarRate(showMessage = false, selectedDate = '') {
     const usdInput = document.getElementById('cot-usd-value');
+    const usdDateInput = document.getElementById('cot-usd-date');
     if (!usdInput) return;
 
+    const normalizedDate = String(selectedDate || '').trim();
+    const url = normalizedDate
+        ? `/api/cotizacion/dolar-rate?date=${encodeURIComponent(normalizedDate)}`
+        : '/api/cotizacion/dolar-rate';
+
     try {
-        const response = await fetch('/api/cotizacion/dolar-rate');
+        const response = await fetch(url);
         const data = await response.json();
 
         if (response.ok && data && data.status === 'success' && Number(data.value) > 0) {
             usdInput.value = Number(data.value).toFixed(2);
+            const labelDate = String(data.date || normalizedDate || '').trim();
+            if (usdDateInput instanceof HTMLInputElement) {
+                usdDateInput.value = normalizedDate ? (labelDate || '') : '';
+            }
+            setCotizacionDollarLabel(labelDate);
             if (showMessage) {
-                showNotification('Dolar Oficial (venta) actualizado.', 'success');
+                showNotification(
+                    labelDate
+                        ? `Dolar Oficial (venta) actualizado para ${formatCotizacionDisplayDate(labelDate)}.`
+                        : 'Dolar Oficial (venta) actualizado.',
+                    'success'
+                );
             }
             return;
         }
@@ -23005,6 +23031,18 @@ function ensureCotizacionConfigBindings() {
         }
     });
 
+    const usdDateInput = document.getElementById('cot-usd-date');
+    if (usdDateInput instanceof HTMLInputElement) {
+        usdDateInput.addEventListener('change', () => {
+            const selectedDate = String(usdDateInput.value || '').trim();
+            if (!selectedDate) {
+                setCotizacionDollarLabel('');
+                return;
+            }
+            refreshCotizacionDollarRate(true, selectedDate).catch(() => { });
+        });
+    }
+
     window._cotizacionConfigBindingsReady = true;
 }
 
@@ -23058,7 +23096,7 @@ function getCotizacionTablesContainer() {
 }
 
 function getCotizacionTableColGroupHTML() {
-    return '<colgroup>' + [110, 130, 130, 110, 110, 110, 70, 110, 130, 110].map((width) => `<col style="width:${width}px; min-width:${width}px; max-width:${width}px;">`).join('') + '</colgroup>';
+    return '<colgroup>' + [110, 112, 148, 110, 110, 110, 70, 110, 130, 110].map((width) => `<col style="width:${width}px; min-width:${width}px; max-width:${width}px;">`).join('') + '</colgroup>';
 }
 
 function getCotizacionTableHeadHTML() {
@@ -23082,8 +23120,16 @@ function getCotizacionRows() {
     return Array.from(document.querySelectorAll('#cotizacion-tables-container .cotizacion-item-row'));
 }
 
-function getCotizacionMudaLabel(categoryKey = '') {
-    return sanitizeCotizacionCategory(categoryKey) === 'materia_prima' ? 'Scrap' : 'Muda';
+function normalizeCotizacionMudaKind(categoryKey = '', mudaKind = '') {
+    const safeKind = String(mudaKind || '').trim().toLowerCase();
+    if (safeKind === 'scrap' || safeKind === 'muda') {
+        return safeKind;
+    }
+    return sanitizeCotizacionCategory(categoryKey) === 'materia_prima' ? 'scrap' : 'muda';
+}
+
+function getCotizacionMudaLabel(categoryKey = '', mudaKind = '') {
+    return normalizeCotizacionMudaKind(categoryKey, mudaKind) === 'scrap' ? 'Scrap' : 'Muda';
 }
 
 function getCotizacionCategoryCellHTML(categoryLabel = '', options = {}) {
@@ -23516,6 +23562,125 @@ function setCotizacionNumericDisplayValue(input, value) {
     input.value = formatCotizacionFormulaValue(numeric);
 }
 
+function setCotizacionFormulaEditingState(input, editing) {
+    if (!(input instanceof HTMLInputElement)) return;
+    input.classList.toggle('cot-formula-editing', !!editing);
+
+    const td = input.closest('td');
+    if (td instanceof HTMLTableCellElement) {
+        td.classList.toggle('cot-formula-cell-editing', !!editing);
+    }
+
+    const wrap = input.closest('.cot-unit-input-wrap');
+    if (wrap instanceof HTMLElement) {
+        wrap.classList.toggle('cot-formula-wrap-editing', !!editing);
+    }
+
+    if (editing) {
+        if (!input.dataset.formulaBaseWidth) {
+            const baseWidth = Math.ceil(input.getBoundingClientRect().width || input.offsetWidth || 0);
+            if (Number.isFinite(baseWidth) && baseWidth > 0) {
+                input.dataset.formulaBaseWidth = String(baseWidth);
+            }
+        }
+        updateCotizacionFormulaEditingWidth(input);
+    } else {
+        input.style.width = '';
+        input.style.minWidth = '';
+        delete input.dataset.formulaBaseWidth;
+    }
+}
+
+function measureCotizacionFormulaTextWidth(input, text) {
+    if (!(input instanceof HTMLInputElement)) return 0;
+    const styles = window.getComputedStyle(input);
+    let mirror = measureCotizacionFormulaTextWidth._mirror;
+    if (!(mirror instanceof HTMLSpanElement)) {
+        mirror = document.createElement('span');
+        mirror.style.position = 'fixed';
+        mirror.style.left = '-99999px';
+        mirror.style.top = '-99999px';
+        mirror.style.visibility = 'hidden';
+        mirror.style.pointerEvents = 'none';
+        mirror.style.whiteSpace = 'pre';
+        mirror.style.display = 'inline-block';
+        document.body.appendChild(mirror);
+        measureCotizacionFormulaTextWidth._mirror = mirror;
+    }
+
+    mirror.style.boxSizing = 'border-box';
+    mirror.style.font = [
+        styles.fontStyle,
+        styles.fontVariant,
+        styles.fontWeight,
+        styles.fontSize,
+        styles.fontFamily
+    ].filter(Boolean).join(' ');
+    mirror.style.letterSpacing = styles.letterSpacing;
+    mirror.style.textTransform = styles.textTransform;
+    mirror.style.padding = styles.padding;
+    mirror.style.border = styles.border;
+    mirror.textContent = String(text || '=') + ' ';
+
+    return Math.ceil(mirror.getBoundingClientRect().width);
+}
+
+function updateCotizacionFormulaEditingWidth(input) {
+    if (!(input instanceof HTMLInputElement)) return;
+    if (!input.classList.contains('cot-formula-editing')) return;
+
+    const currentText = String(input.value || '');
+    const storedBaseWidth = parseFloat(String(input.dataset.formulaBaseWidth || '').trim());
+    const liveWidth = Math.ceil(input.getBoundingClientRect().width || input.offsetWidth || 0);
+    const baseWidth = Number.isFinite(storedBaseWidth) && storedBaseWidth > 0 ? storedBaseWidth : liveWidth;
+    if (!Number.isFinite(baseWidth) || baseWidth <= 0) return;
+
+    const textWidth = measureCotizacionFormulaTextWidth(input, currentText || '=');
+    const measuredWidth = textWidth + 8;
+
+    input.style.minWidth = `${baseWidth}px`;
+    if (measuredWidth > baseWidth) {
+        input.style.width = `${measuredWidth}px`;
+    } else {
+        input.style.width = `${baseWidth}px`;
+    }
+    input.scrollLeft = 0;
+    requestAnimationFrame(() => {
+        input.scrollLeft = 0;
+    });
+}
+
+function isCotizacionFormulaReferencePlacementValid(formulaText, insertionIndex = null) {
+    const raw = String(formulaText || '');
+    const body = raw.trim().startsWith('=') ? raw : `=${raw}`;
+    const limit = Number.isFinite(insertionIndex) ? Math.max(0, Number(insertionIndex)) : body.length;
+    const allowedBefore = new Set(['(', '+', '-', '*', '/', ',', ';', ':', '=']);
+    const refRegex = /\b([A-Z]+\d+)\b/gi;
+    let match;
+
+    while ((match = refRegex.exec(body)) !== null) {
+        const refStart = match.index;
+        if (refStart >= limit) {
+            continue;
+        }
+
+        let cursor = refStart - 1;
+        while (cursor >= 0 && /\s/.test(body[cursor])) {
+            cursor -= 1;
+        }
+
+        if (cursor < 0) {
+            continue;
+        }
+
+        if (!allowedBefore.has(body[cursor])) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 function getCotizacionRateSuffixFromIndice(indiceValue) {
     const key = String(indiceValue || '').trim();
     return COTIZACION_INDICE_RATE_SUFFIX[key] || '...';
@@ -23800,6 +23965,7 @@ function evaluateCotizacionFormulaInput(input, options = {}) {
         if (!fromStored) {
             input.dataset.formula = '';
         }
+        setCotizacionFormulaEditingState(input, false);
         const parsed = parseFloat(String(input.value || '').replace(/,/g, '.'));
         if (Number.isFinite(parsed)) {
             input.dataset.preciseValue = String(parsed);
@@ -23824,6 +23990,13 @@ function evaluateCotizacionFormulaInput(input, options = {}) {
         }
     }
 
+    if (!isCotizacionFormulaReferencePlacementValid(raw)) {
+        if (!silent) {
+            showNotification('Cada referencia a otra casilla debe estar precedida por un operador.', 'warning');
+        }
+        return null;
+    }
+
     const evaluated = evaluateCotizacionFormulaExpression(raw, stack);
     if (!Number.isFinite(evaluated)) {
         if (!silent) {
@@ -23836,6 +24009,9 @@ function evaluateCotizacionFormulaInput(input, options = {}) {
     input.dataset.preciseValue = String(evaluated);
     if (document.activeElement !== input || fromStored) {
         input.value = formatCotizacionFormulaValue(evaluated);
+    }
+    if (document.activeElement !== input || fromStored) {
+        setCotizacionFormulaEditingState(input, false);
     }
 
     return evaluated;
@@ -23880,8 +24056,13 @@ function tryAppendCotizacionFormulaReference(targetInput) {
 
     const start = Number.isFinite(activeInput.selectionStart) ? activeInput.selectionStart : activeValue.length;
     const end = Number.isFinite(activeInput.selectionEnd) ? activeInput.selectionEnd : activeValue.length;
+    const nextValue = `${activeValue.slice(0, start)}${targetRef}${activeValue.slice(end)}`;
+    if (!isCotizacionFormulaReferencePlacementValid(nextValue, start + targetRef.length)) {
+        showNotification('Inserte un operador antes de referenciar otra casilla.', 'warning');
+        return true;
+    }
 
-    activeInput.value = `${activeValue.slice(0, start)}${targetRef}${activeValue.slice(end)}`;
+    activeInput.value = nextValue;
     const cursor = start + targetRef.length;
 
     activeInput.focus();
@@ -23899,13 +24080,15 @@ function createCotizacionRow(data = {}) {
     const pieza = data.pieza || data.piece || '';
     const proveedor = String(data.proveedor || data.provider || getCotizacionDefaultProvider(category) || '').trim();
     const isMuda = !!data.is_muda;
-    const mudaLabel = getCotizacionMudaLabel(category);
+    const mudaKind = normalizeCotizacionMudaKind(category, data.muda_kind || '');
+    const mudaLabel = getCotizacionMudaLabel(category, mudaKind);
 
     const tr = document.createElement('tr');
     tr.className = 'cotizacion-item-row';
     tr.dataset.category = category;
     tr.dataset.categoryLabel = categoria;
     tr.dataset.isMuda = isMuda ? '1' : '0';
+    tr.dataset.mudaKind = isMuda ? mudaKind : '';
     if (Array.isArray(data.provider_mix) && data.provider_mix.length) {
         tr.dataset.providerMix = JSON.stringify(data.provider_mix);
     }
@@ -24022,6 +24205,7 @@ function collectCotizacionRowData(row, options = {}) {
         source_record_id: String(row.dataset.sourceRecordId || '').trim(),
         source_version_id: String(row.dataset.sourceVersionId || '').trim(),
         is_muda: String(row.dataset.isMuda || '').trim() === '1',
+        muda_kind: String(row.dataset.mudaKind || '').trim(),
         rate_formula: (() => {
             const input = row.querySelector('.cot-rate');
             return input instanceof HTMLInputElement ? String(input.dataset.formula || '').trim() : '';
@@ -24048,6 +24232,8 @@ function collectCotizacionRowData(row, options = {}) {
 function buildCotizacionMudaRowData(sourceRow) {
     const source = collectCotizacionRowData(sourceRow, { preferSplitBase: true });
     if (!source) return null;
+    const sourceKind = normalizeCotizacionMudaKind(source.category, source.muda_kind || '');
+    const createScrapFromMuda = !!source.is_muda && sourceKind !== 'scrap';
 
     return {
         category: source.category,
@@ -24062,26 +24248,199 @@ function buildCotizacionMudaRowData(sourceRow) {
         source_record_id: '',
         source_version_id: '',
         is_muda: true,
-        rate_formula: '',
+        muda_kind: createScrapFromMuda ? 'scrap' : normalizeCotizacionMudaKind(source.category, ''),
+        rate_formula: createScrapFromMuda ? '' : (source.rate_formula || ''),
         cantidad_formula: '',
         costo_formula: '',
-        rate: 0,
+        rate: createScrapFromMuda ? 0 : source.rate,
         cantidad: 0,
-        indice: '',
+        indice: createScrapFromMuda ? 'kilogramos' : source.indice,
         observaciones: '',
         costo_unitario: 0,
         skip_auto_rate: true
     };
 }
 
+function getCotizacionDefaultCostFormulaRefs(row) {
+    if (!(row instanceof HTMLTableRowElement)) return null;
+    const rateInput = row.querySelector('.cot-rate');
+    const qtyInput = row.querySelector('.cot-cantidad');
+    if (!(rateInput instanceof HTMLInputElement)) return null;
+    if (!(qtyInput instanceof HTMLInputElement)) return null;
+
+    const rateRef = String(rateInput.dataset.cellRef || '').toUpperCase();
+    const qtyRef = String(qtyInput.dataset.cellRef || '').toUpperCase();
+    if (!rateRef || !qtyRef) return null;
+
+    return { rateRef, qtyRef, formula: `=${rateRef}*${qtyRef}` };
+}
+
+function getCotizacionRowCostBaseFormula(row) {
+    if (!(row instanceof HTMLTableRowElement)) return '';
+    const costInput = row.querySelector('.cot-cost');
+    if (!(costInput instanceof HTMLInputElement)) return '';
+
+    const storedBaseFormula = String(costInput.dataset.scrapBaseFormula || '').trim();
+    if (storedBaseFormula.startsWith('=')) {
+        return storedBaseFormula;
+    }
+
+    const activeFormula = String(costInput.dataset.formula || '').trim();
+    if (activeFormula.startsWith('=')) {
+        return activeFormula;
+    }
+
+    const defaultRefs = getCotizacionDefaultCostFormulaRefs(row);
+    return defaultRefs?.formula || '';
+}
+
+function getCotizacionMateriaPrimaRows() {
+    return getCotizacionRows().filter((row) => {
+        if (!(row instanceof HTMLTableRowElement)) return false;
+        if (String(row.dataset.isMuda || '').trim() === '1') return false;
+        return sanitizeCotizacionCategory(row.dataset.category || '') === 'materia_prima';
+    });
+}
+
+function findCotizacionMateriaPrimaRowsByPieces(pieceValues = [], allowAllPieces = false) {
+    const rows = getCotizacionMateriaPrimaRows();
+    if (allowAllPieces) {
+        return rows;
+    }
+
+    const normalizedValues = Array.isArray(pieceValues)
+        ? pieceValues.map((item) => String(item || '').trim()).filter(Boolean)
+        : [];
+    if (!normalizedValues.length) return [];
+
+    const wanted = new Set(normalizedValues.map((item) => item.toLowerCase()));
+    return rows.filter((row) => {
+        const pieceInput = row.querySelector('.cot-pieza');
+        const rowPiece = pieceInput instanceof HTMLInputElement || pieceInput instanceof HTMLTextAreaElement || pieceInput instanceof HTMLSelectElement
+            ? String(pieceInput.value || '').trim()
+            : '';
+        return !!rowPiece && wanted.has(rowPiece.toLowerCase());
+    });
+}
+
+function applyCotizacionScrapDiscountToMateriaPrima(scrapRow) {
+    if (!(scrapRow instanceof HTMLTableRowElement)) return;
+    if (String(scrapRow.dataset.isMuda || '').trim() !== '1') return;
+
+    const scrapKind = normalizeCotizacionMudaKind(scrapRow.dataset.category || '', scrapRow.dataset.mudaKind || '');
+    if (scrapKind !== 'scrap') return;
+
+    const scrapCostInput = scrapRow.querySelector('.cot-cost');
+    if (!(scrapCostInput instanceof HTMLInputElement)) return;
+
+    const scrapCostRef = String(scrapCostInput.dataset.cellRef || '').toUpperCase();
+    if (!scrapCostRef) return;
+
+    const scrapPieceInput = scrapRow.querySelector('.cot-pieza');
+    const scrapPieceRaw = scrapPieceInput instanceof HTMLInputElement || scrapPieceInput instanceof HTMLTextAreaElement || scrapPieceInput instanceof HTMLSelectElement
+        ? String(scrapPieceInput.value || '').trim()
+        : '';
+    const selectedPieces = parseCotizacionPieceSelections(scrapPieceRaw);
+    const allowAllPieces = selectedPieces.some((item) => isCotizacionAllPiecesValue(item));
+    const targetRows = findCotizacionMateriaPrimaRowsByPieces(selectedPieces, allowAllPieces);
+    if (!targetRows.length) return;
+
+    const divisor = targetRows.length;
+    const discountFormula = divisor > 1 ? `${scrapCostRef}/${divisor}` : scrapCostRef;
+
+    targetRows.forEach((materiaRow) => {
+        const materiaCostInput = materiaRow.querySelector('.cot-cost');
+        if (!(materiaCostInput instanceof HTMLInputElement)) return;
+
+        const baseFormula = getCotizacionRowCostBaseFormula(materiaRow);
+        if (!baseFormula.startsWith('=')) return;
+
+        materiaCostInput.dataset.scrapBaseFormula = baseFormula;
+        materiaCostInput.dataset.formula = `${baseFormula}-${discountFormula}`;
+        evaluateCotizacionFormulaInput(materiaCostInput, { fromStored: true, silent: true });
+    });
+}
+
+function removeCotizacionScrapDiscountFromMateriaPrima(scrapRow) {
+    if (!(scrapRow instanceof HTMLTableRowElement)) return;
+    if (String(scrapRow.dataset.isMuda || '').trim() !== '1') return;
+
+    const scrapKind = normalizeCotizacionMudaKind(scrapRow.dataset.category || '', scrapRow.dataset.mudaKind || '');
+    if (scrapKind !== 'scrap') return;
+
+    const scrapCostInput = scrapRow.querySelector('.cot-cost');
+    if (!(scrapCostInput instanceof HTMLInputElement)) return;
+
+    const scrapCostRef = String(scrapCostInput.dataset.cellRef || '').toUpperCase();
+    if (!scrapCostRef) return;
+
+    getCotizacionMateriaPrimaRows().forEach((materiaRow) => {
+        const materiaCostInput = materiaRow.querySelector('.cot-cost');
+        if (!(materiaCostInput instanceof HTMLInputElement)) return;
+
+        const currentFormula = String(materiaCostInput.dataset.formula || '').trim().toUpperCase();
+        if (!currentFormula.includes(scrapCostRef)) return;
+
+        const baseFormula = String(materiaCostInput.dataset.scrapBaseFormula || '').trim();
+        if (baseFormula.startsWith('=')) {
+            materiaCostInput.dataset.formula = baseFormula;
+            delete materiaCostInput.dataset.scrapBaseFormula;
+            evaluateCotizacionFormulaInput(materiaCostInput, { fromStored: true, silent: true });
+            return;
+        }
+
+        const defaultRefs = getCotizacionDefaultCostFormulaRefs(materiaRow);
+        if (!defaultRefs?.formula) return;
+
+        materiaCostInput.dataset.formula = defaultRefs.formula;
+        evaluateCotizacionFormulaInput(materiaCostInput, { fromStored: true, silent: true });
+    });
+}
+
+function isCotizacionSameMudaFamilyRow(baseRow, candidateRow) {
+    if (!(baseRow instanceof HTMLTableRowElement)) return false;
+    if (!(candidateRow instanceof HTMLTableRowElement)) return false;
+
+    const baseData = collectCotizacionRowData(baseRow, { preferSplitBase: true });
+    const candidateData = collectCotizacionRowData(candidateRow, { preferSplitBase: true });
+    if (!baseData || !candidateData) return false;
+
+    return (
+        sanitizeCotizacionCategory(baseData.category) === sanitizeCotizacionCategory(candidateData.category) &&
+        String(baseData.subconcepto || '').trim() === String(candidateData.subconcepto || '').trim() &&
+        String(baseData.pieza || '').trim() === String(candidateData.pieza || '').trim() &&
+        String(baseData.proveedor || '').trim() === String(candidateData.proveedor || '').trim()
+    );
+}
+
+function findCotizacionRelatedMudaRow(sourceRow) {
+    if (!(sourceRow instanceof HTMLTableRowElement)) return null;
+
+    const siblingCandidates = [sourceRow.previousElementSibling, sourceRow.nextElementSibling];
+    for (const candidate of siblingCandidates) {
+        if (!(candidate instanceof HTMLTableRowElement)) continue;
+        if (!candidate.classList.contains('cotizacion-item-row')) continue;
+        if (String(candidate.dataset.isMuda || '').trim() !== '1') continue;
+        const candidateKind = normalizeCotizacionMudaKind(candidate.dataset.category || '', candidate.dataset.mudaKind || '');
+        if (candidateKind === 'scrap') continue;
+        if (isCotizacionSameMudaFamilyRow(sourceRow, candidate)) {
+            return candidate;
+        }
+    }
+
+    return null;
+}
+
 function insertCotizacionMudaRowBelow(sourceRow) {
     if (!(sourceRow instanceof HTMLTableRowElement)) return;
 
-    const rowData = buildCotizacionMudaRowData(sourceRow);
+    const sourceIsMuda = String(sourceRow.dataset.isMuda || '').trim() === '1';
+    const relatedMudaRow = sourceIsMuda ? null : findCotizacionRelatedMudaRow(sourceRow);
+    const rowData = buildCotizacionMudaRowData(relatedMudaRow || sourceRow);
     if (!rowData) return;
 
     const newRow = createCotizacionRow(rowData);
-    sourceRow.insertAdjacentElement('afterend', newRow);
+    (relatedMudaRow || sourceRow).insertAdjacentElement('afterend', newRow);
 
     refreshCotizacionPiezaFields(false);
     if (window._cotizacionSplitTables) {
@@ -24091,6 +24450,7 @@ function insertCotizacionMudaRowBelow(sourceRow) {
     }
     refreshCotizacionCellReferences();
     applyCotizacionDefaultCostFormulaToRow(newRow, { force: true });
+    applyCotizacionScrapDiscountToMateriaPrima(newRow);
     recalculateCotizacionFormulaCells();
     refreshCotizacionUnitPlaceholders();
     clearCotizacionApprovalSignature(false);
@@ -24167,6 +24527,7 @@ function resetCotizacionForm() {
             'cot-code',
             'cot-piece',
             'cot-usd-value',
+            'cot-usd-date',
             'cot-requester',
             'cot-delivery-time',
             'cot-approved-by',
@@ -24197,6 +24558,7 @@ function resetCotizacionForm() {
         setCotizacionRevisionLabel('0');
         currentCotizacionCombinedSourceIds = [];
         clearCotizacionAttachments();
+        setCotizacionDollarLabel('');
     });
 
     refreshCotizacionSplitButtonLabel();
@@ -24248,11 +24610,14 @@ function handleCotizacionEditorInput(event) {
         if (raw.startsWith('=')) {
             target.dataset.formula = raw;
             window._cotizacionFormulaEditingInput = target;
+            setCotizacionFormulaEditingState(target, true);
+            updateCotizacionFormulaEditingWidth(target);
             return;
         }
         if (target.classList.contains('cot-rate') || target.classList.contains('cot-cost')) {
             target.dataset.formula = '';
         }
+        setCotizacionFormulaEditingState(target, false);
         if (window._cotizacionFormulaEditingInput === target) {
             window._cotizacionFormulaEditingInput = null;
         }
@@ -24446,10 +24811,14 @@ function ensureCotizacionBindings() {
                 target.value = formula;
                 const end = target.value.length;
                 target.setSelectionRange(end, end);
+                setCotizacionFormulaEditingState(target, true);
+                updateCotizacionFormulaEditingWidth(target);
             }
 
             if (String(target.value || '').trim().startsWith('=')) {
                 window._cotizacionFormulaEditingInput = target;
+                setCotizacionFormulaEditingState(target, true);
+                updateCotizacionFormulaEditingWidth(target);
             }
         }, true);
 
@@ -24474,6 +24843,7 @@ function ensureCotizacionBindings() {
             if (window._cotizacionFormulaEditingInput === target) {
                 window._cotizacionFormulaEditingInput = null;
             }
+            setCotizacionFormulaEditingState(target, false);
 
             if (target.classList.contains('cot-rate') || target.classList.contains('cot-cost')) {
                 const row = target.closest('.cotizacion-item-row');
@@ -24758,6 +25128,36 @@ function syncCotizacionModuleCategoryOptions() {
     }
 }
 
+function formatCotizacionDisplayDate(rawValue) {
+    const text = String(rawValue || '').trim();
+    if (!text) return '';
+    const parsed = new Date(`${text}T00:00:00`);
+    if (Number.isNaN(parsed.getTime())) return text;
+    return parsed.toLocaleDateString('es-AR');
+}
+
+function setCotizacionDollarLabel(selectedDate = '') {
+    const label = document.getElementById('cot-usd-label');
+    if (!(label instanceof HTMLElement)) return;
+    const safeDate = formatCotizacionDisplayDate(selectedDate);
+    label.textContent = safeDate
+        ? `DOLAR OFICIAL (VENTA) ${safeDate}`
+        : 'DOLAR OFICIAL (VENTA)';
+}
+
+function openCotizacionDollarDatePicker() {
+    const input = document.getElementById('cot-usd-date');
+    if (!(input instanceof HTMLInputElement)) return;
+    input.focus();
+    if (typeof input.showPicker === 'function') {
+        try {
+            input.showPicker();
+        } catch (_) {
+            // Fallback to native focus when showPicker is unavailable.
+        }
+    }
+}
+
 function refreshCotizacionCombineModeUI() {
     const button = document.getElementById('cotizacion-records-combine-btn');
     const moveButton = document.getElementById('cotizacion-records-move-btn');
@@ -24874,6 +25274,7 @@ function cloneCotizacionCombinedItem(item, index = 0) {
         source_record_id: String(item?.source_record_id || '').trim(),
         source_version_id: String(item?.source_version_id || '').trim(),
         is_muda: !!item?.is_muda,
+        muda_kind: String(item?.muda_kind || '').trim(),
         rate: Number.isFinite(rate) ? rate : 0,
         cantidad: Number.isFinite(quantity) ? quantity : 1,
         indice: String(item?.indice || 'Unidad').trim() || 'Unidad',
@@ -24946,6 +25347,9 @@ function openCombinedCotizacionRecord(records = [], sourceIds = []) {
 
         const usdInput = document.getElementById('cot-usd-value');
         if (usdInput) usdInput.value = combined.header?.usd_value || '';
+        const usdDateInput = document.getElementById('cot-usd-date');
+        if (usdDateInput) usdDateInput.value = '';
+        setCotizacionDollarLabel('');
 
         const respNameInput = document.getElementById('cot-resp-name');
         if (respNameInput) respNameInput.value = combined.header?.responsible_name || '';
@@ -25238,6 +25642,7 @@ function insertCotizacionRowData(data = {}, options = {}) {
 function removeCotizacionRow(row) {
     if (!(row instanceof HTMLTableRowElement)) return;
 
+    removeCotizacionScrapDiscountFromMateriaPrima(row);
     row.remove();
     setCotizacionDeleteMode(false);
     refreshCotizacionPiezaFields(false);
@@ -27420,6 +27825,17 @@ async function printCotizacion() {
         return;
     }
 
+    let printUsdValue = Number(document.getElementById('cot-usd-value')?.value || 0);
+    try {
+        const response = await fetch('/api/cotizacion/dolar-rate');
+        const data = await response.json();
+        if (response.ok && data?.status === 'success' && Number(data.value) > 0) {
+            printUsdValue = Number(data.value);
+        }
+    } catch (_) {
+        // Si falla la consulta, usa el valor visible actual como fallback.
+    }
+
     const summary = updateCotizacionSummary();
     const esc = escapeCotizacionHTML;
     const pieceQty = Number(summary?.pieceQty || 1);
@@ -27427,7 +27843,7 @@ async function printCotizacion() {
     const codeValue = String(document.getElementById('cot-code')?.value || '').trim();
     const pieceName = String(document.getElementById('cot-piece')?.value || '').trim();
     const analysisDate = String(document.getElementById('cot-analysis-date')?.value || '').trim();
-    const usdValue = Number(document.getElementById('cot-usd-value')?.value || 0);
+    const usdValue = Number(printUsdValue || 0);
     const requester = String(document.getElementById('cot-requester')?.value || '').trim();
     const deliveryTime = String(document.getElementById('cot-delivery-time')?.value || '').trim();
     const deliveryUnit = String(document.getElementById('cot-delivery-unit')?.value || 'Dias').trim() || 'Dias';
@@ -27472,7 +27888,7 @@ async function printCotizacion() {
 
             const categoryCfg = getCotizacionCategoryConfig(category);
             const categoryLabel = String(categoryCfg?.label || row.categoria || row.category || '-');
-            const mudaLabel = row.is_muda ? getCotizacionMudaLabel(category) : '';
+            const mudaLabel = row.is_muda ? getCotizacionMudaLabel(category, row.muda_kind || '') : '';
             const categoryHtml = `${esc(categoryLabel)}${mudaLabel ? `<br><span class="detail-category-tag">(${esc(mudaLabel)})</span>` : ''}`;
             const subCategory = String(row.subCategoria || row.subconcepto || '-');
             const pieceRaw = String(row.pieza || '-');
@@ -28270,7 +28686,7 @@ async function loadCotizacionRecords() {
             const recordCode = resolveCotizacionPieceCode(rec) || '-';
             const recordCategory = rec.record_category || rec.save_category || '';
             const modifiedDateStr = formatCotizacionRecordDate(rec.modified_at || rec.timestamp || '');
-            const createdDateStr = formatCotizacionRecordDate(rec.created_at || rec.modified_at || rec.timestamp || '');
+            const revisionStr = normalizeCotizacionRevisionLabel(rec.latest_revision_label || '0');
             const tr = document.createElement('tr');
             if (window._cotizacionMoveMode && recId) {
                 tr.classList.add('cotizacion-records-move-armed-row');
@@ -28281,7 +28697,7 @@ async function loadCotizacionRecords() {
                 <td style="font-weight: 600;">${escapeCotizacionHTML(displayName)}</td>
                 <td style="text-align: center;">${escapeCotizacionHTML(rec.author || 'Sistema')}</td>
                 <td style="text-align: center; font-size: 0.85rem;">${escapeCotizacionHTML(modifiedDateStr)}</td>
-                <td style="text-align: center; font-size: 0.85rem;">${escapeCotizacionHTML(createdDateStr)}</td>
+                <td style="text-align: center; font-size: 0.85rem;">${escapeCotizacionHTML(revisionStr)}</td>
                 <td style="text-align: center;">
                     ${recId ? `<button class="btn btn-sm btn-primary" onclick="viewCotizacionRecordLatest('${recIdJS}')">Ultima Cotizacion</button>` : '<span style="color:#777;">-</span>'}
                 </td>
@@ -28691,6 +29107,9 @@ function restoreCotizacionRecordInEditor(rec) {
 
         const usdInput = document.getElementById('cot-usd-value');
         if (usdInput) usdInput.value = rec.header?.usd_value || '';
+        const usdDateInput = document.getElementById('cot-usd-date');
+        if (usdDateInput) usdDateInput.value = '';
+        setCotizacionDollarLabel('');
 
         const respNameInput = document.getElementById('cot-resp-name');
         if (respNameInput) respNameInput.value = rec.header?.responsible_name || currentDisplayName || currentUser || '';

@@ -4314,16 +4314,16 @@ tbody tr:nth-child(n+11) {
 
 .cotizacion-table thead th:nth-child(2),
 .cotizacion-table tbody td:nth-child(2) {
-    width: 130px;
-    min-width: 130px;
-    max-width: 130px;
+    width: 112px;
+    min-width: 112px;
+    max-width: 112px;
 }
 
 .cotizacion-table thead th:nth-child(3),
 .cotizacion-table tbody td:nth-child(3) {
-    width: 130px;
-    min-width: 130px;
-    max-width: 130px;
+    width: 148px;
+    min-width: 148px;
+    max-width: 148px;
 }
 
 .cotizacion-table thead th:nth-child(4),
@@ -4509,6 +4509,8 @@ tbody tr:nth-child(n+11) {
     align-items: center;
     gap: 0.35rem;
     width: 100%;
+    overflow: visible;
+    position: relative;
 }
 
 .cot-unit-prefix {
@@ -4521,6 +4523,66 @@ tbody tr:nth-child(n+11) {
 .cot-unit-input-wrap .cot-rate,
 .cot-unit-input-wrap .cot-cost {
     flex: 1;
+}
+
+.cot-formula-cell-editing {
+    position: relative !important;
+    overflow: visible !important;
+    z-index: 35 !important;
+}
+
+.cot-formula-wrap-editing {
+    position: relative;
+    z-index: 36;
+    min-height: 30px;
+}
+
+.cot-formula-input.cot-formula-editing {
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: 37;
+    background: #121212 !important;
+    min-width: 100%;
+    text-align: left !important;
+    white-space: nowrap;
+    overflow: visible;
+    padding-left: 0.55rem;
+    padding-right: 0.75rem;
+    box-shadow: 0 0 0 1px rgba(71, 145, 255, 0.45), 0 12px 28px rgba(0, 0, 0, 0.35);
+}
+
+.cot-formula-wrap-editing .cot-unit-prefix {
+    visibility: hidden;
+}
+
+.cotizacion-inline-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.cotizacion-dollar-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    min-width: 32px;
+    height: 32px;
+    padding: 0;
+}
+
+.cotizacion-dollar-btn svg {
+    width: 14px;
+    height: 14px;
+}
+
+.cot-usd-date-input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
 }
 
 .cot-subconcepto-select,

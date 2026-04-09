@@ -120,6 +120,29 @@ def resolve_template_path(docs_dir: Path) -> Path:
     raise FileNotFoundError(f"No se encontró plantilla R019-01-Modelo en {docs_dir}")
 
 
+def _format_word_com_error(exc: Exception, action: str) -> str:
+    args = getattr(exc, "args", ()) or ()
+    hresult = args[0] if len(args) > 0 else None
+    raw_text = args[1] if len(args) > 1 else ""
+    text = str(raw_text or "").strip()
+    text_low = text.lower()
+
+    if hresult == -2146959355 or "server execution failed" in text_low:
+        return (
+            "No se pudo iniciar Microsoft Word desde el servidor. "
+            "Verifique que Word esté instalado, que pueda abrirse en esa sesión de Windows "
+            "y que no haya quedado bloqueado por una instancia colgada."
+        )
+
+    if "class not registered" in text_low:
+        return "Microsoft Word no está registrado correctamente en este equipo."
+
+    if text:
+        return f"No se pudo {action} en Word: {text}"
+
+    return f"No se pudo {action} en Word."
+
+
 def generate_r01901(payload: dict, output_path: Path, template_path: Optional[Path] = None) -> Path:
     try:
         import pythoncom
@@ -134,23 +157,30 @@ def generate_r01901(payload: dict, output_path: Path, template_path: Optional[Pa
     src = template_path or resolve_template_path(docs_dir)
 
     pythoncom.CoInitialize()
-    word = Dispatch("Word.Application")
+    try:
+        word = Dispatch("Word.Application")
+    except Exception as exc:
+        pythoncom.CoUninitialize()
+        raise RuntimeError(_format_word_com_error(exc, "iniciar la generación del documento R019-01")) from exc
     try:
         word.Visible = False
-        doc_src = word.Documents.Open(str(src), ReadOnly=True)
-        doc_src.SaveAs(str(output_path))
-        doc_src.Close(False)
-
-        doc = word.Documents.Open(str(output_path), ReadOnly=False)
         try:
-            for key, val in payload.items():
-                if key.startswith("chk_"):
-                    set_checkbox(doc, key, val)
-                else:
-                    set_text(doc, key, val)
-            doc.Save()
-        finally:
-            doc.Close(False)
+            doc_src = word.Documents.Open(str(src), ReadOnly=True)
+            doc_src.SaveAs(str(output_path))
+            doc_src.Close(False)
+
+            doc = word.Documents.Open(str(output_path), ReadOnly=False)
+            try:
+                for key, val in payload.items():
+                    if key.startswith("chk_"):
+                        set_checkbox(doc, key, val)
+                    else:
+                        set_text(doc, key, val)
+                doc.Save()
+            finally:
+                doc.Close(False)
+        except Exception as exc:
+            raise RuntimeError(_format_word_com_error(exc, "generar el documento R019-01")) from exc
     finally:
         word.Quit()
         pythoncom.CoUninitialize()
@@ -171,19 +201,26 @@ def update_r01901(payload: dict, output_path: Path) -> Path:
         raise FileNotFoundError(f"No se encontró el archivo: {output_path}")
 
     pythoncom.CoInitialize()
-    word = Dispatch("Word.Application")
+    try:
+        word = Dispatch("Word.Application")
+    except Exception as exc:
+        pythoncom.CoUninitialize()
+        raise RuntimeError(_format_word_com_error(exc, "iniciar la actualización del documento R019-01")) from exc
     try:
         word.Visible = False
-        doc = word.Documents.Open(str(output_path), ReadOnly=False)
         try:
-            for key, val in payload.items():
-                if key.startswith("chk_"):
-                    set_checkbox(doc, key, val)
-                else:
-                    set_text(doc, key, val)
-            doc.Save()
-        finally:
-            doc.Close(False)
+            doc = word.Documents.Open(str(output_path), ReadOnly=False)
+            try:
+                for key, val in payload.items():
+                    if key.startswith("chk_"):
+                        set_checkbox(doc, key, val)
+                    else:
+                        set_text(doc, key, val)
+                doc.Save()
+            finally:
+                doc.Close(False)
+        except Exception as exc:
+            raise RuntimeError(_format_word_com_error(exc, "actualizar el documento R019-01")) from exc
     finally:
         word.Quit()
         pythoncom.CoUninitialize()

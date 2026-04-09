@@ -1487,6 +1487,117 @@ ISO_R01902_DOCS_DIR = _resolve_iso_subdir(ISO_DOCS_ROOT, "R019-02", "R019-02")
 ISO_R01904_DOCS_DIR = _resolve_iso_subdir(ISO_DOCS_ROOT, "R019-04", "R019-04")
 ISO_R01903_BASE_NAME = "R019-03"
 
+
+def _find_iso_r01903_target() -> Path | None:
+    iso_root = ISO_DOCS_ROOT
+    base_name = ISO_R01903_BASE_NAME
+    candidates = []
+    for ext in ("xlsm", "xlsx", "xls"):
+        candidates.append(iso_root / f"{base_name}.{ext}")
+    target = next((p for p in candidates if p.exists()), None)
+    if target is not None:
+        return target
+    matches = list(iso_root.glob(f"{base_name}*"))
+    return matches[0] if matches else None
+
+
+def _parse_iso_registry_int(value) -> int | None:
+    if value is None:
+        return None
+    text = str(value).strip()
+    if not text:
+        return None
+    match = re.search(r"(\d+)", text)
+    if not match:
+        return None
+    try:
+        return int(match.group(1))
+    except Exception:
+        return None
+
+
+def _extract_bp_year_seq(value) -> tuple[str, int] | None:
+    text = str(value or "").strip().upper()
+    if not text:
+        return None
+    match = re.search(r"BP-?(\d{2})(\d{3})", text)
+    if not match:
+        return None
+    try:
+        return match.group(1), int(match.group(2))
+    except Exception:
+        return None
+
+
+def _compute_iso_next_registry() -> dict:
+    year_two = datetime.now().strftime("%y")
+    last_num = 174
+    last_seq = 0
+    source = ""
+    source_details = []
+
+    target = _find_iso_r01903_target()
+    if target is not None and target.exists():
+        source = str(target)
+        source_details.append(f"R019-03:{target}")
+        wb = _load_workbook_quietly(str(target), read_only=True, data_only=True)
+        try:
+            ws_name = next((n for n in wb.sheetnames if n.strip().lower() == "listado"), None)
+            ws = wb[ws_name] if ws_name else wb.active
+            for row in ws.iter_rows(min_row=5, values_only=True):
+                if not row:
+                    continue
+                val_a = row[0] if len(row) > 0 else None
+                val_b = row[1] if len(row) > 1 else None
+
+                parsed_num = _parse_iso_registry_int(val_a)
+                if parsed_num is not None:
+                    last_num = max(last_num, parsed_num)
+
+                bp_parts = _extract_bp_year_seq(val_b)
+                if bp_parts and bp_parts[0] == year_two:
+                    last_seq = max(last_seq, bp_parts[1])
+        finally:
+            wb.close()
+
+    try:
+        if ISO_R01901_DOCS_DIR.exists():
+            source_details.append(f"R019-01:{ISO_R01901_DOCS_DIR}")
+            for doc in ISO_R01901_DOCS_DIR.iterdir():
+                if not doc.is_file():
+                    continue
+                bp_parts = _extract_bp_year_seq(doc.name)
+                if bp_parts and bp_parts[0] == year_two:
+                    last_seq = max(last_seq, bp_parts[1])
+    except Exception:
+        pass
+
+    try:
+        payloads = _load_iso_payloads()
+        if payloads:
+            source_details.append(f"payloads:{ISO_PAYLOADS_FILE}")
+        for payload in payloads.values():
+            if not isinstance(payload, dict):
+                continue
+            parsed_num = _parse_iso_registry_int(
+                payload.get("Numero_de_Registro") or payload.get("numero")
+            )
+            if parsed_num is not None:
+                last_num = max(last_num, parsed_num)
+
+            bp_parts = _extract_bp_year_seq(payload.get("BP") or payload.get("bp"))
+            if bp_parts and bp_parts[0] == year_two:
+                last_seq = max(last_seq, bp_parts[1])
+    except Exception:
+        pass
+
+    return {
+        "next_num": last_num + 1,
+        "next_bp": f"BP-{year_two}{last_seq + 1:03d}",
+        "source": source,
+        "source_details": source_details,
+    }
+
 PRODUCTION_PATH = BASE_DIR / "P2 - Purchase Order/En Progreso"
 
 PROCESSED_PATH = BASE_DIR / "P2 - Purchase Order/Procesado"
@@ -4288,6 +4399,41 @@ def get_cotizacion_complementarios_lookup():
 
 @app.route('/api/cotizacion/dolar-rate', methods=['GET'])
 def get_cotizacion_dolar_rate():
+    requested_date = str(request.args.get('date', '') or '').strip()
+    if requested_date:
+        try:
+            normalized_date = datetime.strptime(requested_date, '%Y-%m-%d').strftime('%Y/%m/%d')
+        except Exception:
+            return jsonify({
+                'status': 'error',
+                'message': 'Formato de fecha invalido. Use YYYY-MM-DD.'
+            }), 400
+
+        try:
+            payload = _fetch_external_json(
+                f'https://api.argentinadatos.com/v1/cotizaciones/dolares/oficial/{normalized_date}',
+                timeout=6
+            )
+            venta = payload.get('venta') if isinstance(payload, dict) else None
+            fecha = str(payload.get('fecha') or requested_date).strip() if isinstance(payload, dict) else requested_date
+            numeric = float(venta)
+            if not math.isfinite(numeric) or numeric <= 0:
+                raise ValueError('valor oficial venta invalido')
+
+            return jsonify({
+                'status': 'success',
+                'value': round(numeric, 2),
+                'date': fecha,
+                'source': 'argentinadatos-historico-oficial',
+                'rate_type': 'oficial_venta'
+            })
+        except Exception as e:
+            return jsonify({
+                'status': 'error',
+                'message': 'No se pudo obtener el valor del dolar Oficial venta para la fecha seleccionada.',
+                'errors': [str(e)]
+            }), 502
+
     providers = [
         ('dolarapi-oficial', 'https://dolarapi.com/v1/dolares/oficial'),
         ('bluelytics-oficial', 'https://api.bluelytics.com.ar/v2/latest'),
@@ -4301,10 +4447,16 @@ def get_cotizacion_dolar_rate():
             numeric = _extract_dolar_official_sell_value(payload)
             if numeric is None:
                 raise ValueError('valor oficial venta no presente en respuesta')
+            date_value = ''
+            if isinstance(payload, dict):
+                date_value = str(payload.get('fecha') or payload.get('fechaActualizacion') or '').strip()
+                if 'T' in date_value:
+                    date_value = date_value.split('T', 1)[0]
 
             return jsonify({
                 'status': 'success',
                 'value': round(numeric, 2),
+                'date': date_value or datetime.now().strftime('%Y-%m-%d'),
                 'source': source_name,
                 'rate_type': 'oficial_venta'
             })
@@ -7439,104 +7591,31 @@ def open_iso_folder():
 # --- ISO NEXT REGISTRY (R019-03 LISTADO) ---
 @app.route('/api/iso-next-registry')
 def iso_next_registry():
-    iso_root = ISO_DOCS_ROOT
-    base_name = ISO_R01903_BASE_NAME
-    search_dirs = [
-        iso_root,
-    ]
-    candidates = []
-    for d in search_dirs:
-        candidates.extend([
-            d / f"{base_name}.xlsm",
-            d / f"{base_name}.xlsx",
-            d / f"{base_name}.xls",
-        ])
-    target = next((p for p in candidates if p.exists()), None)
-    if target is None:
-        # Fallback: any file starting with the base name in known dirs
-        matches = []
-        for d in search_dirs:
-            matches.extend(list(d.glob(f"{base_name}*")))
-        target = matches[0] if matches else None
-
+    target = _find_iso_r01903_target()
     if target is None or not target.exists():
         return jsonify({
             "status": "error",
-            "message": f"No se encontro el archivo R019-03 en {iso_root}"
+            "message": f"No se encontro el archivo R019-03 en {ISO_DOCS_ROOT}"
         }), 404
 
     try:
-        wb = _load_workbook_quietly(str(target), read_only=True, data_only=True)
-        ws_name = next((n for n in wb.sheetnames if n.strip().lower() == "listado"), None)
-        ws = wb[ws_name] if ws_name else wb.active
-
-        last_num = None
-        year_two = datetime.now().strftime("%y")
-        last_seq = 0
-
-        for row in ws.iter_rows(min_row=2, values_only=True):
-            val_a = row[0] if len(row) > 0 else None
-            val_b = row[1] if len(row) > 1 else None
-
-            if val_a is not None and str(val_a).strip() != "":
-                try:
-                    last_num = int(float(str(val_a).strip()))
-                except Exception:
-                    pass
-
-            if val_b:
-                s = str(val_b).strip()
-                m = re.match(r"BP-(\d{2})(\d{3})", s)
-                if m and m.group(1) == year_two:
-                    try:
-                        seq = int(m.group(2))
-                        if seq > last_seq:
-                            last_seq = seq
-                    except Exception:
-                        pass
-
-        wb.close()
-
-        next_num = (last_num if last_num is not None else 174) + 1
-        next_bp = f"BP-{year_two}{last_seq + 1:03d}"
-
-        return jsonify({
-            "status": "success",
-            "next_num": next_num,
-            "next_bp": next_bp,
-            "source": str(target)
-        })
+        result = _compute_iso_next_registry()
+        result["status"] = "success"
+        return jsonify(result)
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
 
 @app.route('/api/iso-r01903-records')
 def iso_r01903_records():
-    iso_root = ISO_DOCS_ROOT
-    base_name = ISO_R01903_BASE_NAME
-    search_dirs = [
-        iso_root,
-    ]
-    candidates = []
-    for d in search_dirs:
-        candidates.extend([
-            d / f"{base_name}.xlsm",
-            d / f"{base_name}.xlsx",
-            d / f"{base_name}.xls",
-        ])
-    target = next((p for p in candidates if p.exists()), None)
-    if target is None:
-        matches = []
-        for d in search_dirs:
-            matches.extend(list(d.glob(f"{base_name}*")))
-        target = matches[0] if matches else None
+    target = _find_iso_r01903_target()
 
     if target is None or not target.exists():
         return jsonify({
             "status": "success",
             "records": [],
             "source": "",
-            "warning": f"No se encontro el archivo R019-03 en {iso_root}"
+            "warning": f"No se encontro el archivo R019-03 en {ISO_DOCS_ROOT}"
         })
 
     def fmt_date(val):
@@ -7552,7 +7631,7 @@ def iso_r01903_records():
         ws = wb[ws_name] if ws_name else wb.active
 
         records = []
-        for row in ws.iter_rows(min_row=7, values_only=True):
+        for row in ws.iter_rows(min_row=5, values_only=True):
             if not row or len(row) < 7:
                 continue
             val_a = row[0]
@@ -7917,7 +7996,8 @@ def iso_r01902_approve():
     if not bp or not row:
         return jsonify({"status": "error", "message": "BP y fila requeridos"}), 400
 
-    iso_root = ISO_DOCS_ROOT
+    iso_docs_root = ISO_DOCS_ROOT
+    iso_code_root = ISO_CODE_ROOT
     r01902_dir = ISO_R01902_DOCS_DIR
     safe_bp = re.sub(r"[^A-Za-z0-9-]+", "", bp) or bp
     candidates = [
@@ -7981,7 +8061,8 @@ def iso_r01902_append():
     if not bp:
         return jsonify({"status": "error", "message": "BP requerido"}), 400
 
-    iso_root = ISO_DOCS_ROOT
+    iso_docs_root = ISO_DOCS_ROOT
+    iso_code_root = ISO_CODE_ROOT
     r01902_dir = ISO_R01902_DOCS_DIR
     safe_bp = re.sub(r"[^A-Za-z0-9-]+", "", bp) or bp
 
@@ -8002,7 +8083,7 @@ def iso_r01902_append():
         return jsonify({"status": "error", "message": f"No se encontr\u00f3 el archivo R019-02 para {bp}"}), 404
 
     try:
-        codes_r01902 = iso_root / "Codigos" / "R019-02"
+        codes_r01902 = iso_code_root / "Codigos" / "R019-02"
         mod02 = _load_fill_r01902_module(codes_r01902)
         if hasattr(mod02, "append_r01902_event"):
             row = mod02.append_r01902_event(target, event)
@@ -8043,7 +8124,7 @@ def iso_r01902_append():
         r01903_updated = False
         r01903_error = None
         try:
-            codes_r01903 = iso_root / "Codigos" / "R019-03"
+            codes_r01903 = iso_code_root / "Codigos" / "R019-03"
             mod03 = _load_fill_r01903_module(codes_r01903)
             if hasattr(mod03, "update_r01903_status"):
                 etapa = (event.get("etapa") or "").strip()
@@ -8053,7 +8134,7 @@ def iso_r01902_append():
                     fecha_fin = (event.get("fecha") or "").strip()
                 template_path = None
                 if hasattr(mod03, "resolve_template_path"):
-                    template_path = mod03.resolve_template_path(ISO_DOCS_ROOT)
+                    template_path = mod03.resolve_template_path(iso_docs_root)
                 r01903_updated = mod03.update_r01903_status(bp, etapa, situacion, fecha_fin, template_path=template_path)
             else:
                 r01903_error = "fill_r01903.py no expone update_r01903_status"
@@ -8081,6 +8162,63 @@ def _iso_r01901_paths():
     docs_dir = ISO_R01901_DOCS_DIR
     codes_dir = iso_root / "Codigos" / "R019-01"
     return iso_root, docs_dir, codes_dir
+
+
+def _normalize_iso_bp(value) -> str:
+    return re.sub(r"[^A-Za-z0-9-]+", "", str(value or "").strip()) or "BP-XXXXX"
+
+
+def _r01901_filename_from_bp(bp: str, suffix: str = ".docx") -> str:
+    safe_bp = _normalize_iso_bp(bp)
+    file_bp = re.sub(r"^BP-", "BP", safe_bp)
+    return f"R019-01-DATOS DE ENTRADA-{file_bp}{suffix}"
+
+
+def _r01901_path_candidates(docs_dir: Path, bp: str) -> list[Path]:
+    safe_bp = _normalize_iso_bp(bp)
+    file_bp = re.sub(r"^BP-", "BP", safe_bp)
+    candidates = [
+        docs_dir / _r01901_filename_from_bp(safe_bp, ".docx"),
+        docs_dir / _r01901_filename_from_bp(safe_bp, ".doc"),
+    ]
+    try:
+        for entry in docs_dir.iterdir():
+            if not entry.is_file():
+                continue
+            stem_up = entry.stem.upper()
+            if "R019-01" in stem_up and file_bp.upper() in stem_up:
+                candidates.append(entry)
+    except Exception:
+        pass
+
+    unique = []
+    seen = set()
+    for candidate in candidates:
+        key = str(candidate).lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        unique.append(candidate)
+    return unique
+
+
+def _resolve_r01901_output_path(docs_dir: Path, bp: str, must_exist: bool = False) -> Path:
+    candidates = _r01901_path_candidates(docs_dir, bp)
+    if must_exist:
+        for candidate in candidates:
+            if candidate.exists():
+                return candidate
+    return candidates[0]
+
+
+def _enrich_iso_payload_with_r01901_metadata(payload: dict, docs_dir: Path, bp: str) -> dict:
+    enriched = dict(payload or {})
+    safe_bp = _normalize_iso_bp(bp)
+    output_path = _resolve_r01901_output_path(docs_dir, safe_bp, must_exist=False)
+    enriched["BP"] = safe_bp
+    enriched["R01901_File"] = output_path.name
+    enriched["R01901_Path"] = str(output_path)
+    return enriched
 
 
 def _load_iso_payload_template(codes_dir: Path) -> dict:
@@ -8509,13 +8647,10 @@ def iso_generate_r01901():
     template_payload = _load_iso_payload_template(codes_dir)
     merged = dict(template_payload)
     merged.update(payload or {})
-    if bp:
-        merged["BP"] = bp
-
-    safe_bp = re.sub(r"[^A-Za-z0-9-]+", "", str(bp).strip()) or "BP-XXXXX"
-    file_bp = re.sub(r"^BP-", "BP", safe_bp)
-    filename = f"R019-01-DATOS DE ENTRADA-{file_bp}.docx"
-    output_path = docs_dir / filename
+    safe_bp = _normalize_iso_bp(bp)
+    merged = _enrich_iso_payload_with_r01901_metadata(merged, docs_dir, safe_bp)
+    filename = str(merged.get("R01901_File") or _r01901_filename_from_bp(safe_bp))
+    output_path = Path(str(merged.get("R01901_Path") or _resolve_r01901_output_path(docs_dir, safe_bp)))
 
     if output_path.exists():
         return jsonify({
@@ -8607,7 +8742,9 @@ def iso_generate_r01901():
             "status": "success",
             "file": filename,
             "path": str(output_path),
-            "root": str(iso_root)
+            "root": str(docs_dir),
+            "bp": safe_bp,
+            "payload": merged,
         }
         if pending_info:
             resp.update(pending_info)
@@ -8636,22 +8773,20 @@ def iso_update_r01901():
             "message": f"No se encontrÃ³ la carpeta de cÃ³digos R019-01 en {codes_dir}"
         }), 404
 
-    safe_bp = re.sub(r"[^A-Za-z0-9-]+", "", str(bp).strip()) or "BP-XXXXX"
-    file_bp = re.sub(r"^BP-", "BP", safe_bp)
-    filename = f"R019-01-DATOS DE ENTRADA-{file_bp}.docx"
-    output_path = docs_dir / filename
+    safe_bp = _normalize_iso_bp(bp)
+    payload = _enrich_iso_payload_with_r01901_metadata(payload, docs_dir, safe_bp)
+    output_path = _resolve_r01901_output_path(docs_dir, safe_bp, must_exist=True)
+    filename = output_path.name
     if not output_path.exists():
         try:
             pending_payload = dict(payload or {})
-            if bp:
-                pending_payload["BP"] = bp
             _upsert_iso_payload(pending_payload, merge=True)
         except Exception:
             pass
         return jsonify({
             "status": "success",
             "pending": True,
-            "message": "Documento R019-01 aun no generado. Firma guardada y se aplicara al generar el archivo.",
+            "message": "Documento R019-01 aún no generado. Firma guardada y se aplicará al generar el archivo.",
             "file": filename,
             "path": str(output_path)
         }), 200
@@ -8668,7 +8803,7 @@ def iso_update_r01901():
             _upsert_iso_payload(payload, merge=True)
         except Exception:
             pass
-        return jsonify({"status": "success", "file": filename, "path": str(output_path)})
+        return jsonify({"status": "success", "file": filename, "path": str(output_path), "bp": safe_bp, "payload": payload})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
@@ -11297,6 +11432,17 @@ def process_excel_updates(po_folder, approved_items, po_id):
         except Exception as e:
 
             print(f"[EXCEL] Failed to process {target_filename}: {e}")
+        finally:
+            if wb is not None:
+                try:
+                    wb.close()
+                except Exception:
+                    pass
+            if workbook_buffer is not None:
+                try:
+                    workbook_buffer.close()
+                except Exception:
+                    pass
 
 
 
@@ -11609,6 +11755,17 @@ def process_excel_updates_v2(po_folder, approved_items, po_id):
             print(f"[EXCEL] Failed to process {target_filename}: {e}")
             if "Permission denied" in str(e):
                  raise Exception(f"El Registro {target_filename} se encuentra abierto.")
+        finally:
+            if wb is not None:
+                try:
+                    wb.close()
+                except Exception:
+                    pass
+            if workbook_buffer is not None:
+                try:
+                    workbook_buffer.close()
+                except Exception:
+                    pass
             raise Exception(f"Error en archivo '{target_filename}': {e}")
 
 
