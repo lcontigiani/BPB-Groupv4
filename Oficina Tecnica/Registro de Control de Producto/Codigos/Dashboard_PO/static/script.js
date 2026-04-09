@@ -29835,6 +29835,9 @@ function restoreLogisticsRecordInCalculator(rec) {
         const chkMixedTrays = document.getElementById('chk-mixed-trays');
         if (chkMixedTrays) chkMixedTrays.checked = (rec.optimization.mixed_trays !== undefined) ? rec.optimization.mixed_trays : true;
 
+        const chkTrayKanban = document.getElementById('chk-tray-kanban');
+        if (chkTrayKanban) chkTrayKanban.checked = !!rec.optimization.tray_kanban;
+
         const chkStackTrays = document.getElementById('chk-stack-trays');
         if (chkStackTrays) chkStackTrays.checked = (rec.optimization.stack_trays !== undefined) ? rec.optimization.stack_trays : ((rec.optimization.stack_load !== undefined) ? rec.optimization.stack_load : true);
 
@@ -29857,6 +29860,8 @@ function restoreLogisticsRecordInCalculator(rec) {
         const chkVisOnly = document.getElementById('chk-visual-only');
         if (chkVisOnly) chkVisOnly.checked = rec.optimization.visual_only;
     }
+
+    syncTrayKanbanMode();
 
     // Safety Factors (if saved)
     if (rec.safety_factors) {
@@ -30727,9 +30732,11 @@ function updatePalletPresets() {
     const trayOuterH = document.getElementById('tray-outer-h');
     const trayWeight = document.getElementById('tray-weight');
     const trayMaxWeight = document.getElementById('tray-max-weight');
+    const chkTrayKanban = document.getElementById('chk-tray-kanban');
     const trayPresetWrapper = document.getElementById('tray-preset-wrapper');
     const trayPresetSelect = document.getElementById('tray-preset-select');
     const wrapperMixedTrays = document.getElementById('wrapper-mixed-trays');
+    const wrapperTrayKanban = document.getElementById('wrapper-tray-kanban');
     const wrapperStackTrays = document.getElementById('wrapper-stack-trays');
     const wrapperMixedPallets = document.getElementById('wrapper-mixed-pallets');
     const wrapperStackCollars = document.getElementById('wrapper-stack-collars');
@@ -30917,9 +30924,35 @@ function updatePalletPresets() {
     }
 
     if (wrapperMixedTrays) wrapperMixedTrays.style.display = isTrayType ? 'flex' : 'none';
+    if (wrapperTrayKanban) wrapperTrayKanban.style.display = isTrayType ? 'flex' : 'none';
     if (wrapperStackTrays) wrapperStackTrays.style.display = isTrayType ? 'flex' : 'none';
     if (wrapperMixedPallets) wrapperMixedPallets.style.display = hasPallet ? 'flex' : 'none';
     if (wrapperStackCollars) wrapperStackCollars.style.display = isCollarsType ? 'flex' : 'none';
+
+    syncTrayKanbanMode();
+}
+
+function syncTrayKanbanMode() {
+    const chkTrayKanban = document.getElementById('chk-tray-kanban');
+    const chkMixedTrays = document.getElementById('chk-mixed-trays');
+    const loadType = document.getElementById('logistics-load-type')?.value || 'loose';
+    const isTrayType = (loadType === 'tray_euro' || loadType === 'tray_american' || loadType === 'tray_custom' || loadType === 'tray');
+
+    if (!chkTrayKanban) return;
+    if (!isTrayType) {
+        chkTrayKanban.checked = false;
+    }
+
+    if (chkMixedTrays) {
+        if (chkTrayKanban.checked && isTrayType) {
+            chkMixedTrays.checked = false;
+            chkMixedTrays.disabled = true;
+            chkMixedTrays.parentElement.style.opacity = '0.65';
+        } else {
+            chkMixedTrays.disabled = false;
+            chkMixedTrays.parentElement.style.opacity = '';
+        }
+    }
 }
 
 function applyTrayPreset() {
@@ -31017,6 +31050,7 @@ function addLogisticsItemRow() {
 let lastLogisticsData = null;
 let lastContainerData = null;
 let lastLogisticsMaximize = false;
+let currentLogisticsJobId = null;
 let logisticsProgressTimer = null;
 let lastLogisticsRecords = [];
 let lastLogisticsFolders = ['Sin Carpeta'];
@@ -31024,40 +31058,115 @@ let currentLogisticsFolder = 'Sin Carpeta';
 let currentLogisticsRecordsFolderView = '';
 window._logisticsMoveMode = false;
 
+const LOGISTICS_PROGRESS_STAGES = [
+    { key: 'queued', label: 'En cola' },
+    { key: 'validation', label: 'Preparación' },
+    { key: 'maximize', label: 'Maximización' },
+    { key: 'tray', label: 'Bandejas' },
+    { key: 'pallet', label: 'Pallets' },
+    { key: 'solver', label: 'Empaquetado' },
+    { key: 'summary', label: 'Resumen' },
+    { key: 'done', label: 'Completado' }
+];
+
+function setLogisticsCancelVisibility(isVisible) {
+    const btn = document.getElementById('btn-cancel-logistics');
+    if (!btn) return;
+    btn.style.display = isVisible ? 'block' : 'none';
+    btn.disabled = false;
+    btn.textContent = 'CANCELAR CÁLCULO';
+}
+
+function setLogistics3DNoteVisibility(isVisible) {
+    const note = document.getElementById('logistics-3d-note');
+    if (!note) return;
+    note.style.display = isVisible ? 'block' : 'none';
+}
+
+async function cancelLogisticsCalculation() {
+    if (!currentLogisticsJobId) return;
+
+    const btn = document.getElementById('btn-cancel-logistics');
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'CANCELANDO...';
+    }
+
+    try {
+        const response = await fetch(`/api/logistics/calculate-cancel/${currentLogisticsJobId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || data.status !== 'ok') {
+            throw new Error(data.message || 'No se pudo cancelar el cálculo.');
+        }
+        updateLogisticsProgress(0, 'Cancelando cálculo...', 'queued', 'Cancelando cálculo...');
+        if (typeof showNotification === 'function') {
+            showNotification(data.message || 'Solicitud de cancelación enviada.', 'info');
+        }
+    } catch (error) {
+        console.error('Cancel logistics calculation failed', error);
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = 'CANCELAR CÁLCULO';
+        }
+        if (typeof showNotification === 'function') {
+            showNotification(error.message || 'No se pudo cancelar el cálculo.', 'error');
+        }
+    }
+}
+
 function startLogisticsProgress() {
     const wrapper = document.getElementById('logistics-progress-wrapper');
     const bar = document.getElementById('logistics-progress-bar');
     const text = document.getElementById('logistics-progress-text');
-    if (!wrapper || !bar || !text) return;
+    const stageLabel = document.getElementById('logistics-progress-stage-label');
+    const detail = document.getElementById('logistics-progress-detail');
+    if (!wrapper || !bar || !text || !stageLabel || !detail) return;
 
     wrapper.style.display = 'block';
     bar.style.width = '0%';
-    text.textContent = 'Iniciando... 0%';
+    text.textContent = '0%';
+    stageLabel.textContent = 'Preparando cálculo';
+    detail.textContent = 'Iniciando...';
 }
 
-function updateLogisticsProgress(progress = 0, message = 'Procesando...') {
+function updateLogisticsProgress(progress = 0, message = 'Procesando...', stage = 'queued', detail = '') {
     const wrapper = document.getElementById('logistics-progress-wrapper');
     const bar = document.getElementById('logistics-progress-bar');
     const text = document.getElementById('logistics-progress-text');
-    if (!wrapper || !bar || !text) return;
+    const stageLabel = document.getElementById('logistics-progress-stage-label');
+    const detailEl = document.getElementById('logistics-progress-detail');
+    if (!wrapper || !bar || !text || !stageLabel || !detailEl) return;
     wrapper.style.display = 'block';
-    bar.style.width = `${Math.max(0, Math.min(100, progress))}%`;
-    text.textContent = `${message} ${Math.max(0, Math.min(100, progress))}%`;
+    const boundedProgress = Math.max(0, Math.min(100, progress));
+    const stageInfo = LOGISTICS_PROGRESS_STAGES.find(item => item.key === stage);
+    bar.style.width = `${boundedProgress}%`;
+    text.textContent = `${boundedProgress}%`;
+    stageLabel.textContent = stageInfo ? stageInfo.label : 'Procesando';
+    detailEl.textContent = detail || message || 'Procesando...';
 }
 
 function finishLogisticsProgress(success = true, message = null) {
     const wrapper = document.getElementById('logistics-progress-wrapper');
     const bar = document.getElementById('logistics-progress-bar');
     const text = document.getElementById('logistics-progress-text');
-    if (!wrapper || !bar || !text) return;
+    const stageLabel = document.getElementById('logistics-progress-stage-label');
+    const detail = document.getElementById('logistics-progress-detail');
+    if (!wrapper || !bar || !text || !stageLabel || !detail) return;
 
     bar.style.width = success ? '100%' : '0%';
-    text.textContent = success ? (message || 'Completado 100%') : (message || 'Cálculo interrumpido');
+    text.textContent = success ? '100%' : '0%';
+    stageLabel.textContent = success ? 'Completado' : 'Interrumpido';
+    detail.textContent = success ? (message || 'Cálculo completado') : (message || 'Cálculo interrumpido');
 
     setTimeout(() => {
         wrapper.style.display = 'none';
         bar.style.width = '0%';
         text.textContent = '0%';
+        stageLabel.textContent = 'Preparando cálculo';
+        detail.textContent = 'En cola...';
     }, success ? 700 : 0);
 }
 
@@ -31135,6 +31244,8 @@ function validateLogisticsWeightLimits({ items, loadType, palletType, trayDims, 
 async function calculateLogistics(maximize = false) {
     lastLogisticsMaximize = !!maximize;
     const statusEl = document.getElementById('logistics-status');
+    currentLogisticsJobId = null;
+    setLogisticsCancelVisibility(false);
 
     // 0. Gather Config
     const loadType = document.getElementById('logistics-load-type')?.value || 'loose';
@@ -31258,6 +31369,7 @@ async function calculateLogistics(maximize = false) {
                     safety_factor_dims: parseFloat(document.getElementById('logistics-safety-factor-dims')?.value) || 0,
                     safety_factor_weight: parseFloat(document.getElementById('logistics-safety-factor-weight')?.value) || 0,
                     mixed_trays: document.getElementById('chk-mixed-trays')?.checked ?? true,
+                    tray_kanban: document.getElementById('chk-tray-kanban')?.checked ?? false,
                     mixed_pallets: document.getElementById('chk-mixed-pallets')?.checked ?? true,
                     stack_load: true,
                     stack_trays: document.getElementById('chk-stack-trays')?.checked ?? true,
@@ -31272,23 +31384,45 @@ async function calculateLogistics(maximize = false) {
         if (startData.status !== 'started' || !startData.job_id) {
             throw new Error(startData.message || 'No se pudo iniciar el cálculo.');
         }
+        currentLogisticsJobId = startData.job_id;
+        setLogisticsCancelVisibility(true);
 
         let data = null;
         while (true) {
             await new Promise(resolve => setTimeout(resolve, 500));
             const progressResponse = await fetch(`/api/logistics/calculate-progress/${startData.job_id}`);
             const progressData = await progressResponse.json();
-            if (progressData.status === 'running' || progressData.status === 'queued') {
-                updateLogisticsProgress(progressData.progress || 0, progressData.message || 'Procesando...');
+            if (progressData.status === 'running' || progressData.status === 'queued' || progressData.status === 'cancelling') {
+                updateLogisticsProgress(
+                    progressData.progress || 0,
+                    progressData.message || 'Procesando...',
+                    progressData.stage || 'queued',
+                    progressData.detail || progressData.message || 'Procesando...'
+                );
                 continue;
             }
+            if (progressData.status === 'cancelled') {
+                currentLogisticsJobId = null;
+                setLogisticsCancelVisibility(false);
+                statusEl.textContent = progressData.message || 'Cálculo cancelado.';
+                finishLogisticsProgress(false, progressData.message || 'Cálculo cancelado');
+                return;
+            }
             if (progressData.status === 'done') {
-                updateLogisticsProgress(100, progressData.message || 'Cálculo completado');
+                updateLogisticsProgress(
+                    100,
+                    progressData.message || 'Cálculo completado',
+                    progressData.stage || 'done',
+                    progressData.detail || progressData.message || 'Cálculo completado'
+                );
                 data = progressData.result || null;
                 break;
             }
             throw new Error(progressData.message || 'Error durante el cálculo.');
         }
+
+        currentLogisticsJobId = null;
+        setLogisticsCancelVisibility(false);
 
         if (data && data.status === 'success') {
             statusEl.textContent = '';
@@ -31310,8 +31444,14 @@ async function calculateLogistics(maximize = false) {
                 statusEl.textContent = 'Maximización completada';
             }
 
-            renderLogisticsResults(data);
-            finishLogisticsProgress(true, 'Completado 100%');
+            try {
+                renderLogisticsResults(data);
+                finishLogisticsProgress(true, 'Completado 100%');
+            } catch (renderError) {
+                console.error('Render logistics results failed', renderError);
+                statusEl.textContent = `Error al renderizar resultados: ${renderError.message || renderError}`;
+                finishLogisticsProgress(false, 'Error de visualización');
+            }
         } else {
             statusEl.textContent = 'Error: ' + ((data && data.message) || 'Cálculo inválido');
             finishLogisticsProgress(false, 'Cálculo interrumpido');
@@ -31319,7 +31459,9 @@ async function calculateLogistics(maximize = false) {
 
     } catch (e) {
         console.error(e);
-        statusEl.textContent = 'Error de conexión con el servidor.';
+        currentLogisticsJobId = null;
+        setLogisticsCancelVisibility(false);
+        statusEl.textContent = `Error del cálculo: ${e.message || e}`;
         finishLogisticsProgress(false, 'Cálculo interrumpido');
     }
 }
@@ -31424,6 +31566,7 @@ async function confirmSaveLogistics() {
         optimization: {
             maximize: maximizeFlag,
             mixed_trays: document.getElementById('chk-mixed-trays')?.checked ?? true,
+            tray_kanban: document.getElementById('chk-tray-kanban')?.checked ?? false,
             mixed_pallets: document.getElementById('chk-mixed-pallets')?.checked ?? true,
             stack_load: true,
             stack_trays: document.getElementById('chk-stack-trays')?.checked ?? true,
@@ -31569,6 +31712,10 @@ function switchLogisticsTab(tabName, clickedEl) { // tabName: 'summary' | 'detai
 
 
 function renderLogisticsResults(data) {
+    const packedItems = Array.isArray(data?.packed_items) ? data.packed_items : [];
+    const usesSimplified3D = packedItems.some(item => item && item.kanban_simplified);
+    setLogistics3DNoteVisibility(usesSimplified3D);
+
     // --- 1. Top KPIs (Summary Tab) ---
     // --- 1. Top KPIs (Summary Tab) ---
     // Remove previous indicators
@@ -31638,6 +31785,19 @@ function renderLogisticsResults(data) {
             target[key].weight += (parseFloat(tray.weight_per_tray) || 0) * (tray.count || 0);
         });
     };
+    const groupedPallets = data.grouped_pallets || [];
+    const itemTotals = {};
+    const trayTotals = {};
+
+    groupedPallets.forEach(g => {
+        if (g.type === 'pallet' || g.type === 'pallet_group') {
+            accumulateTrayTotals(trayTotals, g.trays || []);
+            accumulateItemTotals(itemTotals, g.items || []);
+        } else if (g.type === 'tray') {
+            accumulateTrayTotals(trayTotals, [g]);
+            accumulateItemTotals(itemTotals, g.items || []);
+        }
+    });
 
     if (containerType === 'none') {
         document.getElementById('kpi-container-vol').textContent = '-';
@@ -31712,7 +31872,7 @@ function renderLogisticsResults(data) {
         }
 
         // === LEVEL 2: PALLETS (indented if container exists) ===
-        const groups = data.grouped_pallets || [];
+        const groups = groupedPallets;
         let palletCount = 0;
         const palletsByType = {};
 
@@ -31723,19 +31883,13 @@ function renderLogisticsResults(data) {
         if (pType === 'collars' || pType === 'collars_120x100') palletTypeName += ` (${pBoards} Tablas)`;
 
         let totalPalletWeight = 0;
-        const itemTotals = {};
-        const trayTotals = {};
 
-        // Aggregate ALL pallets and items
+        // Aggregate pallet counters only. Tray/item totals were already precomputed once
+        // at function scope to avoid double counting in summary/KPI rendering.
         groups.forEach(g => {
             if (g.type === 'pallet' || g.type === 'pallet_group') {
                 palletCount += g.count;
                 totalPalletWeight += (parseFloat(g.weight_per_pallet) || 0) * g.count;
-                accumulateTrayTotals(trayTotals, g.trays || []);
-                accumulateItemTotals(itemTotals, g.items || []);
-            } else if (g.type === 'tray') {
-                accumulateTrayTotals(trayTotals, [g]);
-                accumulateItemTotals(itemTotals, g.items || []);
             }
         });
 
@@ -31960,7 +32114,16 @@ function renderLogisticsResults(data) {
     // NOTE: 'packedCount' and 'totalCount' should NOT be redeclared if they were declared earlier.
     // However, looking at previous blocks, they might NOT be in scope if declared in 'if' blocks.
     // But to be safe and avoid syntax errors, we use new variable names or assignment.
-    const finalPackedCount = (data.packed_items || []).filter(i => i.name !== 'PALLET_BASE').length;
+    let finalPackedCount = 0;
+    if (Object.keys(itemTotals).length > 0) {
+        finalPackedCount = Object.values(itemTotals).reduce((acc, info) => acc + (Number(info.qty || 0)), 0);
+    } else {
+        finalPackedCount = (data.packed_items || []).reduce((acc, item) => {
+            if (item.name === 'PALLET_BASE') return acc;
+            if (item.leaf_total_count) return acc + Number(item.leaf_total_count || 0);
+            return acc + 1;
+        }, 0);
+    }
     const finalTotalCount = finalPackedCount + (data.unfitted_count || 0);
     document.getElementById('kpi-packed-count').textContent = `${finalPackedCount}/${finalTotalCount}`;
 
@@ -32225,6 +32388,7 @@ function resetLogisticsCalculator() {
     const trayOuterH = document.getElementById('tray-outer-h');
     const trayWeight = document.getElementById('tray-weight');
     const trayMaxWeight = document.getElementById('tray-max-weight');
+    const chkTrayKanban = document.getElementById('chk-tray-kanban');
     if (palletL) palletL.value = '';
     if (palletW) palletW.value = '';
     if (palletH) palletH.value = '';
@@ -32237,6 +32401,7 @@ function resetLogisticsCalculator() {
     if (trayOuterH) trayOuterH.value = '';
     if (trayWeight) trayWeight.value = '';
     if (trayMaxWeight) trayMaxWeight.value = '25';
+    if (chkTrayKanban) chkTrayKanban.checked = false;
 
     const palletMaxW = document.getElementById('pallet-max-weight');
     if (palletMaxW) palletMaxW.value = 1200;
@@ -32268,6 +32433,7 @@ function resetLogisticsCalculator() {
 
     const chkStackTrays = document.getElementById('chk-stack-trays');
     if (chkStackTrays) chkStackTrays.checked = true;
+    syncTrayKanbanMode();
 
     const chkStackCollars = document.getElementById('chk-stack-collars');
     if (chkStackCollars) chkStackCollars.checked = true;
@@ -32341,9 +32507,13 @@ function resetLogisticsCalculator() {
 
     // Reset 3D view
     const viewer = document.getElementById('3d-viewer');
+    disposeLogistics3D();
     if (viewer) viewer.innerHTML = '';
     lastLogisticsData = null;
     lastContainerData = null;
+    currentLogisticsJobId = null;
+    setLogisticsCancelVisibility(false);
+    setLogistics3DNoteVisibility(false);
 
     // Reset tab to Summary
     const summaryTab = document.querySelector("#view-logistics [onclick=\"switchLogisticsTab('summary', this)\"]");
@@ -32358,9 +32528,51 @@ function resetLogisticsCalculator() {
 let logisticsScene = null;
 let logisticsRenderer = null;
 let logisticsCamera = null;
+let logisticsControls = null;
+let logisticsAnimationFrameId = null;
+let logisticsKanbanRenderGeneration = 0;
+
+function disposeLogistics3D() {
+    logisticsKanbanRenderGeneration += 1;
+
+    if (logisticsAnimationFrameId) {
+        cancelAnimationFrame(logisticsAnimationFrameId);
+        logisticsAnimationFrameId = null;
+    }
+
+    if (logisticsControls && typeof logisticsControls.dispose === 'function') {
+        try {
+            logisticsControls.dispose();
+        } catch (e) {
+            console.warn('3D controls dispose failed', e);
+        }
+    }
+    logisticsControls = null;
+
+    if (logisticsRenderer) {
+        try {
+            if (logisticsRenderer.domElement && logisticsRenderer.domElement.parentNode) {
+                logisticsRenderer.domElement.parentNode.removeChild(logisticsRenderer.domElement);
+            }
+            if (typeof logisticsRenderer.dispose === 'function') {
+                logisticsRenderer.dispose();
+            }
+            if (typeof logisticsRenderer.forceContextLoss === 'function') {
+                logisticsRenderer.forceContextLoss();
+            }
+        } catch (e) {
+            console.warn('3D renderer dispose failed', e);
+        }
+    }
+
+    logisticsRenderer = null;
+    logisticsScene = null;
+    logisticsCamera = null;
+}
 
 function render3DContainer(containerDims, items, targetContainer = null) {
     const containerDiv = targetContainer || document.getElementById('3d-viewer');
+    disposeLogistics3D();
     containerDiv.innerHTML = ''; // Clear previous
 
     if (!window.THREE) {
@@ -32381,8 +32593,11 @@ function render3DContainer(containerDims, items, targetContainer = null) {
     scene.background = new THREE.Color(0x222222);
     logisticsScene = scene;
 
+    const renderWidth = Math.max(containerDiv.clientWidth || 0, 320);
+    const renderHeight = Math.max(containerDiv.clientHeight || 0, 240);
+
     // Camera
-    const camera = new THREE.PerspectiveCamera(45, containerDiv.clientWidth / containerDiv.clientHeight, 1, 10000);
+    const camera = new THREE.PerspectiveCamera(45, renderWidth / renderHeight, 1, 10000);
     // Position camera: Back and Up
     camera.position.set(W * 1.5, H * 2, D * 2);
     // If virtual (huge floor), maybe zoom out more?
@@ -32399,8 +32614,72 @@ function render3DContainer(containerDims, items, targetContainer = null) {
     scene.add(dirLight);
 
     // Renderer
-    const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
-    renderer.setSize(containerDiv.clientWidth, containerDiv.clientHeight);
+    const canvas = document.createElement('canvas');
+    canvas.style.width = '100%';
+    canvas.style.height = '100%';
+
+    const glOptions = {
+        antialias: true,
+        preserveDrawingBuffer: true,
+        alpha: false,
+        depth: true,
+        stencil: false,
+        powerPreference: 'high-performance',
+        premultipliedAlpha: false
+    };
+
+    let glContext = null;
+    try {
+        glContext =
+            canvas.getContext('webgl2', glOptions) ||
+            canvas.getContext('webgl', glOptions) ||
+            canvas.getContext('experimental-webgl', glOptions);
+
+        if (!glContext) {
+            const fallbackOptions = {
+                antialias: false,
+                preserveDrawingBuffer: true,
+                alpha: false,
+                depth: true,
+                stencil: false,
+                premultipliedAlpha: false
+            };
+            glContext =
+                canvas.getContext('webgl2', fallbackOptions) ||
+                canvas.getContext('webgl', fallbackOptions) ||
+                canvas.getContext('experimental-webgl', fallbackOptions);
+        }
+    } catch (glError) {
+        console.error('3D context creation failed', glError);
+    }
+
+    if (!glContext) {
+        throw new Error('No se pudo crear un contexto WebGL valido para la visualizacion 3D.');
+    }
+
+    let renderer = null;
+    try {
+        renderer = new THREE.WebGLRenderer({
+            canvas,
+            context: glContext,
+            antialias: !!glOptions.antialias,
+            preserveDrawingBuffer: true,
+            alpha: false
+        });
+    } catch (rendererError) {
+        console.warn('3D renderer init retrying with conservative flags', rendererError);
+        renderer = new THREE.WebGLRenderer({
+            canvas,
+            context: glContext,
+            antialias: false,
+            preserveDrawingBuffer: false,
+            alpha: false
+        });
+    }
+    renderer.setSize(renderWidth, renderHeight, false);
+    if (typeof renderer.setPixelRatio === 'function') {
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    }
 
     // FORCE CSS FULL SIZE (Critical for responsive resize)
     renderer.domElement.style.width = '100%';
@@ -32415,6 +32694,7 @@ function render3DContainer(containerDims, items, targetContainer = null) {
         controls.target.set(W / 2, H / 2, D / 2);
         controls.update();
     }
+    logisticsControls = controls;
 
     // --- DRAW CONTAINER ---
     // Only draw red wireframe if NOT virtual
@@ -32467,6 +32747,118 @@ function render3DContainer(containerDims, items, targetContainer = null) {
     }
 
     // --- DRAW ITEMS ---
+    function addKanbanMeshes(trayItem) {
+        const kanbanLayouts = (lastLogisticsData && lastLogisticsData.kanban_layouts) || {};
+        const layoutEntries = trayItem.kanban_layout_id ? kanbanLayouts[trayItem.kanban_layout_id] : null;
+        const contentMap = trayItem.content_map || {};
+        const leafDims = trayItem.leaf_item_dims || null;
+        if (!leafDims) return;
+
+        const pieceW = Number(leafDims.w || 0);
+        const pieceH = Number(leafDims.h || 0);
+        const pieceD = Number(leafDims.d || 0);
+        if (!(pieceW > 0 && pieceH > 0 && pieceD > 0)) return;
+
+        const totalCount = Number(trayItem.leaf_total_count || 0);
+        if (!(totalCount > 0)) return;
+        const renderGeneration = logisticsKanbanRenderGeneration;
+
+        const shellOffset = Number(trayItem.wall_thickness || 0);
+        const baseH = Number(trayItem.h || 0);
+        const visualH = Number(trayItem.h_visual || trayItem.total_h || trayItem.h || 0);
+        const isRotated = trayItem.rt === 1;
+
+        const innerW = Math.max((Number(trayItem.w || 0) - shellOffset * 2), pieceW);
+        const innerD = Math.max((Number(trayItem.d || 0) - shellOffset * 2), pieceD);
+        const usableH = Math.max((visualH - baseH), pieceH);
+
+        const slotsX = Math.max(Math.floor(innerW / pieceW), 1);
+        const slotsZ = Math.max(Math.floor(innerD / pieceD), 1);
+        const slotsPerLayer = Math.max(slotsX * slotsZ, 1);
+        const maxLayers = Math.max(Math.floor(usableH / pieceH), 1);
+
+        const itemName = Object.keys(contentMap)[0] || trayItem.leaf_item_name || 'KANBAN_ITEM';
+        const pieceColor = getLogisticsItemColor(itemName, false);
+        const batchSize = 400;
+        let idx = 0;
+        const useLayoutEntries = Array.isArray(layoutEntries) && layoutEntries.length > 0;
+        const maxRenderable = useLayoutEntries ? layoutEntries.length : Math.min(totalCount, slotsPerLayer * maxLayers);
+
+        function addPieceMesh(pieceX, pieceY, pieceZ, meshW, meshH, meshD) {
+            const pieceGeometry = new THREE.BoxGeometry(meshW, meshH, meshD);
+            const pieceMaterial = new THREE.MeshLambertMaterial({ color: pieceColor });
+            const pieceMesh = new THREE.Mesh(pieceGeometry, pieceMaterial);
+            pieceMesh.position.set(pieceX, pieceY, pieceZ);
+            scene.add(pieceMesh);
+        }
+
+        function renderBatch() {
+            if (renderGeneration !== logisticsKanbanRenderGeneration) return;
+
+            const upper = Math.min(idx + batchSize, maxRenderable);
+            for (; idx < upper; idx++) {
+                let pieceX;
+                let pieceY;
+                let pieceZ;
+                let meshW = pieceW;
+                let meshH = pieceH;
+                let meshD = pieceD;
+
+                if (useLayoutEntries) {
+                    const entry = layoutEntries[idx] || {};
+                    const localX = Number(entry.x || 0);
+                    const localY = Number(entry.y || 0);
+                    const localZ = Number(entry.z || 0);
+                    const entryW = Number(entry.w || pieceW);
+                    const entryH = Number(entry.h || pieceH);
+                    const entryD = Number(entry.d || pieceD);
+
+                    if (isRotated) {
+                        const parentInnerW = Math.max((Number(trayItem.w || 0) - shellOffset * 2), 0);
+                        pieceX = trayItem.x + localZ + shellOffset + (entryD / 2);
+                        pieceZ = trayItem.z + Math.max(parentInnerW - localX - entryW, 0) + shellOffset + (entryW / 2);
+                        meshW = entryD;
+                        meshH = entryH;
+                        meshD = entryW;
+                    } else {
+                        pieceX = trayItem.x + localX + shellOffset + (entryW / 2);
+                        pieceZ = trayItem.z + localZ + shellOffset + (entryD / 2);
+                        meshW = entryW;
+                        meshH = entryH;
+                        meshD = entryD;
+                    }
+                    pieceY = trayItem.y + baseH + localY + (meshH / 2);
+                } else {
+                    const layerIdx = Math.min(Math.floor(idx / slotsPerLayer), maxLayers - 1);
+                    const slotIdx = idx % slotsPerLayer;
+                    const rowIdx = Math.floor(slotIdx / slotsX);
+                    const colIdx = slotIdx % slotsX;
+
+                    const localX = colIdx * pieceW;
+                    const localZ = rowIdx * pieceD;
+                    const localY = layerIdx * pieceH;
+
+                    if (isRotated) {
+                        pieceX = trayItem.x + localZ + shellOffset + (pieceW / 2);
+                        pieceZ = trayItem.z + localX + shellOffset + (pieceD / 2);
+                    } else {
+                        pieceX = trayItem.x + localX + shellOffset + (pieceW / 2);
+                        pieceZ = trayItem.z + localZ + shellOffset + (pieceD / 2);
+                    }
+                    pieceY = trayItem.y + baseH + localY + (pieceH / 2);
+                }
+
+                addPieceMesh(pieceX, pieceY, pieceZ, meshW, meshH, meshD);
+            }
+
+            if (idx < maxRenderable) {
+                requestAnimationFrame(renderBatch);
+            }
+        }
+
+        requestAnimationFrame(renderBatch);
+    }
+
     items.forEach(item => {
         const isPallet = item.is_pallet;
         const isCollarsPallet = isPallet && (item.pallet_type === 'collars' || item.pallet_type === 'collars_120x100');
@@ -32581,12 +32973,16 @@ function render3DContainer(containerDims, items, targetContainer = null) {
                 limitLine.position.set(item.x + item.w / 2, item.y + baseH + wallH / 2, item.z + item.d / 2);
                 scene.add(limitLine);
             }
+
+            if (isTrayPallet && item.kanban_simplified && item.content_map && item.leaf_item_dims && item.leaf_total_count) {
+                addKanbanMeshes(item);
+            }
         }
     });
 
     // Animation Loop
     function animate() {
-        requestAnimationFrame(animate);
+        logisticsAnimationFrameId = requestAnimationFrame(animate);
         renderer.render(scene, camera);
     }
     animate();

@@ -25,6 +25,7 @@ import tempfile
 import warnings
 
 from pathlib import Path
+from typing import Optional, Tuple
 
 from io import StringIO
 import hashlib
@@ -64,6 +65,10 @@ from path_config import (
 )
 
 PBKDF2_METHOD = 'pbkdf2:sha256:600000'
+
+
+class LogisticsCalculationCancelled(Exception):
+    pass
 
 
 def _has_native_scrypt():
@@ -207,13 +212,24 @@ def _write_json_file_atomic(path_value, data, *, indent=4, ensure_ascii=False):
 
 def _do_pack_internal(container_data, items_data, config):
     """Core Logistic Solver logic extracted for reuse in maximization."""
-    print(f"DEBUG: _do_pack_internal called. Items: {len(items_data)}")
     try:
         job_id = config.get('job_id')
         progress_detail = config.get('progress_detail', False)
-        def progress(progress_value, message):
+        debug_verbose = config.get('debug_verbose', True)
+
+        def debug_log(message):
+            if debug_verbose:
+                print(message, flush=True)
+
+        debug_log(f"DEBUG: _do_pack_internal called. Items: {len(items_data)}")
+
+        def progress(progress_value, message, stage=None):
+            _raise_if_logistics_calc_cancelled(job_id)
             if progress_detail and job_id:
-                _set_logistics_calc_state(job_id, progress=progress_value, message=message, status='running')
+                if stage:
+                    _update_logistics_calc_progress(job_id, stage=stage, progress=progress_value, message=message, status='running')
+                else:
+                    _set_logistics_calc_state(job_id, progress=progress_value, message=message, status='running')
 
         load_type_key = config.get('load_type', 'loose')
         pallet_type_key = config.get('pallet_type', 'none')
@@ -232,6 +248,9 @@ def _do_pack_internal(container_data, items_data, config):
         stack_trays = config.get('stack_trays', allow_stacking)
         stack_collars = config.get('stack_collars', allow_stacking)
         mixed_trays = config.get('mixed_trays', True)
+        tray_kanban_enabled = bool(config.get('tray_kanban')) and is_tray_load
+        if tray_kanban_enabled:
+            mixed_trays = False
 
         # Forced orientation (face down) for items
         forced_rotations = None
@@ -281,13 +300,36 @@ def _do_pack_internal(container_data, items_data, config):
                 if c_vol > 0 and min_vol > 0 and min_vol != float('inf'):
                     max_items_cap = int((c_vol / min_vol) * 1.5) + 200 # 50% buffer + 200 items base safety
             except Exception as e:
-                print(f"DEBUG: Optimization Error: {e}")
+                debug_log(f"DEBUG: Optimization Error: {e}")
                 pass
 
         raw_items = []
         total_items_generated = 0
+        if debug_verbose:
+            qty_summary = [(str(item.get('id', '?')), int(item.get('qty', 1) or 1)) for item in items_data]
+            debug_log(f"DEBUG: Preparing raw items. Requested: {qty_summary}, MaxCap: {max_items_cap}")
 
         def iter_leaf_items(unit):
+            if hasattr(unit, 'content_map') and hasattr(unit, 'leaf_item_template'):
+                content_map = getattr(unit, 'content_map', {}) or {}
+                template = getattr(unit, 'leaf_item_template', None)
+                if template:
+                    for item_name, qty in content_map.items():
+                        try:
+                            qty_int = int(qty or 0)
+                        except Exception:
+                            qty_int = 0
+                        for _ in range(max(qty_int, 0)):
+                            virtual_leaf = Item(
+                                name=item_name,
+                                width=template.width,
+                                height=template.height,
+                                depth=template.depth,
+                                weight=template.weight,
+                                allowed_rotations=template.allowed_rotations
+                            )
+                            yield virtual_leaf
+                return
             if hasattr(unit, 'inner_items'):
                 for child in unit.inner_items:
                     yield from iter_leaf_items(child)
@@ -295,25 +337,140 @@ def _do_pack_internal(container_data, items_data, config):
                 yield unit
 
         def sum_leaf_volume(unit):
+            if hasattr(unit, 'leaf_total_volume'):
+                return float(getattr(unit, 'leaf_total_volume', 0) or 0)
+            if hasattr(unit, 'inner_items'):
+                return sum(sum_leaf_volume(child) for child in unit.inner_items)
             return sum([float(i.width * i.height * i.depth) for i in iter_leaf_items(unit)])
+
+        def sum_leaf_weight(unit):
+            if hasattr(unit, 'leaf_total_weight'):
+                return float(getattr(unit, 'leaf_total_weight', 0) or 0)
+            if hasattr(unit, 'inner_items'):
+                return sum(sum_leaf_weight(child) for child in unit.inner_items)
+            return sum(float(i.weight) for i in iter_leaf_items(unit))
+
+        def collect_content_map(unit):
+            if hasattr(unit, 'content_map'):
+                return dict(getattr(unit, 'content_map', {}) or {})
+            if hasattr(unit, 'inner_items'):
+                content_map = {}
+                for child in unit.inner_items:
+                    child_map = collect_content_map(child)
+                    for item_name, qty in child_map.items():
+                        try:
+                            qty_int = int(qty or 0)
+                        except Exception:
+                            qty_int = 0
+                        content_map[item_name] = content_map.get(item_name, 0) + qty_int
+                return content_map
+            content_map = {}
+            for sub in iter_leaf_items(unit):
+                content_map[sub.name] = content_map.get(sub.name, 0) + 1
+            return content_map
+
+        def count_leaf_items(unit):
+            if hasattr(unit, 'content_map'):
+                try:
+                    return sum(int(v or 0) for v in getattr(unit, 'content_map', {}).values())
+                except Exception:
+                    return 0
+            if hasattr(unit, 'leaf_total_count'):
+                try:
+                    return int(getattr(unit, 'leaf_total_count', 0) or 0)
+                except Exception:
+                    return 0
+            if hasattr(unit, 'inner_items'):
+                return sum(count_leaf_items(child) for child in unit.inner_items)
+            return sum(1 for _ in iter_leaf_items(unit))
+
+        def estimate_item_upper_bound(item_payload, bin_width, bin_depth, bin_height, max_load_weight):
+            try:
+                i_w = float(item_payload.get('w', 0) or 0)
+                i_d = float(item_payload.get('d', 0) or 0)
+                i_h = float(item_payload.get('h', 0) or 0)
+                i_weight = float(item_payload.get('weight', 0) or 0)
+                bounds = []
+                if i_w > 0 and i_d > 0 and i_h > 0 and bin_width > 0 and bin_depth > 0 and bin_height > 0:
+                    item_vol = i_w * i_d * i_h
+                    bin_vol = bin_width * bin_depth * bin_height
+                    if item_vol > 0 and bin_vol > 0:
+                        bounds.append(max(int(bin_vol // item_vol), 1))
+                if max_load_weight > 0 and i_weight > 0:
+                    bounds.append(max(int(max_load_weight // i_weight), 1))
+                if not bounds:
+                    return 512
+                return max(1, min(min(bounds) + 1, 50000))
+            except Exception:
+                return 512
+
+        def max_qty_per_single_bin(item_payload, bin_factory, bin_width, bin_depth, bin_height, max_load_weight):
+            upper_bound = estimate_item_upper_bound(item_payload, bin_width, bin_depth, bin_height, max_load_weight)
+            probe_cache = {}
+
+            def fits(qty_probe):
+                if qty_probe in probe_cache:
+                    return probe_cache[qty_probe]
+                if qty_probe <= 0:
+                    probe_cache[qty_probe] = False
+                    return False
+                packer = Packer()
+                try:
+                    probe_bin = bin_factory()
+                    packer.add_bin(probe_bin)
+                    for _ in range(int(qty_probe)):
+                        probe_item = Item(
+                            name=item_payload.get('id'),
+                            width=Decimal(item_payload.get('w', 0)) * sf_mult_dims,
+                            height=Decimal(item_payload.get('h', 0)) * sf_mult_dims,
+                            depth=Decimal(item_payload.get('d', 0)) * sf_mult_dims,
+                            weight=Decimal(item_payload.get('weight', 0)) * sf_mult_weight,
+                            allowed_rotations=forced_rotations if forced_rotations else RotationType.ALL
+                        )
+                        if forced_rotations:
+                            probe_item.force_orientation = True
+                        packer.add_item(probe_item)
+                    packer.pack(bigger_first=True)
+                    fits_result = len(packer.unfit_items) == 0
+                except Exception:
+                    fits_result = False
+                probe_cache[qty_probe] = fits_result
+                return fits_result
+
+            lo_probe = 1
+            hi_probe = 1
+            best_probe = 0
+            while hi_probe <= upper_bound and fits(hi_probe):
+                best_probe = hi_probe
+                if hi_probe == upper_bound:
+                    return best_probe
+                hi_probe = min(hi_probe * 2, upper_bound)
+            lo_probe = max(1, best_probe + 1)
+            hi_probe = max(min(hi_probe - 1, upper_bound), lo_probe)
+            while lo_probe <= hi_probe:
+                mid_probe = (lo_probe + hi_probe) // 2
+                if fits(mid_probe):
+                    best_probe = mid_probe
+                    lo_probe = mid_probe + 1
+                else:
+                    hi_probe = mid_probe - 1
+            return best_probe
 
         def build_tray_groups(tray_units):
             tray_groups_map = {}
             item_lookup = {str(it.get('id')): it for it in items_data if isinstance(it, dict)}
 
             for tray_unit in tray_units:
-                if not hasattr(tray_unit, 'inner_items'):
+                if not hasattr(tray_unit, 'inner_items') and not hasattr(tray_unit, 'content_map'):
                     continue
 
-                content_map = {}
-                for sub in iter_leaf_items(tray_unit):
-                    content_map[sub.name] = content_map.get(sub.name, 0) + 1
+                content_map = collect_content_map(tray_unit)
 
                 dims_str = f"{float(tray_unit.width):.0f}x{float(getattr(tray_unit, 'visual_height', tray_unit.height)):.0f}x{float(tray_unit.depth):.0f}"
                 sig = f"{dims_str}_{sorted(content_map.items())}"
 
                 if sig not in tray_groups_map:
-                    load_weight = sum(float(sub.weight) for sub in iter_leaf_items(tray_unit))
+                    load_weight = sum_leaf_weight(tray_unit)
                     tray_groups_map[sig] = {
                         'type': 'tray',
                         'name': 'Bandejas',
@@ -356,18 +513,110 @@ def _do_pack_internal(container_data, items_data, config):
                 })
 
             return tray_groups
+
+        kanban_layout_registry = {}
+
+        def build_kanban_tray_layout(source_item, qty_in_tray):
+            cache_key = f"{source_item.get('id')}::{int(qty_in_tray)}"
+            if cache_key in kanban_layout_registry:
+                return cache_key
+
+            tray_layout_packer = Packer()
+            tray_layout_packer.add_bin(tray_factory())
+            for _ in range(int(qty_in_tray)):
+                layout_item = Item(
+                    name=source_item.get('id'),
+                    width=Decimal(source_item.get('w', 0)) * sf_mult_dims,
+                    height=Decimal(source_item.get('h', 0)) * sf_mult_dims,
+                    depth=Decimal(source_item.get('d', 0)) * sf_mult_dims,
+                    weight=Decimal(source_item.get('weight', 0)) * sf_mult_weight,
+                    allowed_rotations=forced_rotations if forced_rotations else RotationType.ALL
+                )
+                if forced_rotations:
+                    layout_item.force_orientation = True
+                tray_layout_packer.add_item(layout_item)
+
+            tray_layout_packer.pack(bigger_first=True)
+            tray_layout_bin = tray_layout_packer.bins[0] if tray_layout_packer.bins else None
+            if tray_layout_bin is None or tray_layout_packer.unfit_items:
+                raise Exception(f'No se pudo generar layout Kanban para {source_item.get("id")} x {qty_in_tray}.')
+
+            kanban_layout_registry[cache_key] = [{
+                'name': packed_piece.name,
+                'x': float(packed_piece.position[0]),
+                'y': float(packed_piece.position[1]),
+                'z': float(packed_piece.position[2]),
+                'w': float(packed_piece.get_dimension()[0]),
+                'h': float(packed_piece.get_dimension()[1]),
+                'd': float(packed_piece.get_dimension()[2]),
+                'rt': packed_piece.rotation_type,
+                'weight': float(getattr(packed_piece, 'weight', 0) or 0)
+            } for packed_piece in tray_layout_bin.items]
+            return cache_key
+
+        def build_kanban_tray_unit(source_item, qty_in_tray):
+            piece_w = Decimal(source_item.get('w', 0)) * sf_mult_dims
+            piece_h = Decimal(source_item.get('h', 0)) * sf_mult_dims
+            piece_d = Decimal(source_item.get('d', 0)) * sf_mult_dims
+            piece_weight = Decimal(source_item.get('weight', 0)) * sf_mult_weight
+            layout_id = build_kanban_tray_layout(source_item, qty_in_tray)
+            piece_template = Item(
+                name=source_item.get('id'),
+                width=piece_w,
+                height=piece_h,
+                depth=piece_d,
+                weight=piece_weight,
+                allowed_rotations=forced_rotations if forced_rotations else RotationType.ALL
+            )
+            if forced_rotations:
+                piece_template.force_orientation = True
+
+            t_item = Item(
+                name=f"Tray_{len(tray_items) + 1}",
+                width=tray_conf_outer['w'],
+                depth=tray_conf_outer['d'],
+                height=tray_conf_outer['h'],
+                weight=Decimal(tray_conf['weight']) + (piece_weight * Decimal(qty_in_tray)),
+                allowed_rotations=[RotationType.RT_WHD, RotationType.RT_DHW]
+            )
+            t_item.inner_items = []
+            t_item.base_height = tray_conf.get('base_h', Decimal('0'))
+            t_item.visual_height = float(tray_conf_outer['h'])
+            t_item.pallet_type = 'tray'
+            t_item.wall_thickness = float(tray_conf.get('wall_thickness', Decimal('0')))
+            t_item.content_type = source_item.get('id')
+            t_item.content_map = {str(source_item.get('id')): int(qty_in_tray)}
+            t_item.kanban_layout_id = layout_id
+            t_item.leaf_total_count = int(qty_in_tray)
+            t_item.leaf_total_volume = float(piece_w * piece_h * piece_d) * float(qty_in_tray)
+            t_item.leaf_total_weight = float(piece_weight) * float(qty_in_tray)
+            t_item.leaf_item_template = piece_template
+            t_item.kanban_qty_per_tray = int(qty_in_tray)
+            return t_item
         
+        deferred_tray_kanban_inputs = []
         for item in items_data:
+            _raise_if_logistics_calc_cancelled(job_id)
             qty = int(item.get('qty', 1))
-            
+
             # Apply Cap
             if config.get('maximize') and (total_items_generated + qty) > max_items_cap:
                 qty = max(0, max_items_cap - total_items_generated)
-            
-            if qty <= 0 and config.get('maximize'): continue
-            
+
+            if qty <= 0 and config.get('maximize'):
+                continue
+            if debug_verbose:
+                debug_log(f"DEBUG: Generating units for {item.get('id', '?')}: qty={qty}")
+
+            total_items_generated += qty
+            if tray_kanban_enabled:
+                deferred_tray_kanban_inputs.append((item, qty))
+                if config.get('maximize') and total_items_generated >= max_items_cap:
+                    break
+                continue
+
             for _ in range(qty):
-                 itm = Item(
+                itm = Item(
                     name=item.get('id'),
                     width=Decimal(item.get('w', 0)) * sf_mult_dims,
                     height=Decimal(item.get('h', 0)) * sf_mult_dims,
@@ -375,13 +624,21 @@ def _do_pack_internal(container_data, items_data, config):
                     weight=Decimal(item.get('weight', 0)) * sf_mult_weight,
                     allowed_rotations=forced_rotations if forced_rotations else RotationType.ALL
                 )
-                 if forced_rotations:
-                      itm.force_orientation = True
-                 raw_items.append(itm)
-            total_items_generated += qty
-            if config.get('maximize') and total_items_generated >= max_items_cap: break
+                if forced_rotations:
+                    itm.force_orientation = True
+                raw_items.append(itm)
+            if config.get('maximize') and total_items_generated >= max_items_cap:
+                break
 
-        progress(18, 'Items preparados...')
+        if tray_kanban_enabled:
+            debug_log(
+                f"DEBUG: Raw item materialization skipped by Tray Kanban. "
+                f"Requested units: {sum(qty for _, qty in deferred_tray_kanban_inputs)}"
+            )
+        else:
+            debug_log(f"DEBUG: Raw items prepared: {len(raw_items)}")
+
+        progress(18, 'Items preparados...', 'validation')
 
         items_to_pack_into_container = []
         unfitted_from_palletizing = []
@@ -390,6 +647,13 @@ def _do_pack_internal(container_data, items_data, config):
         tray_conf_outer = None
 
         if is_tray_load:
+            if tray_kanban_enabled:
+                debug_log(
+                    f"DEBUG: Tray mode enabled (Kanban). Groups entering tray stage: "
+                    f"{[(str(it.get('id', '?')), int(qty)) for it, qty in deferred_tray_kanban_inputs]}"
+                )
+            else:
+                debug_log(f"DEBUG: Tray mode enabled. Raw items entering tray stage: {len(raw_items)}")
             tray_dims = config.get('tray_dims') or {}
             inner_w = Decimal(str(tray_dims.get('tray_inner_w', 0) or 0))
             inner_d = Decimal(str(tray_dims.get('tray_inner_d', 0) or 0))
@@ -426,7 +690,85 @@ def _do_pack_internal(container_data, items_data, config):
                     return Bin(name="Tray", width=tray_conf['w'], depth=tray_conf['d'], height=tray_conf['loading_h'], max_weight=tray_conf['max_load_weight'], allow_stacking=True)
 
                 filled_trays = []
-                if mixed_trays:
+                if tray_kanban_enabled:
+                    debug_log(f"DEBUG: Tray Kanban enabled. Input groups: {[(str(it.get('id', '?')), int(qty)) for it, qty in deferred_tray_kanban_inputs]}")
+                    progress(24, 'Calculando bandejas Kanban...', 'tray')
+                    for source_item, requested_qty in deferred_tray_kanban_inputs:
+                        _raise_if_logistics_calc_cancelled(job_id)
+                        if requested_qty <= 0:
+                            continue
+                        tray_capacity = max_qty_per_single_bin(
+                            source_item,
+                            tray_factory,
+                            float(tray_conf['w']),
+                            float(tray_conf['d']),
+                            float(tray_conf['loading_h']),
+                            float(tray_conf['max_load_weight'])
+                        )
+                        debug_log(
+                            f"DEBUG: Tray Kanban capacity for {source_item.get('id', '?')}: "
+                            f"{tray_capacity} units/tray. Requested={requested_qty}"
+                        )
+                        if tray_capacity <= 0:
+                            for _ in range(requested_qty):
+                                unfitted_item = Item(
+                                    name=source_item.get('id'),
+                                    width=Decimal(source_item.get('w', 0)) * sf_mult_dims,
+                                    height=Decimal(source_item.get('h', 0)) * sf_mult_dims,
+                                    depth=Decimal(source_item.get('d', 0)) * sf_mult_dims,
+                                    weight=Decimal(source_item.get('weight', 0)) * sf_mult_weight,
+                                    allowed_rotations=forced_rotations if forced_rotations else RotationType.ALL
+                                )
+                                if forced_rotations:
+                                    unfitted_item.force_orientation = True
+                                unfitted_from_palletizing.append(unfitted_item)
+                            continue
+
+                        if config.get('maximize'):
+                            tray_quantities = [tray_capacity] * (requested_qty // tray_capacity)
+                            remainder_qty = requested_qty % tray_capacity
+                            if remainder_qty > 0:
+                                debug_log(
+                                    f"DEBUG: Tray Kanban remainder for {source_item.get('id', '?')}: "
+                                    f"{remainder_qty} units left unfitted because maximization requires trays completas."
+                                )
+                                piece_w = Decimal(source_item.get('w', 0)) * sf_mult_dims
+                                piece_h = Decimal(source_item.get('h', 0)) * sf_mult_dims
+                                piece_d = Decimal(source_item.get('d', 0)) * sf_mult_dims
+                                piece_weight = Decimal(source_item.get('weight', 0)) * sf_mult_weight
+                                for _ in range(remainder_qty):
+                                    unfitted_item = Item(
+                                        name=source_item.get('id'),
+                                        width=piece_w,
+                                        height=piece_h,
+                                        depth=piece_d,
+                                        weight=piece_weight,
+                                        allowed_rotations=forced_rotations if forced_rotations else RotationType.ALL
+                                    )
+                                    if forced_rotations:
+                                        unfitted_item.force_orientation = True
+                                    unfitted_from_palletizing.append(unfitted_item)
+                        else:
+                            tray_count = max(int(math.ceil(requested_qty / tray_capacity)), 1)
+                            base_qty = requested_qty // tray_count
+                            extra_qty = requested_qty % tray_count
+                            tray_quantities = [
+                                base_qty + (1 if idx < extra_qty else 0)
+                                for idx in range(tray_count)
+                                if (base_qty + (1 if idx < extra_qty else 0)) > 0
+                            ]
+                            debug_log(
+                                f"DEBUG: Tray Kanban balanced distribution for {source_item.get('id', '?')}: "
+                                f"{tray_quantities}"
+                            )
+
+                        for qty_in_tray in tray_quantities:
+                            tray_items.append(build_kanban_tray_unit(source_item, qty_in_tray))
+                    debug_log(
+                        f"DEBUG: Tray Kanban stage done. Trays built: {len(tray_items)}, "
+                        f"Unfitted after trays: {len(unfitted_from_palletizing)}"
+                    )
+                elif mixed_trays:
                     tray_packer = Packer()
                     filled_trays = tray_packer.pack_to_many_bins(tray_factory, raw_items, sort_items=config.get('sort_items', True))
                     unfitted_from_palletizing.extend(tray_packer.unfit_items)
@@ -439,6 +781,9 @@ def _do_pack_internal(container_data, items_data, config):
                         grp_trays = tray_packer.pack_to_many_bins(tray_factory, group_items, sort_items=config.get('sort_items', True))
                         filled_trays.extend(grp_trays)
                         unfitted_from_palletizing.extend(tray_packer.unfit_items)
+
+                if not tray_kanban_enabled:
+                    debug_log(f"DEBUG: Tray stage done. Trays built: {len(filled_trays)}, Unfitted after trays: {len(unfitted_from_palletizing)}")
 
                 for i, t_bin in enumerate(filled_trays):
                     t_item = Item(
@@ -462,7 +807,7 @@ def _do_pack_internal(container_data, items_data, config):
             else:
                 tray_items = raw_items
 
-        progress(36, 'Bandejas calculadas...')
+        progress(36, 'Bandejas calculadas...', 'tray')
         
         p_conf = None 
         p_conf_outer = None 
@@ -514,6 +859,7 @@ def _do_pack_internal(container_data, items_data, config):
 
         if p_conf:
             items_for_palletizing = tray_items if is_tray_load and tray_items else raw_items
+            debug_log(f"DEBUG: Pallet stage starting. Units entering palletizing: {len(items_for_palletizing)}")
 
             if is_tray_load and items_for_palletizing:
                 for tray_unit in items_for_palletizing:
@@ -576,16 +922,20 @@ def _do_pack_internal(container_data, items_data, config):
                 # No Mixing: Group by Item Name/ID and pack separately
                 groups = {}
                 for it in items_for_palletizing:
-                    groups.setdefault(it.name, []).append(it)
+                    group_key = getattr(it, 'content_type', None) or it.name
+                    groups.setdefault(group_key, []).append(it)
                 
                 # Pack each group
                 for g_name, g_items in groups.items():
+                    _raise_if_logistics_calc_cancelled(job_id)
                     grp_packer = Packer()
                     grp_pallets = grp_packer.pack_to_many_bins(pallet_factory, g_items, sort_items=config.get('sort_items', True))
                     filled_pallets.extend(grp_pallets)
                     unfitted_from_palletizing.extend(grp_packer.unfit_items)
 
-            progress(58, 'Pallets calculados...')
+            debug_log(f"DEBUG: Pallet stage done. Pallets built: {len(filled_pallets)}, Unfitted after pallets: {len(unfitted_from_palletizing)}")
+
+            progress(58, 'Pallets calculados...', 'pallet')
 
             # Pre-calculate Max Height for Single Pallet Maximization Logic
             target_total_h_for_max = Decimal(0)
@@ -641,6 +991,7 @@ def _do_pack_internal(container_data, items_data, config):
 
         final_packer = Packer()
         if container_type_key != 'none':
+            debug_log(f"DEBUG: Final packing into container. Top-level units: {len(items_to_pack_into_container)}")
             final_allow_stacking = allow_stacking
             if is_collars:
                 final_allow_stacking = stack_collars
@@ -785,7 +1136,7 @@ def _do_pack_internal(container_data, items_data, config):
                     if container_h > 0 and total_h_pallet > 0:
                         layers = int(container_h // total_h_pallet)
                         if layers > 1:
-                            print(f"DEBUG: Stacking Detected. Layers: {layers}")
+                            debug_log(f"DEBUG: Stacking Detected. Layers: {layers}")
                             # Expand template_coords for multiple layers
                             base_coords = list(template_coords)
                             template_coords = []
@@ -800,9 +1151,9 @@ def _do_pack_internal(container_data, items_data, config):
                             
                             # Update target count to reflect full capacity
                             target_count = len(template_coords)
-                            print(f"DEBUG: New Target Count with Stacking: {target_count}")
+                            debug_log(f"DEBUG: New Target Count with Stacking: {target_count}")
 
-                print(f"DEBUG: Applying Template {tpl_name} for {target_count} slots.")
+                debug_log(f"DEBUG: Applying Template {tpl_name} for {target_count} slots.")
                 result_bin = main_bin
                 packed_top_level = []
                 unfitted_final = remaining_unfitted
@@ -819,6 +1170,7 @@ def _do_pack_internal(container_data, items_data, config):
                 if container_max_w <= 0: container_max_w = Decimal(999999999)
 
                 for idx, coord in enumerate(template_coords):
+                    _raise_if_logistics_calc_cancelled(job_id)
                     if idx >= target_count: break
                     if idx >= len(items_to_use): break
                     
@@ -826,7 +1178,7 @@ def _do_pack_internal(container_data, items_data, config):
                     
                     # Weight Check
                     if current_total_weight + it.weight > container_max_w:
-                        print(f"DEBUG: Weight Limit Reached! Cur: {current_total_weight} + Item: {it.weight} > Max: {container_max_w}")
+                        debug_log(f"DEBUG: Weight Limit Reached! Cur: {current_total_weight} + Item: {it.weight} > Max: {container_max_w}")
                         limiting_factor = 'weight'
                         # Add remaining items to unfitted since we stopped early
                         if len(items_to_use) > idx:
@@ -851,12 +1203,14 @@ def _do_pack_internal(container_data, items_data, config):
             else:
                 # Generic fallback packing
                 for it in items_for_container: final_packer.add_item(it)
+                debug_log(f"DEBUG: Running generic container solver with {len(items_for_container)} top-level units")
                 final_packer.pack(bigger_first=True)
                 result_bin = final_packer.bins[0]
                 unfitted_final = final_packer.unfit_items + remaining_unfitted
                 packed_top_level = result_bin.items
         else:
             # NO CONTAINER (Virtual Floor) - No mixed constraints apply (infinite space)
+            debug_log(f"DEBUG: Final packing on virtual floor. Top-level units: {len(items_to_pack_into_container)}")
             virtual_allow_stacking = allow_stacking
             if is_collars:
                 virtual_allow_stacking = stack_collars
@@ -895,19 +1249,168 @@ def _do_pack_internal(container_data, items_data, config):
                 result_bin = Bin("Virtual Floor", Decimal(20000), Decimal(5000), Decimal(20000), Decimal(999999), allow_stacking=virtual_allow_stacking)
             final_packer.add_bin(result_bin)
             for it in items_to_pack_into_container: final_packer.add_item(it)
+            debug_log(f"DEBUG: Running virtual-floor solver with {len(items_to_pack_into_container)} top-level units")
             final_packer.pack(bigger_first=True)
             result_bin = final_packer.bins[0]
             unfitted_final = final_packer.unfit_items
             packed_top_level = result_bin.items
 
-        progress(78, 'Empaquetado principal resuelto...')
+        progress(78, 'Empaquetado principal resuelto...', 'solver')
 
         flattened_packed_items = []
+        kanban_visual_threshold = 250000
         rot_map_90 = {RotationType.RT_WHD: RotationType.RT_DHW, RotationType.RT_DHW: RotationType.RT_WHD, RotationType.RT_HWD: RotationType.RT_DWH, RotationType.RT_DWH: RotationType.RT_HWD, RotationType.RT_HDW: RotationType.RT_WDH, RotationType.RT_WDH: RotationType.RT_HDW}
+
+        total_kanban_piece_count = 0
+        for pkg in packed_top_level:
+            total_kanban_piece_count += count_leaf_items(pkg)
+
+        simplify_kanban_visual = total_kanban_piece_count > kanban_visual_threshold
+
+        def dims_for_rotation(unit, rotation_type):
+            base_w = float(getattr(unit, 'width', 0) or 0)
+            base_h = float(getattr(unit, 'height', 0) or 0)
+            base_d = float(getattr(unit, 'depth', 0) or 0)
+            rotation_dims = {
+                RotationType.RT_WHD: (base_w, base_h, base_d),
+                RotationType.RT_HWD: (base_h, base_w, base_d),
+                RotationType.RT_HDW: (base_h, base_d, base_w),
+                RotationType.RT_DHW: (base_d, base_h, base_w),
+                RotationType.RT_DWH: (base_d, base_w, base_h),
+                RotationType.RT_WDH: (base_w, base_d, base_h),
+            }
+            return rotation_dims.get(rotation_type, (base_w, base_h, base_d))
+
+        def transform_nested_position(parent_unit, local_x, local_z, child_local_w, child_local_d, abs_x, abs_z, shell_offset, is_rotated):
+            if not is_rotated:
+                return abs_x + local_x + shell_offset, abs_z + local_z + shell_offset
+
+            parent_inner_w = max(float(getattr(parent_unit, 'width', 0) or 0) - (shell_offset * 2), 0)
+            rotated_x = abs_x + local_z + shell_offset
+            rotated_z = abs_z + max(parent_inner_w - local_x - child_local_w, 0) + shell_offset
+            return rotated_x, rotated_z
+
+        def emit_virtual_kanban_items(unit, abs_x, abs_y, abs_z, is_rotated, shell_offset):
+            layout_id = getattr(unit, 'kanban_layout_id', None)
+            if layout_id and layout_id in kanban_layout_registry:
+                emitted = 0
+                for entry in kanban_layout_registry.get(layout_id, []):
+                    local_x = float(entry.get('x', 0) or 0)
+                    local_y = float(entry.get('y', 0) or 0)
+                    local_z = float(entry.get('z', 0) or 0)
+                    entry_w = float(entry.get('w', 0) or 0)
+                    entry_h = float(entry.get('h', 0) or 0)
+                    entry_d = float(entry.get('d', 0) or 0)
+                    entry_rt = entry.get('rt', RotationType.RT_WHD)
+
+                    if is_rotated:
+                        child_x, child_z = transform_nested_position(
+                            unit,
+                            local_x,
+                            local_z,
+                            entry_w,
+                            entry_d,
+                            abs_x,
+                            abs_z,
+                            shell_offset,
+                            True
+                        )
+                        final_w, final_h, final_d = entry_d, entry_h, entry_w
+                        final_rt = rot_map_90.get(entry_rt, entry_rt)
+                    else:
+                        child_x = abs_x + local_x + shell_offset
+                        child_z = abs_z + local_z + shell_offset
+                        final_w, final_h, final_d = entry_w, entry_h, entry_d
+                        final_rt = entry_rt
+                    child_y = abs_y + float(getattr(unit, 'base_height', 0)) + local_y
+
+                    flattened_packed_items.append({
+                        'name': entry.get('name', getattr(unit, 'leaf_item_name', 'KANBAN_ITEM')),
+                        'x': child_x,
+                        'y': child_y,
+                        'z': child_z,
+                        'w': final_w,
+                        'h': final_h,
+                        'd': final_d,
+                        'rt': final_rt,
+                        'weight': float(entry.get('weight', 0) or 0)
+                    })
+                    emitted += 1
+                return emitted
+
+            content_map = getattr(unit, 'content_map', {}) or {}
+            template = getattr(unit, 'leaf_item_template', None)
+            if not content_map or template is None:
+                return 0
+
+            piece_w = float(template.width)
+            piece_h = float(template.height)
+            piece_d = float(template.depth)
+            piece_weight = float(getattr(template, 'weight', 0) or 0)
+            if piece_w <= 0 or piece_h <= 0 or piece_d <= 0:
+                return 0
+
+            inner_w = max(float(unit.width) - (shell_offset * 2), piece_w)
+            inner_d = max(float(unit.depth) - (shell_offset * 2), piece_d)
+            usable_h = max(float(getattr(unit, 'visual_height', float(unit.height))) - float(getattr(unit, 'base_height', 0)), piece_h)
+
+            slots_x = max(int(inner_w // piece_w), 1)
+            slots_z = max(int(inner_d // piece_d), 1)
+            slots_per_layer = max(slots_x * slots_z, 1)
+            max_layers = max(int(usable_h // piece_h), 1)
+
+            emitted = 0
+            for item_name, qty in content_map.items():
+                try:
+                    qty_int = int(qty or 0)
+                except Exception:
+                    qty_int = 0
+                for idx in range(max(qty_int, 0)):
+                    layer_idx = min(idx // slots_per_layer, max_layers - 1)
+                    slot_idx = idx % slots_per_layer
+                    row_idx = slot_idx // slots_x
+                    col_idx = slot_idx % slots_x
+
+                    local_x = col_idx * piece_w
+                    local_z = row_idx * piece_d
+                    local_y = layer_idx * piece_h
+
+                    if is_rotated:
+                        child_x, child_z = transform_nested_position(
+                            unit,
+                            local_x,
+                            local_z,
+                            piece_w,
+                            piece_d,
+                            abs_x,
+                            abs_z,
+                            shell_offset,
+                            True
+                        )
+                        rt = RotationType.RT_DHW
+                    else:
+                        child_x = abs_x + local_x + shell_offset
+                        child_z = abs_z + local_z + shell_offset
+                        rt = RotationType.RT_WHD
+                    child_y = abs_y + float(getattr(unit, 'base_height', 0)) + local_y
+
+                    flattened_packed_items.append({
+                        'name': item_name,
+                        'x': child_x,
+                        'y': child_y,
+                        'z': child_z,
+                        'w': piece_w,
+                        'h': piece_h,
+                        'd': piece_d,
+                        'rt': rt,
+                        'weight': piece_weight
+                    })
+                    emitted += 1
+            return emitted
 
         def serialize_unit(unit, abs_x, abs_y, abs_z):
             unit_rt = getattr(unit, 'effective_rotation_type', unit.rotation_type)
-            unit_dims = unit.get_dimension()
+            unit_dims = dims_for_rotation(unit, unit_rt)
 
             if hasattr(unit, 'inner_items'):
                 total_h = float(unit_dims[1])
@@ -933,8 +1436,17 @@ def _do_pack_internal(container_data, items_data, config):
                     c_dims = child.get_dimension()
                     ix, iy, iz = float(child.position[0]), float(child.position[1]), float(child.position[2])
                     if is_rotated:
-                        child_x = abs_x + iz + shell_offset
-                        child_z = abs_z + ix + shell_offset
+                        child_x, child_z = transform_nested_position(
+                            unit,
+                            ix,
+                            iz,
+                            float(c_dims[0]),
+                            float(c_dims[2]),
+                            abs_x,
+                            abs_z,
+                            shell_offset,
+                            True
+                        )
                         child_y = abs_y + float(unit.base_height) + iy
                         child.effective_rotation_type = rot_map_90.get(child.rotation_type, child.rotation_type)
                     else:
@@ -946,13 +1458,32 @@ def _do_pack_internal(container_data, items_data, config):
                     if hasattr(child, 'inner_items'):
                         serialize_unit(child, child_x, child_y, child_z)
                     else:
-                        if child.effective_rotation_type == RotationType.RT_DHW:
-                            final_w, final_h, final_d = float(c_dims[2]), float(c_dims[1]), float(c_dims[0])
+                        final_w, final_h, final_d = dims_for_rotation(child, child.effective_rotation_type)
+                        flattened_packed_items.append({'name': child.name, 'x': child_x, 'y': child_y, 'z': child_z, 'w': final_w, 'h': final_h, 'd': final_d, 'rt': child.effective_rotation_type, 'weight': float(getattr(child, 'weight', 0) or 0)})
+                if hasattr(unit, 'content_map'):
+                    base_obj['content_map'] = dict(getattr(unit, 'content_map', {}) or {})
+                    base_obj['leaf_total_count'] = int(getattr(unit, 'leaf_total_count', count_leaf_items(unit)) or 0)
+                    base_obj['leaf_total_weight'] = float(getattr(unit, 'leaf_total_weight', sum_leaf_weight(unit)) or 0)
+                    base_obj['kanban_qty_per_tray'] = int(getattr(unit, 'kanban_qty_per_tray', 0) or 0)
+                    if hasattr(unit, 'kanban_layout_id'):
+                        base_obj['kanban_layout_id'] = getattr(unit, 'kanban_layout_id', '')
+                    template = getattr(unit, 'leaf_item_template', None)
+                    if template is not None:
+                        base_obj['leaf_item_name'] = getattr(template, 'name', '')
+                        base_obj['leaf_item_dims'] = {
+                            'w': float(getattr(template, 'width', 0) or 0),
+                            'h': float(getattr(template, 'height', 0) or 0),
+                            'd': float(getattr(template, 'depth', 0) or 0)
+                        }
+                        base_obj['leaf_item_weight'] = float(getattr(template, 'weight', 0) or 0)
+                    if len(getattr(unit, 'inner_items', []) or []) == 0:
+                        if simplify_kanban_visual:
+                            base_obj['kanban_simplified'] = True
                         else:
-                            final_w, final_h, final_d = float(c_dims[0]), float(c_dims[1]), float(c_dims[2])
-                        flattened_packed_items.append({'name': child.name, 'x': child_x, 'y': child_y, 'z': child_z, 'w': final_w, 'h': final_h, 'd': final_d, 'rt': child.effective_rotation_type})
+                            emitted = emit_virtual_kanban_items(unit, abs_x, abs_y, abs_z, is_rotated, shell_offset)
+                            debug_log(f"DEBUG: Virtual Kanban items emitted for {unit.name}: {emitted}")
             else:
-                flattened_packed_items.append({'name': unit.name, 'x': abs_x, 'y': abs_y, 'z': abs_z, 'w': float(unit_dims[0]), 'h': float(unit_dims[1]), 'd': float(unit_dims[2]), 'rt': unit_rt})
+                flattened_packed_items.append({'name': unit.name, 'x': abs_x, 'y': abs_y, 'z': abs_z, 'w': float(unit_dims[0]), 'h': float(unit_dims[1]), 'd': float(unit_dims[2]), 'rt': unit_rt, 'weight': float(getattr(unit, 'weight', 0) or 0)})
 
         for pkg in packed_top_level:
             serialize_unit(pkg, float(pkg.position[0]), float(pkg.position[1]), float(pkg.position[2]))
@@ -994,6 +1525,7 @@ def _do_pack_internal(container_data, items_data, config):
             'bin_name': result_bin.name,
             'bin_dims': {'w': float(result_bin.width), 'h': float(result_bin.height), 'd': float(result_bin.depth)},
             'packed_items': flattened_packed_items,
+            'kanban_layouts': kanban_layout_registry if simplify_kanban_visual else {},
             'unfitted_items': unfitted_serialized,
             'unfitted_count': len(all_unfitted),
             'unfitted_from_palletizing_count': len(unfitted_from_palletizing),
@@ -1019,12 +1551,12 @@ def _do_pack_internal(container_data, items_data, config):
         }
 
         # --- KPI & GROUPING LOGIC ---
-        print(f"DEBUG: Starting KPI Logic. Packed Top Level Count: {len(packed_top_level)}")
+        debug_log(f"DEBUG: Starting KPI Logic. Packed Top Level Count: {len(packed_top_level)}")
         
         # 1. Container Weight KPI
         total_weight_loaded = sum([float(i.weight) for i in packed_top_level])
         container_max_w = float(result_bin.max_weight)
-        print(f"DEBUG: Cont Max W: {container_max_w}, Total Loaded W: {total_weight_loaded}")
+        debug_log(f"DEBUG: Cont Max W: {container_max_w}, Total Loaded W: {total_weight_loaded}")
         
         if container_max_w > 0:
             res['kpis']['container_weight'] = round((total_weight_loaded / container_max_w) * 100, 2)
@@ -1045,7 +1577,7 @@ def _do_pack_internal(container_data, items_data, config):
         for p_item in packed_top_level:
             is_pallet = (pallet_type_key != 'none') and (getattr(p_item, 'is_pallet', False) or hasattr(p_item, 'inner_items'))
             is_top_level_tray = (getattr(p_item, 'pallet_type', '') == 'tray') and hasattr(p_item, 'inner_items')
-            print(f"DEBUG: Item {p_item.name} IsPallet: {is_pallet}")
+            debug_log(f"DEBUG: Item {p_item.name} IsPallet: {is_pallet}")
             
             if is_pallet:
                 tray_children = [sub for sub in p_item.inner_items if hasattr(sub, 'inner_items') and getattr(sub, 'pallet_type', '') == 'tray']
@@ -1101,21 +1633,19 @@ def _do_pack_internal(container_data, items_data, config):
                 # Grouping Signature
                 # Signature based on: Content (Items + Qty)
                 # We can sort inner items by name/id and build a string
-                content_map = {}
-                for sub in iter_leaf_items(p_item):
-                    content_map[sub.name] = content_map.get(sub.name, 0) + 1
+                content_map = collect_content_map(p_item)
                 
                 # Create sorted signature tuple
                 sig_items = sorted(content_map.items()) # [('001', 50), ('002', 10)]
                 sig_str = str(sig_items) 
-                tray_sig = str(sorted([(float(t.width), float(getattr(t, 'visual_height', t.height)), float(t.depth), len(list(iter_leaf_items(t)))) for t in tray_children]))
+                tray_sig = str(sorted([(float(t.width), float(getattr(t, 'visual_height', t.height)), float(t.depth), count_leaf_items(t)) for t in tray_children]))
                 
                 # Also include pallet type/dims in signature just in case
                 sig = f"{pallet_type_key}_{p_item.width}x{p_item.depth}_{tray_sig}_{sig_str}"
 
                 if sig not in pallet_groups:
                     # Calc Load Weight (Sum of inner items)
-                    load_weight = sum(sub.weight for sub in p_item.inner_items)
+                    load_weight = sum(float(sub.weight) for sub in p_item.inner_items)
                     
                     pallet_groups[sig] = {
                         'count': 0,
@@ -1225,9 +1755,9 @@ def _do_pack_internal(container_data, items_data, config):
                 })
 
         res['grouped_pallets'] = final_groups
-        print(f"DEBUG: Final Grouped Pallets Count: {len(final_groups)}")
-        print(f"DEBUG: Grouped Data: {json.dumps(final_groups, default=str)}")
-        progress(92, 'Resumiendo resultados...')
+        debug_log(f"DEBUG: Final Grouped Pallets Count: {len(final_groups)}")
+        debug_log(f"DEBUG: Grouped Data: {json.dumps(final_groups, default=str)}")
+        progress(92, 'Resumiendo resultados...', 'summary')
 
         # 3. LIMITING FACTOR DETECTION
         # Logic: We can have multiple limiting factors.
@@ -1488,7 +2018,7 @@ ISO_R01904_DOCS_DIR = _resolve_iso_subdir(ISO_DOCS_ROOT, "R019-04", "R019-04")
 ISO_R01903_BASE_NAME = "R019-03"
 
 
-def _find_iso_r01903_target() -> Path | None:
+def _find_iso_r01903_target() -> Optional[Path]:
     iso_root = ISO_DOCS_ROOT
     base_name = ISO_R01903_BASE_NAME
     candidates = []
@@ -1501,7 +2031,7 @@ def _find_iso_r01903_target() -> Path | None:
     return matches[0] if matches else None
 
 
-def _parse_iso_registry_int(value) -> int | None:
+def _parse_iso_registry_int(value) -> Optional[int]:
     if value is None:
         return None
     text = str(value).strip()
@@ -1516,7 +2046,7 @@ def _parse_iso_registry_int(value) -> int | None:
         return None
 
 
-def _extract_bp_year_seq(value) -> tuple[str, int] | None:
+def _extract_bp_year_seq(value) -> Optional[Tuple[str, int]]:
     text = str(value or "").strip().upper()
     if not text:
         return None
@@ -1773,6 +2303,22 @@ COTIZACION_COMPLEMENTARIOS_CACHE = {
 
 LOGISTICS_CALC_LOCK = threading.Lock()
 LOGISTICS_CALC_JOBS = {}
+LOGISTICS_PROGRESS_STAGES = [
+    ('queued', 'En cola'),
+    ('validation', 'Preparación'),
+    ('maximize', 'Maximización'),
+    ('tray', 'Bandejas'),
+    ('pallet', 'Pallets'),
+    ('solver', 'Empaquetado'),
+    ('summary', 'Resumen'),
+    ('done', 'Completado')
+]
+LOGISTICS_PROGRESS_STAGE_INDEX = {
+    key: idx for idx, (key, _) in enumerate(LOGISTICS_PROGRESS_STAGES)
+}
+LOGISTICS_PROGRESS_STAGE_LABELS = {
+    key: label for key, label in LOGISTICS_PROGRESS_STAGES
+}
 
 def _set_logistics_calc_state(job_id, **updates):
     if not job_id:
@@ -1782,13 +2328,52 @@ def _set_logistics_calc_state(job_id, **updates):
             'status': 'queued',
             'progress': 0,
             'message': 'En cola...',
-            'result': None
+            'result': None,
+            'cancel_requested': False,
+            'stage': 'queued',
+            'stage_label': LOGISTICS_PROGRESS_STAGE_LABELS['queued'],
+            'stage_index': 0,
+            'stage_total': len(LOGISTICS_PROGRESS_STAGES),
+            'detail': 'En cola...'
         })
         state.update(updates)
+
+def _update_logistics_calc_progress(job_id, *, stage=None, progress=None, message=None, status=None, result=None, detail=None):
+    updates = {}
+    if stage:
+        updates['stage'] = stage
+        updates['stage_label'] = LOGISTICS_PROGRESS_STAGE_LABELS.get(stage, stage)
+        updates['stage_index'] = LOGISTICS_PROGRESS_STAGE_INDEX.get(stage, 0)
+        updates['stage_total'] = len(LOGISTICS_PROGRESS_STAGES)
+    if progress is not None:
+        updates['progress'] = progress
+    if message is not None:
+        updates['message'] = message
+    if detail is not None:
+        updates['detail'] = detail
+    elif message is not None:
+        updates['detail'] = message
+    if status is not None:
+        updates['status'] = status
+    if result is not None:
+        updates['result'] = result
+    _set_logistics_calc_state(job_id, **updates)
 
 def _get_logistics_calc_state(job_id):
     with LOGISTICS_CALC_LOCK:
         return deepcopy(LOGISTICS_CALC_JOBS.get(job_id, {}))
+
+
+def _is_logistics_calc_cancel_requested(job_id):
+    if not job_id:
+        return False
+    with LOGISTICS_CALC_LOCK:
+        return bool((LOGISTICS_CALC_JOBS.get(job_id) or {}).get('cancel_requested'))
+
+
+def _raise_if_logistics_calc_cancelled(job_id):
+    if _is_logistics_calc_cancel_requested(job_id):
+        raise LogisticsCalculationCancelled('Cálculo cancelado por el usuario.')
 
 def _extract_flask_json_response(resp):
     status_code = 200
@@ -1878,8 +2463,10 @@ def _build_logistics_history_label(version):
     if not timestamp_display:
         timestamp_display = _format_logistics_timestamp_display(data.get('timestamp'))
     author = str(data.get('author') or 'Usuario').strip() or 'Usuario'
+    is_kanban = bool(((data.get('optimization') or {}).get('tray_kanban')))
     largest_label = str(data.get('largest_unit_label') or _get_logistics_largest_unit_label(data)).strip() or 'Piezas Sueltas'
-    return f"v{version_number} - {timestamp_display} - {author} - {largest_label}"
+    kanban_label = ' - KANBAN' if is_kanban else ''
+    return f"v{version_number} - {timestamp_display} - {author}{kanban_label} - {largest_label}"
 
 
 def _build_logistics_version_snapshot(source, version_number=1):
@@ -1926,6 +2513,7 @@ def _build_logistics_version_snapshot(source, version_number=1):
         'optimization': {
             'maximize': data.get('optimization', {}).get('maximize', False),
             'mixed_trays': data.get('optimization', {}).get('mixed_trays', True),
+            'tray_kanban': data.get('optimization', {}).get('tray_kanban', False),
             'mixed_pallets': data.get('optimization', {}).get('mixed_pallets', True),
             'stack_load': data.get('optimization', {}).get('stack_load', True),
             'stack_trays': data.get('optimization', {}).get('stack_trays', True),
@@ -3020,7 +3608,7 @@ def run_fetch_pdfs():
 
 def _run_logistics_calc_job(job_id, data):
     try:
-        _set_logistics_calc_state(job_id, status='running', progress=2, message='Iniciando cálculo...')
+        _update_logistics_calc_progress(job_id, status='running', stage='validation', progress=2, message='Iniciando cálculo...')
         payload = deepcopy(data or {})
         config = payload.setdefault('config', {})
         config['job_id'] = job_id
@@ -3029,12 +3617,16 @@ def _run_logistics_calc_job(job_id, data):
             resp = calculate_logistics()
         result, status_code = _extract_flask_json_response(resp)
         if status_code == 200 and isinstance(result, dict) and result.get('status') == 'success':
-            _set_logistics_calc_state(job_id, status='done', progress=100, message='Cálculo completado.', result=result)
+            _update_logistics_calc_progress(job_id, status='done', stage='done', progress=100, message='Cálculo completado.', result=result)
+        elif status_code == 499 or (isinstance(result, dict) and result.get('status') == 'cancelled'):
+            _update_logistics_calc_progress(job_id, status='cancelled', stage='done', progress=100, message='Cálculo cancelado.', result=result)
         else:
             error_message = (result or {}).get('message') if isinstance(result, dict) else 'Error en cálculo.'
-            _set_logistics_calc_state(job_id, status='error', progress=100, message=error_message, result=result)
+            _update_logistics_calc_progress(job_id, status='error', stage='done', progress=100, message=error_message, result=result)
+    except LogisticsCalculationCancelled as exc:
+        _update_logistics_calc_progress(job_id, status='cancelled', stage='done', progress=100, message=str(exc), result={'status': 'cancelled', 'message': str(exc)})
     except Exception as exc:
-        _set_logistics_calc_state(job_id, status='error', progress=100, message=str(exc), result={'status': 'error', 'message': str(exc)})
+        _update_logistics_calc_progress(job_id, status='error', stage='done', progress=100, message=str(exc), result={'status': 'error', 'message': str(exc)})
 
 @app.route('/api/logistics/calculate-start', methods=['POST'])
 def start_logistics_calculation():
@@ -3042,7 +3634,7 @@ def start_logistics_calculation():
     if not data:
         return jsonify({'status': 'error', 'message': 'No data received'}), 400
     job_id = uuid.uuid4().hex
-    _set_logistics_calc_state(job_id, status='queued', progress=0, message='En cola...', result=None)
+    _update_logistics_calc_progress(job_id, status='queued', stage='queued', progress=0, message='En cola...', result=None)
     thread = threading.Thread(target=_run_logistics_calc_job, args=(job_id, data))
     thread.daemon = True
     thread.start()
@@ -3054,6 +3646,17 @@ def get_logistics_calculation_progress(job_id):
     if not state:
         return jsonify({'status': 'error', 'message': 'Job no encontrado'}), 404
     return jsonify(state)
+
+
+@app.route('/api/logistics/calculate-cancel/<job_id>', methods=['POST'])
+def cancel_logistics_calculation(job_id):
+    state = _get_logistics_calc_state(job_id)
+    if not state:
+        return jsonify({'status': 'error', 'message': 'Job no encontrado'}), 404
+    if state.get('status') in ('done', 'error', 'cancelled'):
+        return jsonify({'status': 'ok', 'message': 'El cálculo ya finalizó.'})
+    _set_logistics_calc_state(job_id, cancel_requested=True, status='cancelling', message='Cancelando cálculo...', detail='Cancelando cálculo...')
+    return jsonify({'status': 'ok', 'message': 'Solicitud de cancelación enviada.'})
 
 
 def _validate_logistics_weight_limits(container_data, items_data, config):
@@ -3152,7 +3755,7 @@ def _validate_logistics_weight_limits(container_data, items_data, config):
 
 @app.route('/api/logistics/calculate', methods=['POST'])
 def calculate_logistics():
-    print("DEBUG: >>> ENTERING calculate_logistics <<<")
+    print("DEBUG: >>> ENTERING calculate_logistics <<<", flush=True)
     try:
         data = request.json
         if not data: return jsonify({'status': 'error', 'message': 'No data received'}), 400
@@ -3160,8 +3763,9 @@ def calculate_logistics():
         items_data = data.get('items')
         config = data.get('config', {})
         job_id = config.get('job_id')
+        _raise_if_logistics_calc_cancelled(job_id)
         if job_id:
-            _set_logistics_calc_state(job_id, status='running', progress=4, message='Validando datos...')
+            _update_logistics_calc_progress(job_id, status='running', stage='validation', progress=4, message='Validando datos...')
         if not container_data or not items_data: return jsonify({'status': 'error', 'message': 'Missing data'}), 400
         weight_limit_error = _validate_logistics_weight_limits(container_data, items_data, config)
         if weight_limit_error:
@@ -3173,9 +3777,106 @@ def calculate_logistics():
         container_type_key = config.get('container_type', '20ft')
 
         if config.get('maximize'):
-            print(f"DEBUG: Maximization requested for {len(items_data)} items.")
+            print(f"DEBUG: Maximization requested for {len(items_data)} items.", flush=True)
             if job_id:
-                _set_logistics_calc_state(job_id, status='running', progress=8, message='Calculando maximización...')
+                _update_logistics_calc_progress(job_id, status='running', stage='maximize', progress=8, message='Calculando maximización...')
+
+            def _result_fits_fully(result):
+                return result.get('status') == 'success' and result.get('unfitted_count', 0) == 0
+
+            def _max_rectangles_on_floor(floor_w, floor_d, rect_w, rect_d):
+                try:
+                    floor_w = int(float(floor_w or 0))
+                    floor_d = int(float(floor_d or 0))
+                    rect_w = int(float(rect_w or 0))
+                    rect_d = int(float(rect_d or 0))
+                except Exception:
+                    return 0
+
+                if floor_w <= 0 or floor_d <= 0 or rect_w <= 0 or rect_d <= 0:
+                    return 0
+
+                best = 0
+                step_candidates = [rect_w, rect_d]
+                step = max(1, math.gcd(*step_candidates))
+
+                best = max(best, (floor_w // rect_w) * (floor_d // rect_d))
+                best = max(best, (floor_w // rect_d) * (floor_d // rect_w))
+
+                for split_w in range(0, floor_w + 1, step):
+                    left = (split_w // rect_w) * (floor_d // rect_d)
+                    right = ((floor_w - split_w) // rect_d) * (floor_d // rect_w)
+                    best = max(best, left + right)
+
+                    left_rot = (split_w // rect_d) * (floor_d // rect_w)
+                    right_rot = ((floor_w - split_w) // rect_w) * (floor_d // rect_d)
+                    best = max(best, left_rot + right_rot)
+
+                for split_d in range(0, floor_d + 1, step):
+                    top = (floor_w // rect_w) * (split_d // rect_d)
+                    bottom = (floor_w // rect_d) * ((floor_d - split_d) // rect_w)
+                    best = max(best, top + bottom)
+
+                    top_rot = (floor_w // rect_d) * (split_d // rect_w)
+                    bottom_rot = (floor_w // rect_w) * ((floor_d - split_d) // rect_d)
+                    best = max(best, top_rot + bottom_rot)
+
+                return int(best)
+
+            def _estimate_single_qty_upper_bound(test_container, test_item_payload, test_conf):
+                try:
+                    item_w = float(test_item_payload.get('w', 0) or 0)
+                    item_d = float(test_item_payload.get('d', 0) or 0)
+                    item_h = float(test_item_payload.get('h', 0) or 0)
+                    item_weight = float(test_item_payload.get('weight', 0) or 0)
+                    if item_w <= 0 or item_d <= 0 or item_h <= 0:
+                        return 4096
+
+                    bin_w = float(test_container.get('width', 0) or 0)
+                    bin_d = float(test_container.get('depth', 0) or 0)
+                    bin_h = float(test_container.get('height', 0) or 0)
+                    max_weight = float(test_container.get('max_weight', 0) or 0)
+
+                    load_type = test_conf.get('load_type', 'loose')
+                    pallet_type = test_conf.get('pallet_type', 'none')
+                    container_type = test_conf.get('container_type', 'none')
+
+                    if load_type in ('tray', 'tray_euro', 'tray_american', 'tray_custom'):
+                        tray_dims = test_conf.get('tray_dims') or {}
+                        bin_w = float(tray_dims.get('tray_inner_w', 0) or 0)
+                        bin_d = float(tray_dims.get('tray_inner_d', 0) or 0)
+                        bin_h = float(tray_dims.get('tray_inner_h', 0) or 0)
+                        tray_tare = float(tray_dims.get('weight', 0) or 0)
+                        tray_max_weight = float(tray_dims.get('max_weight', 25) or 25)
+                        max_weight = max(tray_max_weight - tray_tare, 0)
+                    elif pallet_type != 'none' and container_type == 'none':
+                        pallet_dims = test_conf.get('pallet_dims') or {}
+                        if float(pallet_dims.get('w', 0) or 0) > 0 and float(pallet_dims.get('d', 0) or 0) > 0:
+                            bin_w = float(pallet_dims.get('w', 0) or 0)
+                            bin_d = float(pallet_dims.get('d', 0) or 0)
+                            pallet_base_h = float(pallet_dims.get('h', 150) or 150)
+                            user_max_h = float(test_conf.get('max_pallet_height', 0) or 1800)
+                            bin_h = max(user_max_h - pallet_base_h, 0)
+                            pallet_base_weight = float(pallet_dims.get('weight', 25) or 25)
+                            pallet_max_weight = float(test_conf.get('max_pallet_weight', 0) or 2000)
+                            max_weight = max(pallet_max_weight - pallet_base_weight, 0)
+
+                    bounds = []
+                    if bin_w > 0 and bin_d > 0 and bin_h > 0:
+                        item_vol = item_w * item_d * item_h
+                        bin_vol = bin_w * bin_d * bin_h
+                        if item_vol > 0 and bin_vol > 0:
+                            bounds.append(max(int(bin_vol // item_vol), 1))
+                    if max_weight > 0 and item_weight > 0:
+                        bounds.append(max(int(max_weight // item_weight), 1))
+
+                    if not bounds:
+                        return 4096
+
+                    upper_bound = min(bounds)
+                    return max(1, min(upper_bound + 1, 50000))
+                except Exception:
+                    return 4096
 
             has_ratios = False
             for it in items_data:
@@ -3191,36 +3892,53 @@ def calculate_logistics():
                 test_config = {k: v for k, v in config.items()}
                 test_config['skip_max_cap'] = True
                 test_config['progress_detail'] = False
+                test_config['debug_verbose'] = False
 
                 lo = 1
-                hi = max(int(item.get('qty') or 1), 1)
+                hi = 1
                 best = 0
+                fit_cache = {}
 
                 def _fits_single_qty(qty):
+                    if qty in fit_cache:
+                        return fit_cache[qty]
                     test_item = dict(item, qty=qty)
                     res_test = _do_pack_internal(container_data, [test_item], test_config)
-                    return res_test.get('status') == 'success' and res_test.get('unfitted_count', 0) == 0
+                    fits = _result_fits_fully(res_test)
+                    fit_cache[qty] = fits
+                    return fits
 
                 def _max_single_qty_for_config(test_container, test_item_payload, test_conf):
                     local_conf = {k: v for k, v in test_conf.items()}
                     local_conf['skip_max_cap'] = True
                     local_conf['progress_detail'] = False
+                    local_conf['debug_verbose'] = False
+                    upper_bound_local = _estimate_single_qty_upper_bound(test_container, test_item_payload, local_conf)
                     lo_local = 1
-                    hi_local = max(int(test_item_payload.get('qty') or 1), 1)
+                    hi_local = 1
                     best_local = 0
+                    local_fit_cache = {}
 
                     def _fits_local(qty_local):
+                        if qty_local in local_fit_cache:
+                            return local_fit_cache[qty_local]
                         payload = dict(test_item_payload, qty=qty_local)
                         res_local = _do_pack_internal(test_container, [payload], local_conf)
-                        return res_local.get('status') == 'success' and res_local.get('unfitted_count', 0) == 0
+                        fits_local = _result_fits_fully(res_local)
+                        local_fit_cache[qty_local] = fits_local
+                        return fits_local
 
-                    while _fits_local(hi_local):
+                    while hi_local <= upper_bound_local and _fits_local(hi_local):
+                        _raise_if_logistics_calc_cancelled(job_id)
                         best_local = hi_local
-                        hi_local *= 2
+                        if hi_local == upper_bound_local:
+                            return best_local
+                        hi_local = min(hi_local * 2, upper_bound_local)
 
                     lo_local = max(1, best_local + 1)
-                    hi_local = max(hi_local - 1, lo_local)
+                    hi_local = max(min(hi_local - 1, upper_bound_local), lo_local)
                     while lo_local <= hi_local:
+                        _raise_if_logistics_calc_cancelled(job_id)
                         mid_local = (lo_local + hi_local) // 2
                         if _fits_local(mid_local):
                             best_local = mid_local
@@ -3229,14 +3947,419 @@ def calculate_logistics():
                             hi_local = mid_local - 1
                     return best_local
 
+                def _resolve_forced_rotations_local(local_conf):
+                    if not local_conf.get('force_orientation'):
+                        return None
+                    face = str(local_conf.get('orientation_face', 'LxA') or 'LxA').strip().upper()
+                    if face == 'LXA':
+                        return [RotationType.RT_WHD, RotationType.RT_DHW]
+                    if face == 'LXH':
+                        return [RotationType.RT_WDH, RotationType.RT_HDW]
+                    if face == 'AXH':
+                        return [RotationType.RT_HWD, RotationType.RT_DWH]
+                    return None
+
+                def _max_single_qty_in_tray_direct(test_item_payload, tray_conf_local):
+                    tray_dims_cfg = tray_conf_local.get('tray_dims') or {}
+                    inner_w = float(tray_dims_cfg.get('tray_inner_w', 0) or 0)
+                    inner_d = float(tray_dims_cfg.get('tray_inner_d', 0) or 0)
+                    inner_h = float(tray_dims_cfg.get('tray_inner_h', 0) or 0)
+                    tray_tare = float(tray_dims_cfg.get('weight', 0) or 0)
+                    tray_max_weight = float(tray_dims_cfg.get('max_weight', 25) or 25)
+                    max_load_weight = max(tray_max_weight - tray_tare, 0)
+                    if inner_w <= 0 or inner_d <= 0 or inner_h <= 0:
+                        return 0
+
+                    forced_rot_local = _resolve_forced_rotations_local(tray_conf_local)
+                    sf_mult_dims_local = Decimal(1) + (Decimal(str(float(tray_conf_local.get('safety_factor_dims', 0) or 0))) / Decimal(100))
+                    sf_mult_weight_local = Decimal(1) + (Decimal(str(float(tray_conf_local.get('safety_factor_weight', 0) or 0))) / Decimal(100))
+
+                    direct_upper = _estimate_single_qty_upper_bound(
+                        {'width': inner_w, 'depth': inner_d, 'height': inner_h, 'max_weight': max_load_weight},
+                        test_item_payload,
+                        {'load_type': 'loose', 'pallet_type': 'none', 'container_type': 'none'}
+                    )
+                    direct_cache = {}
+
+                    def _fits_direct(qty_direct):
+                        if qty_direct in direct_cache:
+                            return direct_cache[qty_direct]
+                        if qty_direct <= 0:
+                            direct_cache[qty_direct] = False
+                            return False
+                        try:
+                            tray_bin = Bin(
+                                name='TrayDirect',
+                                width=Decimal(str(inner_w)),
+                                depth=Decimal(str(inner_d)),
+                                height=Decimal(str(inner_h)),
+                                max_weight=Decimal(str(max_load_weight)),
+                                allow_stacking=True
+                            )
+                            tray_packer = Packer()
+                            tray_packer.add_bin(tray_bin)
+                            for _ in range(int(qty_direct)):
+                                direct_item = Item(
+                                    name=test_item_payload.get('id'),
+                                    width=Decimal(test_item_payload.get('w', 0)) * sf_mult_dims_local,
+                                    height=Decimal(test_item_payload.get('h', 0)) * sf_mult_dims_local,
+                                    depth=Decimal(test_item_payload.get('d', 0)) * sf_mult_dims_local,
+                                    weight=Decimal(test_item_payload.get('weight', 0)) * sf_mult_weight_local,
+                                    allowed_rotations=forced_rot_local if forced_rot_local else RotationType.ALL
+                                )
+                                if forced_rot_local:
+                                    direct_item.force_orientation = True
+                                tray_packer.add_item(direct_item)
+                            tray_packer.pack(bigger_first=True)
+                            fits_direct = len(tray_packer.unfit_items) == 0
+                        except Exception:
+                            fits_direct = False
+                        direct_cache[qty_direct] = fits_direct
+                        return fits_direct
+
+                    lo_direct = 1
+                    hi_direct = 1
+                    best_direct = 0
+                    while hi_direct <= direct_upper and _fits_direct(hi_direct):
+                        best_direct = hi_direct
+                        if hi_direct == direct_upper:
+                            return best_direct
+                        hi_direct = min(hi_direct * 2, direct_upper)
+
+                    lo_direct = max(1, best_direct + 1)
+                    hi_direct = max(min(hi_direct - 1, direct_upper), lo_direct)
+                    while lo_direct <= hi_direct:
+                        mid_direct = (lo_direct + hi_direct) // 2
+                        if _fits_direct(mid_direct):
+                            best_direct = mid_direct
+                            lo_direct = mid_direct + 1
+                        else:
+                            hi_direct = mid_direct - 1
+                    return best_direct
+
+                def _maximize_tray_kanban_chain(single_item_payload):
+                    def _extract_tray_groups_for_item(result_payload, item_name):
+                        tray_qty_counter = {}
+                        for grouped in (result_payload or {}).get('grouped_pallets', []) or []:
+                            trays_to_scan = []
+                            if grouped.get('type') in ('pallet', 'pallet_group'):
+                                trays_to_scan = grouped.get('trays', []) or []
+                            elif grouped.get('type') == 'tray':
+                                trays_to_scan = [grouped]
+
+                            for tray_group in trays_to_scan:
+                                tray_count = int(tray_group.get('count', 0) or 0)
+                                if tray_count <= 0:
+                                    continue
+                                for tray_item in tray_group.get('items', []) or []:
+                                    if str(tray_item.get('name', '')) != str(item_name):
+                                        continue
+                                    qty_per_tray = int(tray_item.get('qty_per_tray', 0) or 0)
+                                    if qty_per_tray > 0:
+                                        tray_qty_counter[qty_per_tray] = tray_qty_counter.get(qty_per_tray, 0) + tray_count
+                        return tray_qty_counter
+
+                    def _adjust_result_to_full_kanban_trays(result_payload):
+                        tray_qty_counter = _extract_tray_groups_for_item(result_payload, single_item_payload.get('id'))
+                        if not tray_qty_counter:
+                            return None, 0
+                        full_tray_qty = max(tray_qty_counter.keys())
+                        full_tray_count = int(tray_qty_counter.get(full_tray_qty, 0) or 0)
+                        adjusted_qty = int(full_tray_qty * full_tray_count)
+                        print(
+                            f"DEBUG: [KANBAN] Tray groups for {single_item_payload.get('id')}: "
+                            f"{tray_qty_counter}, chosen={full_tray_count}x{full_tray_qty} => {adjusted_qty}",
+                            flush=True
+                        )
+                        if adjusted_qty <= 0:
+                            return None, 0
+                        return adjusted_qty, int(full_tray_qty)
+
+                    standard_conf = {k: v for k, v in config.items()}
+                    standard_conf['tray_kanban'] = False
+                    standard_conf['progress_detail'] = False
+                    standard_conf['debug_verbose'] = False
+
+                    existing_qty = int(single_item_payload.get('qty', 0) or 0)
+                    if existing_qty > 0:
+                        existing_res = _do_pack_internal(
+                            container_data,
+                            [dict(single_item_payload, qty=existing_qty)],
+                            standard_conf
+                        )
+                        if existing_res.get('status') == 'success':
+                            adjusted_from_existing, existing_tray_qty = _adjust_result_to_full_kanban_trays(existing_res)
+                            if adjusted_from_existing and existing_tray_qty > 0:
+                                print(
+                                    f"DEBUG: [KANBAN] Using existing quantity for {single_item_payload.get('id')}: "
+                                    f"existing={existing_qty} adjusted={adjusted_from_existing}",
+                                    flush=True
+                                )
+                                return adjusted_from_existing, None, existing_tray_qty
+
+                    standard_best = _max_single_qty_for_config(container_data, single_item_payload, standard_conf)
+                    if standard_best > 0:
+                        standard_res = _do_pack_internal(
+                            container_data,
+                            [dict(single_item_payload, qty=int(standard_best))],
+                            standard_conf
+                        )
+                        if standard_res.get('status') == 'success':
+                            adjusted_qty, adjusted_tray_qty = _adjust_result_to_full_kanban_trays(standard_res)
+                            if adjusted_qty and adjusted_tray_qty > 0:
+                                print(
+                                    f"DEBUG: [KANBAN] Standard maximize for {single_item_payload.get('id')}: "
+                                    f"qty={standard_best} adjusted={adjusted_qty}",
+                                    flush=True
+                                )
+                                return adjusted_qty, None, adjusted_tray_qty
+
+                    tray_dims_cfg = config.get('tray_dims') or {}
+                    tray_only_conf = {k: v for k, v in config.items()}
+                    tray_only_conf['pallet_type'] = 'none'
+                    tray_only_conf['container_type'] = 'none'
+                    tray_only_conf['load_type'] = config.get('load_type')
+                    tray_only_conf['tray_kanban'] = False
+
+                    tray_qty = _max_single_qty_in_tray_direct(single_item_payload, tray_only_conf)
+                    if tray_qty <= 0:
+                        tray_qty = _max_single_qty_for_config(
+                            {'type': 'none', 'name': 'Sin Contenedor', 'width': 0, 'height': 0, 'depth': 0, 'max_weight': 0},
+                            single_item_payload,
+                            tray_only_conf
+                        )
+                    print(f"DEBUG: [KANBAN] Tray capacity for {single_item_payload.get('id')}: {tray_qty}", flush=True)
+                    if tray_qty <= 0:
+                        return None, f'No entra una bandeja Kanban completa para {single_item_payload.get("id")}.', 0
+
+                    tray_outer_w = float(tray_dims_cfg.get('tray_outer_w', 0) or 0)
+                    tray_outer_d = float(tray_dims_cfg.get('tray_outer_d', 0) or 0)
+                    tray_outer_h = float(tray_dims_cfg.get('tray_outer_h', 0) or 0)
+                    tray_weight_unit = float(tray_dims_cfg.get('weight', 0) or 0)
+                    item_weight_unit = float(single_item_payload.get('weight', 0) or 0)
+                    tray_total_weight = tray_weight_unit + (item_weight_unit * tray_qty)
+                    print(
+                        f"DEBUG: [KANBAN] Tray gross weight for {single_item_payload.get('id')}: "
+                        f"tare={tray_weight_unit}, item_unit={item_weight_unit}, qty_per_tray={tray_qty}, gross={tray_total_weight}",
+                        flush=True
+                    )
+                    tray_payload = {
+                        'id': 'TRAY_UNIT',
+                        'w': tray_outer_w,
+                        'd': tray_outer_d,
+                        'h': tray_outer_h,
+                        'weight': tray_total_weight,
+                        'qty': 1
+                    }
+
+                    final_qty = tray_qty
+
+                    if config.get('pallet_type', 'none') != 'none' and tray_outer_w > 0 and tray_outer_d > 0 and tray_outer_h > 0:
+                        if job_id:
+                            _update_logistics_calc_progress(job_id, status='running', stage='tray', progress=28, message='Calculando bandejas por pallet...')
+                        pallet_type_key = config.get('pallet_type', 'none')
+                        pallet_dims_cfg = config.get('pallet_dims') or {}
+                        pallet_outer_w = float(pallet_dims_cfg.get('w', 0) or 0)
+                        pallet_outer_d = float(pallet_dims_cfg.get('d', 0) or 0)
+                        pallet_base_h = float(pallet_dims_cfg.get('h', 150) or 150)
+                        pallet_base_weight = float(pallet_dims_cfg.get('weight', 25) or 25)
+
+                        if pallet_type_key == 'europallet':
+                            pallet_outer_w = 1200
+                            pallet_outer_d = 800
+                            pallet_base_h = 150
+                            if float(pallet_dims_cfg.get('weight', 0) or 0) <= 0:
+                                pallet_base_weight = 25
+                        elif pallet_type_key == 'american':
+                            pallet_outer_w = 1200
+                            pallet_outer_d = 1000
+                            pallet_base_h = 150
+                            if float(pallet_dims_cfg.get('weight', 0) or 0) <= 0:
+                                pallet_base_weight = 25
+
+                        user_max_h = float(config.get('max_pallet_height', 0) or 1800)
+                        # In Kanban mode we treat the configured pallet max height as usable cargo height,
+                        # matching the business rule used by OT for tray stacking calculations.
+                        usable_load_h = max(user_max_h, 0)
+                        layers_by_height = max(int(usable_load_h // tray_outer_h), 1 if tray_outer_h > 0 else 0)
+                        trays_per_layer = _max_rectangles_on_floor(pallet_outer_w, pallet_outer_d, tray_outer_w, tray_outer_d)
+                        tray_weight_for_limit = tray_total_weight
+                        max_pallet_weight = float(config.get('max_pallet_weight', 0) or 2000)
+                        allowed_load_weight = max(max_pallet_weight - pallet_base_weight, 0)
+                        trays_by_weight = int(allowed_load_weight // tray_weight_for_limit) if tray_weight_for_limit > 0 else 0
+                        trays_by_volume = trays_per_layer * layers_by_height
+                        if trays_by_weight > 0:
+                            pallet_per_qty = min(trays_by_volume, trays_by_weight)
+                        else:
+                            pallet_per_qty = trays_by_volume
+                        print(
+                            f"DEBUG: [KANBAN] Pallet analytic capacity for {single_item_payload.get('id')}: "
+                            f"per_layer={trays_per_layer}, layers={layers_by_height}, by_volume={trays_by_volume}, "
+                            f"by_weight={trays_by_weight}, chosen={pallet_per_qty}",
+                            flush=True
+                        )
+                        print(f"DEBUG: [KANBAN] Trays per pallet for {single_item_payload.get('id')}: {pallet_per_qty}", flush=True)
+                        if pallet_per_qty <= 0:
+                            return None, f'No entra una bandeja Kanban completa en el pallet para {single_item_payload.get("id")}.', tray_qty
+
+                        final_qty *= pallet_per_qty
+
+                        if container_type_key != 'none':
+                            if job_id:
+                                _update_logistics_calc_progress(job_id, status='running', stage='pallet', progress=42, message='Calculando pallets por contenedor...')
+                            pallet_w = float(pallet_outer_w or 0)
+                            pallet_d = float(pallet_outer_d or 0)
+                            pallet_h = float(config.get('max_pallet_height', 0) or 1800)
+                            pallet_weight_unit = float(pallet_base_weight or 0) + (tray_total_weight * pallet_per_qty)
+
+                            c_l = float(container_data.get('width', 0) or 0)
+                            c_d = float(container_data.get('depth', 0) or 0)
+                            template_cap = 0
+                            is_20ft = (5850 <= c_l < 6000 and 2300 <= c_d < 2400)
+                            is_40ft = (12000 <= c_l < 12100 and 2300 <= c_d < 2400)
+                            is_40pw = (12000 <= c_l < 12100 and 2440 <= c_d < 2550)
+                            is_euro = (pallet_w == 1200 and pallet_d == 800)
+                            is_american = (pallet_w == 1200 and pallet_d == 1000)
+                            if is_20ft:
+                                if is_american:
+                                    template_cap = 10
+                                elif is_euro:
+                                    template_cap = 11
+                            elif is_40ft:
+                                if is_american:
+                                    template_cap = 21
+                                elif is_euro:
+                                    template_cap = 25
+                            elif is_40pw:
+                                if is_american:
+                                    template_cap = 24
+                                elif is_euro:
+                                    template_cap = 30
+
+                            if template_cap > 0:
+                                print(f"DEBUG: [KANBAN] Template pallets per container for {single_item_payload.get('id')}: {template_cap}", flush=True)
+                                final_qty *= template_cap
+                            else:
+                                pallet_payload = {
+                                    'id': 'PALLET_UNIT',
+                                    'w': pallet_w,
+                                    'd': pallet_d,
+                                    'h': pallet_h,
+                                    'weight': pallet_weight_unit,
+                                    'qty': 1
+                                }
+                                container_conf = {k: v for k, v in config.items()}
+                                container_conf['load_type'] = 'loose'
+                                container_conf['pallet_type'] = 'none'
+                                container_conf['tray_kanban'] = False
+                                container_conf['force_orientation'] = True
+                                container_conf['orientation_face'] = 'lxa'
+                                pallet_container_qty = _max_single_qty_for_config(container_data, pallet_payload, container_conf)
+                                print(f"DEBUG: [KANBAN] Pallets per container for {single_item_payload.get('id')}: {pallet_container_qty}", flush=True)
+                                if pallet_container_qty <= 0:
+                                    return None, f'No entra un pallet con bandejas Kanban en el contenedor para {single_item_payload.get("id")}.', tray_qty
+                                final_qty *= pallet_container_qty
+                    elif container_type_key != 'none':
+                        if job_id:
+                            _update_logistics_calc_progress(job_id, status='running', stage='pallet', progress=42, message='Calculando bandejas por contenedor...')
+                        container_conf = {k: v for k, v in config.items()}
+                        container_conf['load_type'] = 'loose'
+                        container_conf['pallet_type'] = 'none'
+                        container_conf['tray_kanban'] = False
+                        container_conf['force_orientation'] = True
+                        container_conf['orientation_face'] = 'lxa'
+                        trays_per_container = _max_single_qty_for_config(container_data, tray_payload, container_conf)
+                        print(f"DEBUG: [KANBAN] Trays per container for {single_item_payload.get('id')}: {trays_per_container}", flush=True)
+                        if trays_per_container <= 0:
+                            return None, f'No entra una bandeja Kanban completa en el contenedor para {single_item_payload.get("id")}.', tray_qty
+                        final_qty *= trays_per_container
+
+                    print(f"DEBUG: [KANBAN] Final maximized quantity for {single_item_payload.get('id')}: {final_qty}", flush=True)
+
+                    return int(final_qty), None, int(tray_qty)
+
                 tray_load_types = ('tray', 'tray_euro', 'tray_american', 'tray_custom')
-                if config.get('load_type') in tray_load_types:
+                if config.get('load_type') in tray_load_types and config.get('tray_kanban'):
+                    final_qty, kanban_error, kanban_tray_qty = _maximize_tray_kanban_chain(item)
+                    if final_qty and final_qty > 0:
+                        total_trays_upper = max(int(final_qty // max(kanban_tray_qty, 1)), 1)
+                        verify_cache = {}
+
+                        def _fits_kanban_total_trays(tray_count_probe):
+                            if tray_count_probe in verify_cache:
+                                return verify_cache[tray_count_probe]
+                            if tray_count_probe <= 0:
+                                verify_cache[tray_count_probe] = False
+                                return False
+                            probe_qty = int(kanban_tray_qty * tray_count_probe)
+                            probe_conf = {k: v for k, v in config.items()}
+                            probe_conf['progress_detail'] = False
+                            probe_conf['debug_verbose'] = False
+                            probe_res = _do_pack_internal(container_data, [dict(item, qty=probe_qty)], probe_conf)
+                            fits_probe = (
+                                probe_res.get('status') == 'success' and
+                                int(probe_res.get('unfitted_count', 0) or 0) == 0 and
+                                int(probe_res.get('unfitted_from_palletizing_count', 0) or 0) == 0 and
+                                int(probe_res.get('unfitted_final_count', 0) or 0) == 0
+                            )
+                            verify_cache[tray_count_probe] = fits_probe
+                            print(
+                                f"DEBUG: [KANBAN] Verify trays={tray_count_probe} qty={probe_qty} fits={fits_probe}",
+                                flush=True
+                            )
+                            return fits_probe
+
+                        lo_trays = 1
+                        hi_trays = total_trays_upper
+                        best_trays = 0
+                        while lo_trays <= hi_trays:
+                            _raise_if_logistics_calc_cancelled(job_id)
+                            mid_trays = (lo_trays + hi_trays) // 2
+                            if job_id:
+                                _update_logistics_calc_progress(
+                                    job_id,
+                                    status='running',
+                                    stage='maximize',
+                                    progress=48,
+                                    message=f'Validando {mid_trays} bandejas Kanban...'
+                                )
+                            if _fits_kanban_total_trays(mid_trays):
+                                best_trays = mid_trays
+                                lo_trays = mid_trays + 1
+                            else:
+                                hi_trays = mid_trays - 1
+
+                        final_qty = int(best_trays * kanban_tray_qty)
+                        print(
+                            f"DEBUG: [KANBAN] Verified maximum trays for {item.get('id')}: {best_trays} "
+                            f"(qty={final_qty})",
+                            flush=True
+                        )
+                        if final_qty <= 0:
+                            return jsonify({'status': 'error', 'message': f'No entra una bandeja Kanban completa para {item.get("id")}.'}), 400
+
+                        if job_id:
+                            _update_logistics_calc_progress(job_id, status='running', stage='solver', progress=58, message='Empaquetando resultado final...')
+                        final_res = _do_pack_internal(container_data, [dict(item, qty=int(final_qty))], config)
+                        if final_res.get('status') == 'success':
+                            final_res['new_quantities'] = {item['id']: int(final_qty)}
+                            return jsonify(final_res)
+                        print(
+                            f"DEBUG: [KANBAN] Final packing returned non-success for {item.get('id')}: "
+                            f"{final_res.get('message', final_res.get('status'))}",
+                            flush=True
+                        )
+                        return jsonify({'status': 'error', 'message': final_res.get('message', 'No se pudo maximizar el ítem con Bandeja Kanban.')}), 500
+                    if kanban_error:
+                        return jsonify({'status': 'error', 'message': kanban_error}), 400
+                elif config.get('load_type') in tray_load_types:
                     try:
                         tray_dims_cfg = config.get('tray_dims') or {}
                         tray_only_conf = {k: v for k, v in config.items()}
                         tray_only_conf['pallet_type'] = 'none'
                         tray_only_conf['container_type'] = 'none'
                         tray_only_conf['load_type'] = config.get('load_type')
+                        tray_only_conf['tray_kanban'] = False
                         tray_qty = _max_single_qty_for_config(
                             {'type': 'none', 'name': 'Sin Contenedor', 'width': 0, 'height': 0, 'depth': 0, 'max_weight': 0},
                             item,
@@ -3254,7 +4377,7 @@ def calculate_logistics():
 
                             if config.get('pallet_type', 'none') != 'none' and tray_outer_w > 0 and tray_outer_d > 0 and tray_outer_h > 0:
                                 if job_id:
-                                    _set_logistics_calc_state(job_id, status='running', progress=28, message='Calculando bandejas por pallet...')
+                                    _update_logistics_calc_progress(job_id, status='running', stage='tray', progress=28, message='Calculando bandejas por pallet...')
                                 tray_payload = {
                                     'id': 'TRAY_UNIT',
                                     'w': tray_outer_w,
@@ -3276,7 +4399,7 @@ def calculate_logistics():
 
                                     if container_type_key != 'none':
                                         if job_id:
-                                            _set_logistics_calc_state(job_id, status='running', progress=42, message='Calculando pallets por contenedor...')
+                                            _update_logistics_calc_progress(job_id, status='running', stage='pallet', progress=42, message='Calculando pallets por contenedor...')
                                         pallet_dims_cfg = config.get('pallet_dims') or {}
                                         pallet_w = float(pallet_dims_cfg.get('w', 0) or 0)
                                         pallet_d = float(pallet_dims_cfg.get('d', 0) or 0)
@@ -3320,41 +4443,63 @@ def calculate_logistics():
                                                 final_qty *= pallet_container_qty
 
                                     if job_id:
-                                        _set_logistics_calc_state(job_id, status='running', progress=58, message='Empaquetando resultado final...')
+                                        _update_logistics_calc_progress(job_id, status='running', stage='solver', progress=58, message='Empaquetando resultado final...')
                                     final_res = _do_pack_internal(container_data, [dict(item, qty=int(final_qty))], config)
                                     if final_res.get('status') == 'success':
                                         final_res['new_quantities'] = {item['id']: int(final_qty)}
                                         return jsonify(final_res)
+                                    print(
+                                        f"DEBUG: Single-item tray fast path produced non-success result for {item.get('id')}: "
+                                        f"{final_res.get('message', final_res.get('status'))}",
+                                        flush=True
+                                    )
+                        elif config.get('tray_kanban'):
+                            return jsonify({
+                                'status': 'error',
+                                'message': f'No entra una bandeja Kanban completa para {item.get("id")}.'
+                            }), 400
                     except Exception as fast_path_exc:
                         print(f"DEBUG: Single-item tray fast path fallback: {fast_path_exc}")
 
                 if job_id:
-                    _set_logistics_calc_state(job_id, status='running', progress=12, message=f"Buscando máximo para {item.get('id')}...")
+                    _update_logistics_calc_progress(job_id, status='running', stage='maximize', progress=12, message=f"Buscando máximo para {item.get('id')}...")
 
-                while _fits_single_qty(hi):
+                upper_bound = _estimate_single_qty_upper_bound(container_data, item, test_config)
+                print(f"DEBUG: [MAX] Upper bound estimated for {item.get('id')}: {upper_bound}", flush=True)
+                hi = 1
+                while hi <= upper_bound and _fits_single_qty(hi):
+                    _raise_if_logistics_calc_cancelled(job_id)
                     best = hi
-                    hi *= 2
+                    if hi == upper_bound:
+                        break
+                    hi = min(hi * 2, upper_bound)
+                    print(f"DEBUG: [MAX] Quantity {best} fits for {item.get('id')}. Next probe: {hi}", flush=True)
                     if job_id:
                         capped_progress = min(40, 12 + int(math.log2(max(hi, 1))) * 4)
-                        _set_logistics_calc_state(job_id, status='running', progress=capped_progress, message=f"Probando {hi} unidades...")
+                        _update_logistics_calc_progress(job_id, status='running', stage='maximize', progress=capped_progress, message=f"Probando {hi} unidades...")
 
                 lo = max(1, best + 1)
-                hi = max(hi - 1, lo)
+                hi = max(min(hi - 1, upper_bound), lo)
                 while lo <= hi:
+                    _raise_if_logistics_calc_cancelled(job_id)
                     mid = (lo + hi) // 2
+                    print(f"DEBUG: [MAX] Binary search for {item.get('id')}. Range=({lo},{hi}) Mid={mid}", flush=True)
                     if job_id:
-                        _set_logistics_calc_state(job_id, status='running', progress=46, message=f"Afinando capacidad: {mid} unidades...")
+                        _update_logistics_calc_progress(job_id, status='running', stage='maximize', progress=46, message=f"Afinando capacidad: {mid} unidades...")
                     if _fits_single_qty(mid):
                         best = mid
+                        print(f"DEBUG: [MAX] Mid {mid} fits for {item.get('id')}", flush=True)
                         lo = mid + 1
                     else:
+                        print(f"DEBUG: [MAX] Mid {mid} does NOT fit for {item.get('id')}", flush=True)
                         hi = mid - 1
 
                 if best <= 0:
                     return jsonify({'status': 'error', 'message': 'No se pudo maximizar el ítem.'}), 500
 
+                print(f"DEBUG: [MAX] Best quantity found for {item.get('id')}: {best}", flush=True)
                 if job_id:
-                    _set_logistics_calc_state(job_id, status='running', progress=58, message='Empaquetando resultado final...')
+                    _update_logistics_calc_progress(job_id, status='running', stage='solver', progress=58, message='Empaquetando resultado final...')
                 final_res = _do_pack_internal(container_data, [dict(item, qty=best)], config)
                 if final_res.get('status') == 'success':
                     final_res['new_quantities'] = {item['id']: best}
@@ -3376,27 +4521,55 @@ def calculate_logistics():
                 test_config = {k: v for k, v in config.items()}
                 test_config['mixed_pallets'] = True  # Override for testing
                 test_config['progress_detail'] = False
+                test_config['debug_verbose'] = False
                 
                 # IMPORTANT: Process ALL items, even those with qty=0
                 # In maximization mode, qty=0 means "find the maximum", not "skip this item"
                 for idx, item in enumerate(items_data):
+                    _raise_if_logistics_calc_cancelled(job_id)
                     if job_id and items_data:
-                        _set_logistics_calc_state(job_id, status='running', progress=10 + int((idx / max(len(items_data), 1)) * 35), message=f"Maximizando {item['id']}...")
+                        _update_logistics_calc_progress(job_id, status='running', stage='maximize', progress=10 + int((idx / max(len(items_data), 1)) * 35), message=f"Maximizando {item['id']}...")
                     print(f"DEBUG: Finding max for item: {item['id']}")
-                    # Use binary search to find max quantity for this item alone
-                    lo, hi = 1, 10000
-                    best = 0
-                    
-                    while lo <= hi:
-                        mid = (lo + hi) // 2
-                        test_item = dict(item, qty=mid)
-                        res_test = _do_pack_internal(container_data, [test_item], test_config)
-                        
-                        if res_test.get('status') == 'success' and res_test.get('unfitted_count', 0) == 0:
-                            best = mid
-                            lo = mid + 1
-                        else:
-                            hi = mid - 1
+                    if config.get('load_type') in ('tray', 'tray_euro', 'tray_american', 'tray_custom') and config.get('tray_kanban'):
+                        best, kanban_error, kanban_tray_qty = _maximize_tray_kanban_chain(item)
+                        if kanban_error:
+                            print(f"DEBUG: [KANBAN] Skipping {item['id']} in per-item maximize: {kanban_error}", flush=True)
+                            best = 0
+                        elif best and kanban_tray_qty > 0:
+                            tray_upper = max(int(best // kanban_tray_qty), 1)
+                            lo_trays = 1
+                            hi_trays = tray_upper
+                            best_trays = 0
+                            verify_cache = {}
+
+                            def _fits_item_trays(tray_count_probe):
+                                if tray_count_probe in verify_cache:
+                                    return verify_cache[tray_count_probe]
+                                probe_conf = {k: v for k, v in config.items()}
+                                probe_conf['progress_detail'] = False
+                                probe_conf['debug_verbose'] = False
+                                probe_qty = int(tray_count_probe * kanban_tray_qty)
+                                probe_res = _do_pack_internal(container_data, [dict(item, qty=probe_qty)], probe_conf)
+                                fits_probe = (
+                                    probe_res.get('status') == 'success' and
+                                    int(probe_res.get('unfitted_count', 0) or 0) == 0 and
+                                    int(probe_res.get('unfitted_from_palletizing_count', 0) or 0) == 0 and
+                                    int(probe_res.get('unfitted_final_count', 0) or 0) == 0
+                                )
+                                verify_cache[tray_count_probe] = fits_probe
+                                return fits_probe
+
+                            while lo_trays <= hi_trays:
+                                _raise_if_logistics_calc_cancelled(job_id)
+                                mid_trays = (lo_trays + hi_trays) // 2
+                                if _fits_item_trays(mid_trays):
+                                    best_trays = mid_trays
+                                    lo_trays = mid_trays + 1
+                                else:
+                                    hi_trays = mid_trays - 1
+                            best = int(best_trays * kanban_tray_qty)
+                    else:
+                        best = _max_single_qty_for_config(container_data, item, test_config)
                     
                     print(f"DEBUG: Max found for {item['id']}: {best}")
                     if best > 0:
@@ -3410,7 +4583,7 @@ def calculate_logistics():
                 # This will separate each item type into its own pallet(s)
                 if len(maximized_items) > 0:
                     if job_id:
-                        _set_logistics_calc_state(job_id, status='running', progress=52, message='Empaquetando resultado final...')
+                        _update_logistics_calc_progress(job_id, status='running', stage='solver', progress=52, message='Empaquetando resultado final...')
                     res = _do_pack_internal(container_data, maximized_items, config)
                     
                     print(f"DEBUG: Final packing result status: {res.get('status')}")
@@ -3520,8 +4693,9 @@ def calculate_logistics():
                 best = 0
                 hi = 1
                 while hi <= max_sets_limit:
+                    _raise_if_logistics_calc_cancelled(job_id)
                     if job_id:
-                        _set_logistics_calc_state(job_id, status='running', progress=min(40, 12 + hi), message='Buscando capacidad máxima...')
+                        _update_logistics_calc_progress(job_id, status='running', stage='maximize', progress=min(40, 12 + hi), message='Buscando capacidad máxima...')
                     test_items = build_items_for_sets(hi)
                     res_test = _do_pack_internal(container_data, test_items, config_for_test)
                     if res_test.get('status') != 'success' or res_test.get('unfitted_count', 0) > 0:
@@ -3532,8 +4706,9 @@ def calculate_logistics():
                 lo = best + 1
                 hi = min(hi - 1, max_sets_limit)
                 while lo <= hi:
+                    _raise_if_logistics_calc_cancelled(job_id)
                     if job_id:
-                        _set_logistics_calc_state(job_id, status='running', progress=45, message='Afinando capacidad máxima...')
+                        _update_logistics_calc_progress(job_id, status='running', stage='maximize', progress=45, message='Afinando capacidad máxima...')
                     mid = (lo + hi) // 2
                     test_items = build_items_for_sets(mid)
                     res_mid = _do_pack_internal(container_data, test_items, config_for_test)
@@ -3545,7 +4720,7 @@ def calculate_logistics():
 
                 final_items = build_items_for_sets(best)
                 if job_id:
-                    _set_logistics_calc_state(job_id, status='running', progress=55, message='Empaquetando resultado final...')
+                    _update_logistics_calc_progress(job_id, status='running', stage='solver', progress=55, message='Empaquetando resultado final...')
                 res = _do_pack_internal(container_data, final_items, config_for_test)
 
                 if res.get('status') == 'success':
@@ -3578,7 +4753,7 @@ def calculate_logistics():
             # _do_pack_internal takes config. We can inject it there.
             config['sort_items'] = should_sort
             if job_id:
-                _set_logistics_calc_state(job_id, status='running', progress=20, message='Ejecutando solver...')
+                _update_logistics_calc_progress(job_id, status='running', stage='solver', progress=20, message='Ejecutando solver...')
             res = _do_pack_internal(container_data, max_items, config)
             
             if res.get('status') == 'success':
@@ -3596,9 +4771,11 @@ def calculate_logistics():
             return jsonify({'status': 'error', 'message': 'Fallo en el cÃ¡lculo de maximizaciÃ³n.'}), 500
         else:
             if job_id:
-                _set_logistics_calc_state(job_id, status='running', progress=12, message='Calculando distribución...')
+                _update_logistics_calc_progress(job_id, status='running', stage='solver', progress=12, message='Calculando distribución...')
             res = _do_pack_internal(container_data, items_data, config)
             return jsonify(res) if res.get('status') == 'success' else (jsonify(res), 500)
+    except LogisticsCalculationCancelled as e:
+        return jsonify({'status': 'cancelled', 'message': str(e)}), 499
     except Exception as e:
         import traceback
         traceback.print_exc()

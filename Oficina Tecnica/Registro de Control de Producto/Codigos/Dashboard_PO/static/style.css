@@ -3326,6 +3326,48 @@ tbody tr:nth-child(n+11) {
     transition: width 1s ease-out;
 }
 
+.logistics-progress-stage-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 0.45rem;
+}
+
+.logistics-progress-stage-label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #f3f4f6;
+}
+
+.logistics-progress-text {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    white-space: nowrap;
+}
+
+.logistics-progress-bar-bg {
+    height: 10px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.logistics-progress-bar-fill {
+    width: 0%;
+    height: 100%;
+    background: linear-gradient(90deg, #cf1625 0%, #ff6666 100%);
+    transition: width 0.25s ease;
+}
+
+.logistics-progress-detail {
+    margin-top: 0.45rem;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    text-align: center;
+    min-height: 1.2em;
+}
+
 .result-list {
     max-height: 500px;
     overflow-y: auto;

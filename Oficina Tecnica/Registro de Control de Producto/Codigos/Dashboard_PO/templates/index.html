@@ -1514,6 +1514,10 @@
                             <input type="checkbox" id="chk-mixed-trays" checked style="width: 18px; height: 18px; cursor: pointer; accent-color: var(--bpb-blue);">
                             <label for="chk-mixed-trays" style="cursor: pointer; color: var(--text-primary);">Bandejas Mezcladas</label>
                         </div>
+                        <div id="wrapper-tray-kanban" style="display: none; align-items: center; gap: 0.5rem;">
+                            <input type="checkbox" id="chk-tray-kanban" onchange="syncTrayKanbanMode()" style="width: 18px; height: 18px; cursor: pointer; accent-color: var(--bpb-blue);">
+                            <label for="chk-tray-kanban" style="cursor: pointer; color: var(--text-primary);">Bandeja Kanban</label>
+                        </div>
                         <div id="wrapper-stack-trays" style="display: none; align-items: center; gap: 0.5rem;">
                             <input type="checkbox" id="chk-stack-trays" checked style="width: 18px; height: 18px; cursor: pointer; accent-color: var(--bpb-blue);">
                             <label for="chk-stack-trays" style="cursor: pointer; color: var(--text-primary);">Apilar bandejas</label>
@@ -1546,14 +1550,21 @@
                         <button class="btn btn-primary" id="btn-calculate-max" style="flex: 1; padding: 1rem; white-space: normal; line-height: 1.2; text-align: center; min-height: 48px;" onclick="calculateMaxDistribution()">
                             CALCULAR DISTRIBUCI&Oacute;N M&Aacute;XIMA
                         </button>
+                        <button class="btn" id="btn-cancel-logistics" style="display: none; flex: 0 0 180px; padding: 1rem; white-space: normal; line-height: 1.2; text-align: center; min-height: 48px;" onclick="cancelLogisticsCalculation()">
+                            CANCELAR C&Aacute;LCULO
+                        </button>
                     </div>
 
                     <p id="logistics-status" style="text-align: center; margin-top: 1rem; color: var(--text-secondary);"></p>
                     <div id="logistics-progress-wrapper" style="display:none; margin-top: 0.75rem;">
-                        <div style="height: 10px; background: rgba(255,255,255,0.08); border-radius: 999px; overflow: hidden;">
-                            <div id="logistics-progress-bar" style="width:0%; height:100%; background: linear-gradient(90deg, #ff3333 0%, #ff6666 100%); transition: width 0.25s ease;"></div>
+                        <div class="logistics-progress-stage-header">
+                            <div id="logistics-progress-stage-label" class="logistics-progress-stage-label">Preparando cálculo</div>
+                            <div id="logistics-progress-text" class="logistics-progress-text">0%</div>
                         </div>
-                        <div id="logistics-progress-text" style="margin-top: 0.4rem; text-align:center; font-size: 0.85rem; color: var(--text-secondary);">0%</div>
+                        <div class="logistics-progress-bar-bg">
+                            <div id="logistics-progress-bar" class="logistics-progress-bar-fill"></div>
+                        </div>
+                        <div id="logistics-progress-detail" class="logistics-progress-detail">En cola...</div>
                     </div>
 
                 </div>
@@ -2393,8 +2404,11 @@
 
             </div>
 
-        </div>
-    </div>
+                    </div>
+                    <div id="logistics-3d-note" style="display: none; margin-top: -0.35rem; margin-bottom: 1rem; color: var(--text-secondary); font-size: 0.85rem;">
+                        Visualizacion simplificada por cantidad de piezas
+                    </div>
+                </div>
 
     <!-- VIEW: ISO FOLDER LOCATIONS -->
     <div id="view-iso-folder" class="panel" style="display: none; max-width: 800px; margin: 0 auto;">
