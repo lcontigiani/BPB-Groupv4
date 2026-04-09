@@ -14145,6 +14145,10 @@ const COTIZACION_STATS_PIE_SEGMENTS = [
     { key: 'comadm', label: 'Costo de Com y Adm' }
 ];
 const COTIZACION_STATS_PALETTE = ['#3498db', '#f1c40f', '#9b59b6', '#e67e22', '#1abc9c', '#e74c3c', '#2ecc71', '#95a5a6', '#16a085', '#d35400', '#c0392b', '#8e44ad'];
+const COTIZACION_STATS_PIE_COLOR_OVERRIDES = {
+    desperdicios: '#cf1625',
+    venta: '#4f7cff'
+};
 const COTIZACION_STATS_BAR_SEGMENTS = [
     { key: 'materia_prima', label: 'Materia Prima', color: '#3498db' },
     { key: 'complementarios', label: 'Complementarios', color: '#f1c40f' },
@@ -26789,12 +26793,12 @@ function drawCotizacionStatsPie(highlightProject = null, highlightReference = ''
     if (saleAngle > 0) {
         ctx.save();
         if (showSaleGlow) {
-            ctx.shadowColor = 'rgba(207, 22, 37, 0.55)';
+            ctx.shadowColor = 'rgba(79, 124, 255, 0.55)';
             ctx.shadowBlur = 20;
         }
         ctx.beginPath();
         ctx.arc(cx, cy, outerRadius, startBase, startBase + saleAngle);
-        ctx.strokeStyle = showSaleGlow ? 'rgba(224, 35, 51, 1)' : 'rgba(207, 22, 37, 0.95)';
+        ctx.strokeStyle = showSaleGlow ? 'rgba(110, 148, 255, 1)' : 'rgba(79, 124, 255, 0.95)';
         ctx.lineWidth = showSaleGlow ? 10 : 8;
         ctx.lineCap = 'round';
         ctx.stroke();
@@ -26867,7 +26871,7 @@ function renderCotizacionStatsPie(summary) {
     const rows = COTIZACION_STATS_PIE_SEGMENTS.map((segment, index) => ({
         project: segment.label,
         hours: Math.max(0, Number(summary?.unitario?.[segment.key] || 0)),
-        color: getCotizacionStatsColor(index)
+        color: COTIZACION_STATS_PIE_COLOR_OVERRIDES[segment.key] || getCotizacionStatsColor(index)
     }));
     const pieRows = rows.filter((row) => Number(row.hours) > 0);
     const total = pieRows.reduce((acc, row) => acc + Number(row.hours || 0), 0);
@@ -26878,7 +26882,7 @@ function renderCotizacionStatsPie(summary) {
     const grandTotal = Math.max(0, Number(summary?.unitario?.total || 0));
     const legendRows = [
         ...rows.map((row) => ({ label: row.project, color: row.color, value: row.hours })),
-        { label: 'Costo de Venta "Estanteria"', color: '#cf1625', value: saleTotal },
+        { label: 'Costo de Venta "Estanteria"', color: COTIZACION_STATS_PIE_COLOR_OVERRIDES.venta, value: saleTotal },
         { label: 'Costo de Venta TOTAL', color: '#b7bbc2', value: grandTotal }
     ];
 
@@ -29362,6 +29366,8 @@ function showLogisticsView() {
 function showLogisticsCalculator() {
     hideAllViews();
     document.getElementById('view-logistics').style.display = 'block';
+    ensureLogisticsFreightBindings();
+    updateLogisticsFreightMetrics();
 
     // Set initial preset if empty inputs
     if (document.getElementById('cont-l').value === "590" && !document.getElementById('logistics-items-table').tBodies[0].rows.length) {
@@ -29369,6 +29375,336 @@ function showLogisticsCalculator() {
         updateContainerPresets();
         addLogisticsItemRow(); // Toggle Container Inputs
     }
+}
+
+const LOGISTICS_FREIGHT_CITY_LOOKUP_ENDPOINT = '/api/logistics/cities-lookup';
+const LOGISTICS_FREIGHT_ESTIMATE_ENDPOINT = '/api/logistics/freight-estimate';
+const LOGISTICS_FREIGHT_AUTOCOMPLETE_MIN = 3;
+const LOGISTICS_FREIGHT_AUTOCOMPLETE_DEBOUNCE_MS = 180;
+
+window._logisticsFreightSelections = window._logisticsFreightSelections || { origin: null, destination: null };
+window._logisticsFreightAutocompleteTimers = window._logisticsFreightAutocompleteTimers || {};
+window._lastLogisticsFreightEstimate = window._lastLogisticsFreightEstimate || null;
+
+function formatLogisticsArsCurrency(value) {
+    const numeric = Number(value || 0);
+    return numeric.toLocaleString('es-AR', {
+        style: 'currency',
+        currency: 'ARS',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+}
+
+function formatLogisticsUsdCurrency(value) {
+    const numeric = Number(value || 0);
+    return numeric.toLocaleString('es-AR', {
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+}
+
+function formatLogisticsWeightKg(value) {
+    const numeric = Number(value || 0);
+    return `${numeric.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} kg`;
+}
+
+function formatLogisticsVolumeM3(value) {
+    const numeric = Number(value || 0);
+    return `${numeric.toLocaleString('es-AR', { minimumFractionDigits: 3, maximumFractionDigits: 3 })} m3`;
+}
+
+function getLogisticsFreightMetrics() {
+    let totalWeightKg = 0;
+    let totalVolumeM3 = 0;
+    const rows = document.querySelectorAll('#logistics-items-table tbody tr');
+
+    rows.forEach((row) => {
+        const qty = parseFloat(String(row.querySelector('.log-qty')?.value || '0').replace(/,/g, '.')) || 0;
+        const l = parseFloat(String(row.querySelector('.log-l')?.value || '0').replace(/,/g, '.')) || 0;
+        const w = parseFloat(String(row.querySelector('.log-w')?.value || '0').replace(/,/g, '.')) || 0;
+        const h = parseFloat(String(row.querySelector('.log-h')?.value || '0').replace(/,/g, '.')) || 0;
+        const weight = parseFloat(String(row.querySelector('.log-weight')?.value || '0').replace(/,/g, '.')) || 0;
+
+        if (qty <= 0) return;
+        totalWeightKg += weight * qty;
+        totalVolumeM3 += ((l * w * h) / 1000000000) * qty;
+    });
+
+    const volumetricWeightKg = totalVolumeM3 * 333;
+    const chargeableWeightKg = Math.max(totalWeightKg, volumetricWeightKg);
+
+    return {
+        total_weight_kg: Number(totalWeightKg.toFixed(3)),
+        total_volume_m3: Number(totalVolumeM3.toFixed(6)),
+        volumetric_weight_kg: Number(volumetricWeightKg.toFixed(3)),
+        chargeable_weight_kg: Number(chargeableWeightKg.toFixed(3))
+    };
+}
+
+function updateLogisticsFreightMetrics(metrics = null) {
+    const safeMetrics = metrics && typeof metrics === 'object' ? metrics : getLogisticsFreightMetrics();
+    const weightEl = document.getElementById('logistics-freight-weight');
+    const volumeEl = document.getElementById('logistics-freight-volume');
+    const chargeableEl = document.getElementById('logistics-freight-chargeable');
+
+    if (weightEl) weightEl.textContent = formatLogisticsWeightKg(safeMetrics.total_weight_kg || 0);
+    if (volumeEl) volumeEl.textContent = formatLogisticsVolumeM3(safeMetrics.total_volume_m3 || 0);
+    if (chargeableEl) {
+        const chargeableValue = Number(
+            window._lastLogisticsFreightEstimate?.chargeable_weight_kg ?? safeMetrics.chargeable_weight_kg ?? 0
+        );
+        chargeableEl.textContent = formatLogisticsWeightKg(chargeableValue);
+    }
+
+    return safeMetrics;
+}
+
+function getLogisticsFreightInput(fieldKey) {
+    return document.getElementById(`logistics-freight-${fieldKey}`);
+}
+
+function getLogisticsFreightSuggestionsContainer(fieldKey) {
+    return document.getElementById(`logistics-freight-${fieldKey}-suggestions`);
+}
+
+function hideLogisticsFreightSuggestions(fieldKey) {
+    const container = getLogisticsFreightSuggestionsContainer(fieldKey);
+    if (container instanceof HTMLElement) {
+        container.innerHTML = '';
+        container.style.display = 'none';
+    }
+}
+
+function clearLogisticsFreightSelection(fieldKey) {
+    if (!window._logisticsFreightSelections) {
+        window._logisticsFreightSelections = { origin: null, destination: null };
+    }
+    window._logisticsFreightSelections[fieldKey] = null;
+}
+
+function setLogisticsFreightSelection(fieldKey, city) {
+    if (!window._logisticsFreightSelections) {
+        window._logisticsFreightSelections = { origin: null, destination: null };
+    }
+    window._logisticsFreightSelections[fieldKey] = city && typeof city === 'object' ? city : null;
+
+    const input = getLogisticsFreightInput(fieldKey);
+    if (input instanceof HTMLInputElement && city) {
+        input.value = String(city.label || '').trim();
+    }
+    hideLogisticsFreightSuggestions(fieldKey);
+}
+
+function renderLogisticsFreightSuggestions(fieldKey, items = []) {
+    const container = getLogisticsFreightSuggestionsContainer(fieldKey);
+    if (!(container instanceof HTMLElement)) return;
+
+    if (!items.length) {
+        container.innerHTML = '<div class="logistics-city-suggestion"><div class="logistics-city-suggestion-name">Sin coincidencias</div></div>';
+        container.style.display = 'block';
+        return;
+    }
+
+    container.innerHTML = items.map((item, index) => `
+        <div class="logistics-city-suggestion${index === 0 ? ' is-active' : ''}" data-index="${index}">
+            <div class="logistics-city-suggestion-name">${escapeCotizacionHTML(item.label || '')}</div>
+            <div class="logistics-city-suggestion-province">${escapeCotizacionHTML(item.province || '')}</div>
+        </div>
+    `).join('');
+    container.style.display = 'block';
+
+    Array.from(container.querySelectorAll('.logistics-city-suggestion')).forEach((node) => {
+        node.addEventListener('mousedown', (event) => {
+            event.preventDefault();
+            const idx = parseInt(String(node.dataset.index || '-1'), 10);
+            if (Number.isFinite(idx) && items[idx]) {
+                setLogisticsFreightSelection(fieldKey, items[idx]);
+            }
+        });
+    });
+}
+
+async function fetchLogisticsFreightSuggestions(fieldKey, query) {
+    const safeQuery = String(query || '').trim();
+    if (safeQuery.length < LOGISTICS_FREIGHT_AUTOCOMPLETE_MIN) {
+        hideLogisticsFreightSuggestions(fieldKey);
+        return;
+    }
+
+    try {
+        const response = await fetch(`${LOGISTICS_FREIGHT_CITY_LOOKUP_ENDPOINT}?q=${encodeURIComponent(safeQuery)}`);
+        const data = await response.json();
+        if (!response.ok || data.status !== 'success') {
+            hideLogisticsFreightSuggestions(fieldKey);
+            return;
+        }
+        renderLogisticsFreightSuggestions(fieldKey, Array.isArray(data.cities) ? data.cities : []);
+    } catch (error) {
+        console.error('Logistics freight city lookup failed', error);
+        hideLogisticsFreightSuggestions(fieldKey);
+    }
+}
+
+function scheduleLogisticsFreightSuggestions(fieldKey, query) {
+    clearTimeout(window._logisticsFreightAutocompleteTimers[fieldKey]);
+    window._logisticsFreightAutocompleteTimers[fieldKey] = setTimeout(() => {
+        fetchLogisticsFreightSuggestions(fieldKey, query);
+    }, LOGISTICS_FREIGHT_AUTOCOMPLETE_DEBOUNCE_MS);
+}
+
+function resetLogisticsFreightEstimate(note = 'Completá origen y destino para estimar el flete.') {
+    window._lastLogisticsFreightEstimate = null;
+    const costEl = document.getElementById('logistics-freight-cost');
+    const distanceEl = document.getElementById('logistics-freight-distance');
+    const rateEl = document.getElementById('logistics-freight-rate');
+    const sourceEl = document.getElementById('logistics-freight-source');
+    const noteEl = document.getElementById('logistics-freight-note');
+
+    if (costEl) costEl.textContent = formatLogisticsUsdCurrency(0);
+    if (distanceEl) distanceEl.textContent = '-';
+    if (rateEl) rateEl.textContent = '-';
+    if (sourceEl) sourceEl.textContent = '-';
+    if (noteEl) noteEl.textContent = note;
+
+    updateLogisticsFreightMetrics();
+}
+
+function renderLogisticsFreightEstimate(data) {
+    if (!data || typeof data !== 'object') {
+        resetLogisticsFreightEstimate();
+        return;
+    }
+
+    window._lastLogisticsFreightEstimate = data;
+    const costEl = document.getElementById('logistics-freight-cost');
+    const distanceEl = document.getElementById('logistics-freight-distance');
+    const rateEl = document.getElementById('logistics-freight-rate');
+    const sourceEl = document.getElementById('logistics-freight-source');
+    const noteEl = document.getElementById('logistics-freight-note');
+
+    if (costEl) costEl.textContent = formatLogisticsUsdCurrency(data.estimated_cost_usd || 0);
+    if (distanceEl) distanceEl.textContent = `${Number(data.distance_km || 0).toLocaleString('es-AR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} km`;
+    if (rateEl) rateEl.textContent = `${formatLogisticsUsdCurrency(data.tariff_per_ton_usd || 0)} / tn`;
+    if (sourceEl) sourceEl.textContent = String(data.source_label || '-');
+    if (noteEl) {
+        const exchangeDate = String(data.exchange_date || '').trim();
+        const exchangeRate = Number(data.exchange_rate_ars || 0);
+        const exchangeText = exchangeDate && exchangeRate > 0
+            ? ` Dólar oficial venta ${exchangeDate}: ${formatLogisticsArsCurrency(exchangeRate)}.`
+            : '';
+        noteEl.textContent = `${String(data.note || '')}${exchangeText}`.trim();
+    }
+
+    updateLogisticsFreightMetrics({
+        total_weight_kg: data.actual_weight_kg || 0,
+        total_volume_m3: data.volume_m3 || 0,
+        chargeable_weight_kg: data.chargeable_weight_kg || 0
+    });
+}
+
+function collectLogisticsFreightConfig() {
+    return {
+        origin: window._logisticsFreightSelections?.origin || null,
+        destination: window._logisticsFreightSelections?.destination || null,
+        last_estimate: window._lastLogisticsFreightEstimate || null
+    };
+}
+
+function restoreLogisticsFreightConfig(freight) {
+    const safeFreight = freight && typeof freight === 'object' ? freight : {};
+    setLogisticsFreightSelection('origin', safeFreight.origin || null);
+    setLogisticsFreightSelection('destination', safeFreight.destination || null);
+
+    const originInput = getLogisticsFreightInput('origin');
+    const destinationInput = getLogisticsFreightInput('destination');
+    if (originInput instanceof HTMLInputElement && !safeFreight.origin) originInput.value = '';
+    if (destinationInput instanceof HTMLInputElement && !safeFreight.destination) destinationInput.value = '';
+
+    if (safeFreight.last_estimate && typeof safeFreight.last_estimate === 'object') {
+        renderLogisticsFreightEstimate(safeFreight.last_estimate);
+    } else {
+        resetLogisticsFreightEstimate();
+    }
+}
+
+async function calculateLogisticsFreightEstimate() {
+    const originInput = getLogisticsFreightInput('origin');
+    const destinationInput = getLogisticsFreightInput('destination');
+    const origin = window._logisticsFreightSelections?.origin || (originInput instanceof HTMLInputElement ? String(originInput.value || '').trim() : '');
+    const destination = window._logisticsFreightSelections?.destination || (destinationInput instanceof HTMLInputElement ? String(destinationInput.value || '').trim() : '');
+    if (!origin || !destination) {
+        showNotification('Seleccioná origen y destino para calcular el flete.', 'warning');
+        return;
+    }
+
+    const metrics = getLogisticsFreightMetrics();
+    try {
+        const response = await fetch(LOGISTICS_FREIGHT_ESTIMATE_ENDPOINT, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                origin,
+                destination,
+                weight_kg: metrics.total_weight_kg,
+                volume_m3: metrics.total_volume_m3
+            })
+        });
+        const data = await response.json();
+        if (!response.ok || data.status !== 'success') {
+            throw new Error(data.message || 'No se pudo estimar el flete.');
+        }
+        renderLogisticsFreightEstimate(data.estimate || {});
+    } catch (error) {
+        console.error(error);
+        showNotification(error.message || 'No se pudo estimar el flete.', 'error');
+    }
+}
+
+function ensureLogisticsFreightBindings() {
+    if (window._logisticsFreightBindingsReady) return;
+
+    ['origin', 'destination'].forEach((fieldKey) => {
+        const input = getLogisticsFreightInput(fieldKey);
+        if (!(input instanceof HTMLInputElement)) return;
+
+        input.addEventListener('input', () => {
+            clearLogisticsFreightSelection(fieldKey);
+            resetLogisticsFreightEstimate();
+            scheduleLogisticsFreightSuggestions(fieldKey, input.value);
+        });
+
+        input.addEventListener('focus', () => {
+            const safeValue = String(input.value || '').trim();
+            if (safeValue.length >= LOGISTICS_FREIGHT_AUTOCOMPLETE_MIN) {
+                scheduleLogisticsFreightSuggestions(fieldKey, safeValue);
+            }
+        });
+    });
+
+    document.addEventListener('mousedown', (event) => {
+        const target = event.target;
+        if (!(target instanceof HTMLElement)) {
+            hideLogisticsFreightSuggestions('origin');
+            hideLogisticsFreightSuggestions('destination');
+            return;
+        }
+        if (!target.closest('.logistics-city-autocomplete')) {
+            hideLogisticsFreightSuggestions('origin');
+            hideLogisticsFreightSuggestions('destination');
+        }
+    }, true);
+
+    document.addEventListener('input', (event) => {
+        const target = event.target;
+        if (!(target instanceof HTMLInputElement)) return;
+        if (!target.closest('#logistics-items-table')) return;
+        updateLogisticsFreightMetrics();
+    }, true);
+
+    window._logisticsFreightBindingsReady = true;
 }
 
 function setLogisticsPrintButtonVisibility(visible) {
@@ -29899,6 +30235,7 @@ function restoreLogisticsRecordInCalculator(rec) {
 
     if (typeof updatePalletPresets === 'function') updatePalletPresets();
     if (typeof updateContainerPresets === 'function') updateContainerPresets();
+    restoreLogisticsFreightConfig(rec.freight || null);
 
     if (loadTypeInput) {
         const trayInnerL = document.getElementById('tray-inner-l');
@@ -30152,6 +30489,14 @@ async function printLogisticsRecord() {
     }
     configRows.push(['Factor seguridad dimensiones', `${formatNumber(document.getElementById('logistics-safety-factor-dims')?.value || 0, 2)}%`]);
     configRows.push(['Factor seguridad peso', `${formatNumber(document.getElementById('logistics-safety-factor-weight')?.value || 0, 2)}%`]);
+
+    const freightEstimate = window._lastLogisticsFreightEstimate || null;
+    if (freightEstimate) {
+        configRows.push(['Origen flete', String(freightEstimate.origin?.label || '-').trim() || '-']);
+        configRows.push(['Destino flete', String(freightEstimate.destination?.label || '-').trim() || '-']);
+        configRows.push(['Distancia flete', `${formatNumber(freightEstimate.distance_km || 0, 1)} km`]);
+        configRows.push(['Costo estimado flete', formatLogisticsUsdCurrency(freightEstimate.estimated_cost_usd || 0)]);
+    }
 
     const kpis = lastLogisticsData.kpis || {};
     const packedPiecesText = document.getElementById('kpi-packed-count')?.textContent || '0/0';
@@ -31581,6 +31926,7 @@ async function confirmSaveLogistics() {
             dims: parseFloat(document.getElementById('logistics-safety-factor-dims')?.value) || 0,
             weight: parseFloat(document.getElementById('logistics-safety-factor-weight')?.value) || 0
         },
+        freight: collectLogisticsFreightConfig(),
         items: []
     };
 
@@ -31667,11 +32013,13 @@ function switchLogisticsTab(tabName, clickedEl) { // tabName: 'summary' | 'detai
     const detailsDiv = document.getElementById('logistics-details-container');
     const constraintsDiv = document.getElementById('logistics-constraints');
     const threeDiv = document.getElementById('logistics-3d-container');
+    const freightDiv = document.getElementById('logistics-freight');
 
     if (summaryDiv) summaryDiv.style.display = 'none';
     if (detailsDiv) detailsDiv.style.display = 'none';
     if (constraintsDiv) constraintsDiv.style.display = 'none';
     if (threeDiv) threeDiv.style.display = 'none';
+    if (freightDiv) freightDiv.style.display = 'none';
 
     // 2. Show Selected
     if (tabName === 'summary' && summaryDiv) summaryDiv.style.display = 'block';
@@ -31679,6 +32027,7 @@ function switchLogisticsTab(tabName, clickedEl) { // tabName: 'summary' | 'detai
     if (tabName === 'constraints' && constraintsDiv) {
         constraintsDiv.style.display = 'block';
     }
+    if (tabName === 'freight' && freightDiv) freightDiv.style.display = 'block';
 
     if (tabName === '3d') {
         if (threeDiv) {
@@ -31825,6 +32174,7 @@ function renderLogisticsResults(data) {
 
     document.getElementById('kpi-tray-weight').textContent = showPct(kpis.tray_weight_avg);
     document.getElementById('bar-tray-weight').style.width = showBar(kpis.tray_weight_avg);
+    updateLogisticsFreightMetrics();
 
     // --- 2. POPULATE SUMMARY TABLE (Tab 1) ---
     const summaryBody = document.getElementById('logistics-summary-body');
@@ -32514,6 +32864,15 @@ function resetLogisticsCalculator() {
     currentLogisticsJobId = null;
     setLogisticsCancelVisibility(false);
     setLogistics3DNoteVisibility(false);
+    clearLogisticsFreightSelection('origin');
+    clearLogisticsFreightSelection('destination');
+    const freightOrigin = getLogisticsFreightInput('origin');
+    const freightDestination = getLogisticsFreightInput('destination');
+    if (freightOrigin instanceof HTMLInputElement) freightOrigin.value = '';
+    if (freightDestination instanceof HTMLInputElement) freightDestination.value = '';
+    hideLogisticsFreightSuggestions('origin');
+    hideLogisticsFreightSuggestions('destination');
+    resetLogisticsFreightEstimate();
 
     // Reset tab to Summary
     const summaryTab = document.querySelector("#view-logistics [onclick=\"switchLogisticsTab('summary', this)\"]");

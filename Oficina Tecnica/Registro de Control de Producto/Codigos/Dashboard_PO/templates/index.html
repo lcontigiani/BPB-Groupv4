@@ -1714,6 +1714,59 @@
 
                         </div>
 
+                        <div class="logistics-freight-section" style="display:none;">
+                            <div class="logistics-freight-header">
+                                <h4>Costo de Flete</h4>
+                                <button type="button" class="btn btn-sm" onclick="calculateLogisticsFreightEstimate()">Calcular Flete</button>
+                            </div>
+
+                            <div class="logistics-freight-grid">
+                                <div class="logistics-input-group" style="margin-bottom: 0;">
+                                    <label class="logistics-label">Origen</label>
+                                    <div class="logistics-city-autocomplete">
+                                        <input type="text" id="logistics-freight-origin-legacy" class="logistics-input" placeholder="Ej: Villa María, Córdoba" autocomplete="off">
+                                        <div id="logistics-freight-origin-suggestions-legacy" class="logistics-city-suggestions" style="display:none;"></div>
+                                    </div>
+                                </div>
+
+                                <div class="logistics-input-group" style="margin-bottom: 0;">
+                                    <label class="logistics-label">Destino</label>
+                                    <div class="logistics-city-autocomplete">
+                                        <input type="text" id="logistics-freight-destination-legacy" class="logistics-input" placeholder="Ej: Rosario, Santa Fe" autocomplete="off">
+                                        <div id="logistics-freight-destination-suggestions-legacy" class="logistics-city-suggestions" style="display:none;"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="logistics-freight-metrics">
+                                <div class="logistics-freight-metric-card">
+                                    <span class="logistics-freight-metric-label">Peso total</span>
+                                    <strong id="logistics-freight-weight-legacy">0,00 kg</strong>
+                                </div>
+                                <div class="logistics-freight-metric-card">
+                                    <span class="logistics-freight-metric-label">Volumen total</span>
+                                    <strong id="logistics-freight-volume-legacy">0,000 m3</strong>
+                                </div>
+                                <div class="logistics-freight-metric-card">
+                                    <span class="logistics-freight-metric-label">Peso cobrable</span>
+                                    <strong id="logistics-freight-chargeable-legacy">0,00 kg</strong>
+                                </div>
+                            </div>
+
+                            <div class="logistics-freight-result">
+                                <div class="logistics-freight-result-main">
+                                    <span class="logistics-freight-result-label">Costo estimado</span>
+                                    <div id="logistics-freight-cost-legacy" class="logistics-freight-result-value">$ 0,00</div>
+                                </div>
+                                <div class="logistics-freight-result-details">
+                                    <div><span>Distancia:</span> <strong id="logistics-freight-distance-legacy">-</strong></div>
+                                    <div><span>Tarifa ref.:</span> <strong id="logistics-freight-rate-legacy">-</strong></div>
+                                    <div><span>Fuente:</span> <strong id="logistics-freight-source-legacy">-</strong></div>
+                                </div>
+                                <div id="logistics-freight-note-legacy" class="logistics-freight-note">Completá origen y destino para estimar el flete.</div>
+                            </div>
+                        </div>
+
                     </div>
 
 
@@ -1742,6 +1795,11 @@
                             onclick="switchLogisticsTab('3d', this)">
 
                             Visualización 3D</div>
+
+                        <div style="padding: 0.5rem 1rem; color: var(--text-secondary); cursor: pointer; border-bottom: none;"
+                            onclick="switchLogisticsTab('freight', this)">
+
+                            Costo de Flete</div>
 
                     </div>
 
@@ -1867,7 +1925,64 @@
 
 
 
-                    <!-- TAB 4: 3D VIEW -->
+                    <!-- TAB 4: FREIGHT -->
+
+                    <div id="logistics-freight" style="display: none;">
+                        <div class="logistics-freight-section" style="margin-top: 0;">
+                            <div class="logistics-freight-header">
+                                <h4>Costo de Flete</h4>
+                                <button type="button" class="btn btn-sm" onclick="calculateLogisticsFreightEstimate()">Calcular Flete</button>
+                            </div>
+
+                            <div class="logistics-freight-grid">
+                                <div class="logistics-input-group" style="margin-bottom: 0;">
+                                    <label class="logistics-label">Origen</label>
+                                    <div class="logistics-city-autocomplete">
+                                        <input type="text" id="logistics-freight-origin" class="logistics-input logistics-freight-input" placeholder="Ej: Villa María, Córdoba" autocomplete="off">
+                                        <div id="logistics-freight-origin-suggestions" class="logistics-city-suggestions" style="display:none;"></div>
+                                    </div>
+                                </div>
+
+                                <div class="logistics-input-group" style="margin-bottom: 0;">
+                                    <label class="logistics-label">Destino</label>
+                                    <div class="logistics-city-autocomplete">
+                                        <input type="text" id="logistics-freight-destination" class="logistics-input logistics-freight-input" placeholder="Ej: Rosario, Santa Fe" autocomplete="off">
+                                        <div id="logistics-freight-destination-suggestions" class="logistics-city-suggestions" style="display:none;"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="logistics-freight-metrics">
+                                <div class="logistics-freight-metric-card">
+                                    <span class="logistics-freight-metric-label">Peso total</span>
+                                    <strong id="logistics-freight-weight">0,00 kg</strong>
+                                </div>
+                                <div class="logistics-freight-metric-card">
+                                    <span class="logistics-freight-metric-label">Volumen total</span>
+                                    <strong id="logistics-freight-volume">0,000 m3</strong>
+                                </div>
+                                <div class="logistics-freight-metric-card">
+                                    <span class="logistics-freight-metric-label">Peso cobrable</span>
+                                    <strong id="logistics-freight-chargeable">0,00 kg</strong>
+                                </div>
+                            </div>
+
+                            <div class="logistics-freight-result">
+                                <div class="logistics-freight-result-main">
+                                    <span class="logistics-freight-result-label">Costo estimado</span>
+                                    <div id="logistics-freight-cost" class="logistics-freight-result-value">$ 0,00</div>
+                                </div>
+                                <div class="logistics-freight-result-details">
+                                    <div><span>Distancia:</span> <strong id="logistics-freight-distance">-</strong></div>
+                                    <div><span>Tarifa ref.:</span> <strong id="logistics-freight-rate">-</strong></div>
+                                    <div><span>Fuente:</span> <strong id="logistics-freight-source">-</strong></div>
+                                </div>
+                                <div id="logistics-freight-note" class="logistics-freight-note">Completá origen y destino para estimar el flete.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TAB 5: 3D VIEW -->
 
                     <div id="logistics-3d-container"
                         style="display: none; height: 400px; background: #222; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 1rem; overflow: hidden; position: relative;">

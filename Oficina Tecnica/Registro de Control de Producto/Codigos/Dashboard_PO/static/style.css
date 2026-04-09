@@ -3299,6 +3299,164 @@ tbody tr:nth-child(n+11) {
     align-items: center;
 }
 
+.logistics-freight-section {
+    margin-top: 1rem;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    padding: 1rem;
+}
+
+.logistics-freight-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.logistics-freight-header h4 {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 0.98rem;
+}
+
+.logistics-freight-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 1rem;
+}
+
+.logistics-city-autocomplete {
+    position: relative;
+    min-width: 0;
+}
+
+.logistics-freight-grid .logistics-input-group {
+    min-width: 0;
+}
+
+.logistics-city-suggestions {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;
+    z-index: 1100;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: #191919;
+    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.45);
+    overflow: hidden;
+    max-height: 240px;
+    overflow-y: auto;
+}
+
+.logistics-city-suggestion {
+    padding: 0.75rem 0.85rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    cursor: pointer;
+    transition: background-color 0.16s ease;
+}
+
+.logistics-city-suggestion:last-child {
+    border-bottom: none;
+}
+
+.logistics-city-suggestion:hover,
+.logistics-city-suggestion.is-active {
+    background: rgba(207, 22, 37, 0.16);
+}
+
+.logistics-city-suggestion-name {
+    color: var(--text-primary);
+    font-size: 0.92rem;
+    font-weight: 600;
+}
+
+.logistics-city-suggestion-province {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    margin-top: 0.2rem;
+}
+
+.logistics-freight-metrics {
+    margin-top: 1rem;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+}
+
+.logistics-freight-metric-card {
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.18);
+    padding: 0.8rem 0.9rem;
+}
+
+.logistics-freight-metric-label {
+    display: block;
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    margin-bottom: 0.35rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.logistics-freight-result {
+    margin-top: 1rem;
+    border: 1px solid rgba(207, 22, 37, 0.22);
+    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(207, 22, 37, 0.12), rgba(255, 255, 255, 0.03));
+    padding: 1rem;
+}
+
+.logistics-freight-result-main {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.logistics-freight-result-label {
+    color: var(--text-secondary);
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.logistics-freight-result-value {
+    color: #ffffff;
+    font-size: 1.7rem;
+    font-weight: 800;
+    text-align: right;
+}
+
+.logistics-freight-result-details {
+    margin-top: 0.8rem;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.65rem;
+    color: var(--text-secondary);
+    font-size: 0.84rem;
+}
+
+.logistics-freight-result-details strong {
+    color: var(--text-primary);
+}
+
+.logistics-freight-note {
+    margin-top: 0.8rem;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+}
+
+.logistics-freight-input {
+    min-width: 0;
+    padding: 0.65rem 0.7rem;
+    font-size: 0.92rem;
+    box-sizing: border-box;
+}
+
 .kpi-value {
     font-size: 1.5rem;
     font-weight: 800;

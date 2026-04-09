@@ -958,5 +958,65 @@
     },
     "created_at": "2026-02-18T17:16:53.188752",
     "read": true
+  },
+  {
+    "id": "0051df17-dd64-4cb0-8c37-e40638f9486e",
+    "recipient": "Luciano Cochis",
+    "recipient_key": "luciano cochis",
+    "recipient_email": "lcochis@bpbargentina.com",
+    "type": "approval",
+    "message": "Aprobacion pendiente para BP-26004",
+    "payload": {
+      "bp": "BP-26004",
+      "row": 6,
+      "etapa": "Diseño y Desarrollo"
+    },
+    "created_at": "2026-04-09T17:28:39.965139",
+    "read": false
+  },
+  {
+    "id": "94bce0f4-8b45-45d4-bed8-630a83d5cbd2",
+    "recipient": "Lorenzo Contigiani",
+    "recipient_key": "lorenzo contigiani",
+    "recipient_email": "lcontigiani@bpbargentina.com",
+    "type": "approval",
+    "message": "Aprobacion pendiente para BP-26004",
+    "payload": {
+      "bp": "BP-26004",
+      "row": 6,
+      "etapa": "Diseño y Desarrollo"
+    },
+    "created_at": "2026-04-09T17:28:39.983945",
+    "read": false
+  },
+  {
+    "id": "fb3006af-6abd-4b44-bbbd-a5ba9d928040",
+    "recipient": "Luciano Cochis",
+    "recipient_key": "luciano cochis",
+    "recipient_email": "lcochis@bpbargentina.com",
+    "type": "approval",
+    "message": "Aprobacion pendiente para BP-26003",
+    "payload": {
+      "bp": "BP-26003",
+      "row": 14,
+      "etapa": "Diseño y Desarrollo"
+    },
+    "created_at": "2026-04-09T17:30:31.159849",
+    "read": false
+  },
+  {
+    "id": "c819aea8-72e5-4e8c-92b7-29a33deb2218",
+    "recipient": "Lorenzo Contigiani",
+    "recipient_key": "lorenzo contigiani",
+    "recipient_email": "lcontigiani@bpbargentina.com",
+    "type": "approval",
+    "message": "Aprobacion pendiente para BP-26003",
+    "payload": {
+      "bp": "BP-26003",
+      "row": 14,
+      "etapa": "Diseño y Desarrollo"
+    },
+    "created_at": "2026-04-09T17:30:31.181477",
+    "read": false
   }
 ]

@@ -2528,6 +2528,11 @@ def _build_logistics_version_snapshot(source, version_number=1):
             'dims': data.get('safety_factors', {}).get('dims', data.get('safety_factor_dims', 0)),
             'weight': data.get('safety_factors', {}).get('weight', data.get('safety_factor_weight', 0))
         },
+        'freight': {
+            'origin': data.get('freight', {}).get('origin'),
+            'destination': data.get('freight', {}).get('destination'),
+            'last_estimate': data.get('freight', {}).get('last_estimate')
+        },
         'items': _clean_logistics_items(data.get('items', []))
     }
     snapshot['largest_unit_label'] = _get_logistics_largest_unit_label(snapshot)
@@ -4782,6 +4787,348 @@ def calculate_logistics():
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
 
+LOGISTICS_GEOREF_LOOKUP_URL = 'https://apis.datos.gob.ar/georef/api/localidades'
+LOGISTICS_ROUTE_DISTANCE_URL = 'https://router.project-osrm.org/route/v1/driving/{lon1},{lat1};{lon2},{lat2}?overview=false'
+LOGISTICS_FREIGHT_VOLUMETRIC_KG_PER_M3 = 333.0
+LOGISTICS_FREIGHT_REFERENCE_DATE = '2026-01-31'
+LOGISTICS_FREIGHT_TARIFF_BREAKPOINTS = [
+    (1, 8453.24),
+    (10, 8453.24),
+    (50, 15985.53),
+    (100, 23853.32),
+    (150, 29802.40),
+    (200, 36339.14),
+    (250, 42919.72),
+    (300, 50177.88),
+    (350, 55947.14),
+    (400, 61894.02),
+    (450, 66106.41),
+    (500, 70316.60),
+    (550, 72893.11),
+    (600, 75320.55),
+    (650, 77612.03),
+    (700, 79774.12),
+    (750, 82938.33),
+    (800, 85995.13),
+    (850, 88299.76),
+    (900, 90527.62),
+    (950, 92676.56),
+    (1000, 94755.37),
+    (1050, 97296.80),
+    (1100, 99673.83),
+    (1150, 101941.17),
+    (1200, 104107.68),
+]
+
+
+def _normalize_logistics_city_payload(city):
+    if isinstance(city, str):
+        city = {'label': city, 'nombre': city}
+    if not isinstance(city, dict):
+        return None
+
+    centroide = city.get('centroide', {}) if isinstance(city.get('centroide', {}), dict) else {}
+    provincia = city.get('provincia', {}) if isinstance(city.get('provincia', {}), dict) else {}
+
+    try:
+        lat = float(centroide.get('lat'))
+        lon = float(centroide.get('lon'))
+    except Exception:
+        return None
+
+    nombre = str(city.get('nombre') or city.get('city') or city.get('label') or '').strip()
+    provincia_nombre = str(provincia.get('nombre') or city.get('province') or '').strip()
+    label = str(city.get('label') or '').strip() or ', '.join(part for part in [nombre, provincia_nombre] if part)
+    if not label:
+        return None
+
+    return {
+        'id': str(city.get('id') or '').strip(),
+        'name': nombre,
+        'province': provincia_nombre,
+        'label': label,
+        'lat': lat,
+        'lon': lon
+    }
+
+
+def _normalize_logistics_compare_text(value):
+    text = unicodedata.normalize('NFKD', str(value or '')).encode('ascii', 'ignore').decode('ascii')
+    text = re.sub(r'\s+', ' ', text).strip().lower()
+    return text
+
+
+def _get_official_sale_dollar_rate(requested_date=''):
+    safe_date = str(requested_date or '').strip()
+    if safe_date:
+        normalized_date = datetime.strptime(safe_date, '%Y-%m-%d').strftime('%Y/%m/%d')
+        payload = _fetch_external_json(
+            f'https://api.argentinadatos.com/v1/cotizaciones/dolares/oficial/{normalized_date}',
+            timeout=6
+        )
+        venta = payload.get('venta') if isinstance(payload, dict) else None
+        fecha = str(payload.get('fecha') or safe_date).strip() if isinstance(payload, dict) else safe_date
+        numeric = float(venta)
+        if not math.isfinite(numeric) or numeric <= 0:
+            raise ValueError('valor oficial venta invalido')
+        return {
+            'value': round(numeric, 2),
+            'date': fecha,
+            'source': 'argentinadatos-historico-oficial',
+            'rate_type': 'oficial_venta'
+        }
+
+    providers = [
+        ('dolarapi-oficial', 'https://dolarapi.com/v1/dolares/oficial'),
+        ('bluelytics-oficial', 'https://api.bluelytics.com.ar/v2/latest'),
+    ]
+    errors = []
+    for source_name, url in providers:
+        try:
+            payload = _fetch_external_json(url, timeout=6)
+            venta = None
+            fecha = ''
+            if source_name == 'dolarapi-oficial':
+                venta = payload.get('venta')
+                fecha = str(payload.get('fecha') or '').strip()
+            else:
+                oficial = payload.get('oficial', {}) if isinstance(payload, dict) else {}
+                venta = oficial.get('value_sell')
+                fecha = str(payload.get('last_update') or '').strip()
+            numeric = float(venta)
+            if not math.isfinite(numeric) or numeric <= 0:
+                raise ValueError('valor oficial venta invalido')
+            if fecha:
+                fecha = fecha.split('T')[0]
+            return {
+                'value': round(numeric, 2),
+                'date': fecha,
+                'source': source_name,
+                'rate_type': 'oficial_venta'
+            }
+        except Exception as exc:
+            errors.append(f'{source_name}: {exc}')
+    raise RuntimeError('; '.join(errors) or 'sin proveedores disponibles')
+
+
+def _resolve_logistics_city(city):
+    normalized = _normalize_logistics_city_payload(city)
+    if normalized:
+        return normalized
+
+    query = ''
+    if isinstance(city, str):
+        query = city
+    elif isinstance(city, dict):
+        query = city.get('label') or city.get('nombre') or city.get('name') or ''
+
+    safe_query = str(query or '').strip()
+    if len(safe_query) < 2:
+        return None
+
+    query_variants = [safe_query]
+    comma_parts = [part.strip() for part in safe_query.split(',') if str(part).strip()]
+    if comma_parts:
+        query_variants.append(comma_parts[0])
+    if len(comma_parts) >= 2:
+        query_variants.append(f'{comma_parts[0]} {comma_parts[1]}')
+
+    compact_query = unicodedata.normalize('NFKD', safe_query).encode('ascii', 'ignore').decode('ascii')
+    compact_query = re.sub(r'\s+', ' ', compact_query).strip()
+    if compact_query and compact_query not in query_variants:
+        query_variants.append(compact_query)
+        compact_parts = [part.strip() for part in compact_query.split(',') if str(part).strip()]
+        if compact_parts:
+            query_variants.append(compact_parts[0])
+
+    if _normalize_logistics_compare_text(safe_query) in ('caba', 'capital federal', 'capital'):
+        query_variants.append('Ciudad de Buenos Aires')
+
+    seen = set()
+    for candidate_query in query_variants:
+        normalized_query = str(candidate_query or '').strip()
+        if len(normalized_query) < 2:
+            continue
+        dedupe_key = _normalize_logistics_compare_text(normalized_query)
+        if dedupe_key in seen:
+            continue
+        seen.add(dedupe_key)
+
+        results = _lookup_logistics_cities(normalized_query, max_items=5)
+        if not results:
+            continue
+
+        query_lower = _normalize_logistics_compare_text(normalized_query)
+        exact = next((item for item in results if _normalize_logistics_compare_text(item.get('label', '')) == query_lower), None)
+        if exact:
+            return exact
+
+        if comma_parts and len(comma_parts) >= 2:
+            wanted_name = _normalize_logistics_compare_text(comma_parts[0])
+            wanted_province = _normalize_logistics_compare_text(comma_parts[1])
+            name_and_province = next((
+                item for item in results
+                if _normalize_logistics_compare_text(item.get('name', '')) == wanted_name and wanted_province in _normalize_logistics_compare_text(item.get('province', ''))
+            ), None)
+            if name_and_province:
+                return name_and_province
+
+        starts = next((item for item in results if _normalize_logistics_compare_text(item.get('label', '')).startswith(query_lower)), None)
+        if starts:
+            return starts
+
+        name_exact = next((item for item in results if _normalize_logistics_compare_text(item.get('name', '')) == query_lower), None)
+        if name_exact:
+            return name_exact
+
+        return results[0]
+
+    return None
+
+
+def _lookup_logistics_cities(query, max_items=8):
+    safe_query = str(query or '').strip()
+    if len(safe_query) < 2:
+        return []
+
+    params = f'?campos=id,nombre,provincia,centroide&max={max(1, min(int(max_items or 8), 12))}&nombre={quote(safe_query)}'
+    payload = _fetch_external_json(f'{LOGISTICS_GEOREF_LOOKUP_URL}{params}', timeout=8)
+    localities = payload.get('localidades', []) if isinstance(payload, dict) else []
+
+    results = []
+    seen = set()
+    for item in localities:
+        normalized = _normalize_logistics_city_payload(item)
+        if not normalized:
+            continue
+        dedupe_key = f"{normalized['label'].lower()}|{normalized['lat']}|{normalized['lon']}"
+        if dedupe_key in seen:
+            continue
+        seen.add(dedupe_key)
+        results.append(normalized)
+    return results
+
+
+def _logistics_haversine_km(lat1, lon1, lat2, lon2):
+    radius_km = 6371.0088
+    lat1_rad = math.radians(lat1)
+    lat2_rad = math.radians(lat2)
+    delta_lat = math.radians(lat2 - lat1)
+    delta_lon = math.radians(lon2 - lon1)
+    a = (math.sin(delta_lat / 2) ** 2) + math.cos(lat1_rad) * math.cos(lat2_rad) * (math.sin(delta_lon / 2) ** 2)
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+    return radius_km * c
+
+
+def _logistics_route_distance_km(origin, destination):
+    lat1 = float(origin['lat'])
+    lon1 = float(origin['lon'])
+    lat2 = float(destination['lat'])
+    lon2 = float(destination['lon'])
+
+    try:
+        route_url = LOGISTICS_ROUTE_DISTANCE_URL.format(lon1=lon1, lat1=lat1, lon2=lon2, lat2=lat2)
+        payload = _fetch_external_json(route_url, timeout=10)
+        routes = payload.get('routes', []) if isinstance(payload, dict) else []
+        if routes:
+            distance_m = float(routes[0].get('distance') or 0)
+            if distance_m > 0:
+                return distance_m / 1000.0, 'OSRM'
+    except Exception:
+        pass
+
+    direct_km = _logistics_haversine_km(lat1, lon1, lat2, lon2)
+    road_estimate_km = max(1.0, direct_km * 1.22)
+    return road_estimate_km, 'Haversine ajustada'
+
+
+def _logistics_interpolate_tariff_per_ton(distance_km):
+    safe_distance = max(1.0, float(distance_km or 1))
+    points = LOGISTICS_FREIGHT_TARIFF_BREAKPOINTS
+
+    if safe_distance <= points[0][0]:
+        return float(points[0][1])
+
+    for index in range(1, len(points)):
+        prev_km, prev_value = points[index - 1]
+        next_km, next_value = points[index]
+        if safe_distance <= next_km:
+            span = max(1.0, float(next_km - prev_km))
+            ratio = (safe_distance - prev_km) / span
+            return float(prev_value + ((next_value - prev_value) * ratio))
+
+    last_km, last_value = points[-1]
+    prev_km, prev_value = points[-2]
+    slope = (last_value - prev_value) / max(1.0, float(last_km - prev_km))
+    return float(last_value + ((safe_distance - last_km) * slope))
+
+
+@app.route('/api/logistics/cities-lookup', methods=['GET'])
+def logistics_cities_lookup():
+    try:
+        query = str(request.args.get('q', '')).strip()
+        if len(query) < 2:
+            return jsonify({'status': 'success', 'cities': []})
+
+        return jsonify({
+            'status': 'success',
+            'cities': _lookup_logistics_cities(query, max_items=request.args.get('max', 8))
+        })
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
+@app.route('/api/logistics/freight-estimate', methods=['POST'])
+def logistics_freight_estimate():
+    try:
+        data = request.json or {}
+        origin = _resolve_logistics_city(data.get('origin'))
+        destination = _resolve_logistics_city(data.get('destination'))
+        if not origin or not destination:
+            return jsonify({'status': 'error', 'message': 'Origen o destino inválido.'}), 400
+
+        weight_kg = max(0.0, float(data.get('weight_kg') or 0))
+        volume_m3 = max(0.0, float(data.get('volume_m3') or 0))
+        volumetric_weight_kg = volume_m3 * LOGISTICS_FREIGHT_VOLUMETRIC_KG_PER_M3
+        chargeable_weight_kg = max(weight_kg, volumetric_weight_kg)
+        chargeable_tons = max(0.001, chargeable_weight_kg / 1000.0)
+
+        distance_km, distance_source = _logistics_route_distance_km(origin, destination)
+        tariff_per_ton = _logistics_interpolate_tariff_per_ton(distance_km)
+        estimated_cost = tariff_per_ton * chargeable_tons
+        exchange_rate = _get_official_sale_dollar_rate(LOGISTICS_FREIGHT_REFERENCE_DATE)
+        usd_rate = float(exchange_rate.get('value') or 0)
+        if not math.isfinite(usd_rate) or usd_rate <= 0:
+            raise ValueError('dolar oficial de referencia invalido')
+        estimated_cost_usd = estimated_cost / usd_rate
+        tariff_per_ton_usd = tariff_per_ton / usd_rate
+
+        return jsonify({
+            'status': 'success',
+            'estimate': {
+                'origin': origin,
+                'destination': destination,
+                'distance_km': round(distance_km, 1),
+                'distance_source': distance_source,
+                'actual_weight_kg': round(weight_kg, 3),
+                'volume_m3': round(volume_m3, 6),
+                'volumetric_weight_kg': round(volumetric_weight_kg, 3),
+                'chargeable_weight_kg': round(chargeable_weight_kg, 3),
+                'chargeable_tons': round(chargeable_tons, 6),
+                'tariff_per_ton_ars': round(tariff_per_ton, 2),
+                'tariff_per_ton_usd': round(tariff_per_ton_usd, 4),
+                'estimated_cost_ars': round(estimated_cost, 2),
+                'estimated_cost_usd': round(estimated_cost_usd, 4),
+                'exchange_rate_ars': round(usd_rate, 2),
+                'exchange_date': str(exchange_rate.get('date') or LOGISTICS_FREIGHT_REFERENCE_DATE),
+                'source_label': 'CATAC 31/01/2026 + dólar oficial venta 31/01/2026',
+                'note': 'Estimación basada en tarifa de referencia CATAC 31/01/2026 para larga distancia, aplicada sobre el mayor entre peso real y peso volumétrico y convertida con dólar oficial venta del 31/01/2026.'
+            }
+        })
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
 @app.route('/api/logistics/save', methods=['POST'])
 def save_logistics_calculation():
     try:
@@ -5577,74 +5924,22 @@ def get_cotizacion_complementarios_lookup():
 @app.route('/api/cotizacion/dolar-rate', methods=['GET'])
 def get_cotizacion_dolar_rate():
     requested_date = str(request.args.get('date', '') or '').strip()
-    if requested_date:
-        try:
-            normalized_date = datetime.strptime(requested_date, '%Y-%m-%d').strftime('%Y/%m/%d')
-        except Exception:
-            return jsonify({
-                'status': 'error',
-                'message': 'Formato de fecha invalido. Use YYYY-MM-DD.'
-            }), 400
-
-        try:
-            payload = _fetch_external_json(
-                f'https://api.argentinadatos.com/v1/cotizaciones/dolares/oficial/{normalized_date}',
-                timeout=6
-            )
-            venta = payload.get('venta') if isinstance(payload, dict) else None
-            fecha = str(payload.get('fecha') or requested_date).strip() if isinstance(payload, dict) else requested_date
-            numeric = float(venta)
-            if not math.isfinite(numeric) or numeric <= 0:
-                raise ValueError('valor oficial venta invalido')
-
-            return jsonify({
-                'status': 'success',
-                'value': round(numeric, 2),
-                'date': fecha,
-                'source': 'argentinadatos-historico-oficial',
-                'rate_type': 'oficial_venta'
-            })
-        except Exception as e:
-            return jsonify({
-                'status': 'error',
-                'message': 'No se pudo obtener el valor del dolar Oficial venta para la fecha seleccionada.',
-                'errors': [str(e)]
-            }), 502
-
-    providers = [
-        ('dolarapi-oficial', 'https://dolarapi.com/v1/dolares/oficial'),
-        ('bluelytics-oficial', 'https://api.bluelytics.com.ar/v2/latest'),
-    ]
-
-    errors = []
-
-    for source_name, source_url in providers:
-        try:
-            payload = _fetch_external_json(source_url, timeout=4)
-            numeric = _extract_dolar_official_sell_value(payload)
-            if numeric is None:
-                raise ValueError('valor oficial venta no presente en respuesta')
-            date_value = ''
-            if isinstance(payload, dict):
-                date_value = str(payload.get('fecha') or payload.get('fechaActualizacion') or '').strip()
-                if 'T' in date_value:
-                    date_value = date_value.split('T', 1)[0]
-
-            return jsonify({
-                'status': 'success',
-                'value': round(numeric, 2),
-                'date': date_value or datetime.now().strftime('%Y-%m-%d'),
-                'source': source_name,
-                'rate_type': 'oficial_venta'
-            })
-        except Exception as e:
-            errors.append(f"{source_name}: {str(e)}")
-
-    return jsonify({
-        'status': 'error',
-        'message': 'No se pudo obtener el valor del dolar Oficial venta desde internet',
-        'errors': errors[:3]
-    }), 502
+    try:
+        if requested_date:
+            datetime.strptime(requested_date, '%Y-%m-%d')
+        rate_data = _get_official_sale_dollar_rate(requested_date)
+        return jsonify({'status': 'success', **rate_data})
+    except ValueError:
+        return jsonify({
+            'status': 'error',
+            'message': 'Formato de fecha invalido. Use YYYY-MM-DD.'
+        }), 400
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': 'No se pudo obtener el valor del dolar Oficial venta para la fecha seleccionada.' if requested_date else 'No se pudo obtener el valor del dolar Oficial venta desde internet',
+            'errors': [str(e)]
+        }), 502
 
 
 @app.route('/api/cotizacion/providers-lookup', methods=['GET'])
