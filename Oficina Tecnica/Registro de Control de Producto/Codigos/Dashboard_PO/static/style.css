@@ -3550,8 +3550,10 @@ tbody tr:nth-child(n+11) {
 }
 
 .logistics-freight-total-row-emphasis strong {
-    font-size: 1.7rem;
+    font-size: 1.5rem;
     font-weight: 800;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .logistics-freight-adjustment-input::-webkit-outer-spin-button,

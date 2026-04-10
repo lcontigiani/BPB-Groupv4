@@ -6427,7 +6427,7 @@ def _cotizacion_apply_source_summary_to_bucket(bucket, source_summary, multiplie
     if not math.isfinite(factor) or factor <= 0:
         factor = 1.0
 
-    for key in ('materia_prima', 'complementarios', 'transformacion', 'desperdicios', 'externo', 'importacion', 'extra', 'comadm'):
+    for key in ('materia_prima', 'complementarios', 'transformacion', 'desperdicios', 'externo', 'importacion', 'flete_traslados', 'extra', 'comadm'):
         bucket[key] = float(bucket.get(key, 0) or 0) + (float(summary.get(key, 0) or 0) * factor)
     return True
 
@@ -6811,6 +6811,10 @@ def _cotizacion_normalize_category(raw_category):
         'deposito': 'deposito_logistica',
         'deposito_y_logistica': 'deposito_logistica',
         'deposito_logistica': 'deposito_logistica',
+        'flete_traslados': 'flete_traslados',
+        'flete_traslado': 'flete_traslados',
+        'flete_traslados_y_traslados': 'flete_traslados',
+        'flete_traslado_y_traslado': 'flete_traslados',
         'externos': 'externos',
         'externos_a_bpb': 'externos',
         'externo_a_bpb': 'externos',
@@ -6835,6 +6839,7 @@ def _cotizacion_empty_summary_bucket():
         'produccion': 0.0,
         'externo': 0.0,
         'importacion': 0.0,
+        'flete_traslados': 0.0,
         'extra': 0.0,
         'venta': 0.0,
         'comadm': 0.0,
@@ -6861,6 +6866,8 @@ def _cotizacion_add_cost_to_bucket(bucket, category_key, cost):
         bucket['externo'] += numeric_cost
     elif category == 'importacion':
         bucket['importacion'] += numeric_cost
+    elif category == 'flete_traslados':
+        bucket['flete_traslados'] += numeric_cost
     elif category == 'extras':
         bucket['extra'] += numeric_cost
     elif category == 'costo_byp':
@@ -6877,7 +6884,7 @@ def _cotizacion_finalize_summary_bucket(raw_bucket, piece_qty=1):
                 raw[key] = 0.0
 
     raw['produccion'] = raw['materia_prima'] + raw['complementarios'] + raw['transformacion']
-    raw['venta'] = raw['produccion'] + raw['desperdicios'] + raw['externo'] + raw['importacion'] + raw['extra']
+    raw['venta'] = raw['produccion'] + raw['desperdicios'] + raw['externo'] + raw['importacion'] + raw['flete_traslados'] + raw['extra']
     raw['total'] = raw['venta'] + raw['comadm']
 
     try:

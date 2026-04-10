@@ -1776,7 +1776,7 @@
                                         <div><span>Distancia:</span> <strong id="logistics-freight-distance-legacy">-</strong></div>
                                         <div><span>Costo/km:</span> <strong id="logistics-freight-rate-legacy">-</strong></div>
                                     </div>
-                                    <div id="logistics-freight-note-legacy" class="logistics-freight-note">Completá origen y destino para estimar el flete.</div>
+                                    <div id="logistics-freight-note-legacy" class="logistics-freight-note">Completar origen y destino.</div>
                                 </div>
                                 <div class="logistics-freight-result logistics-freight-result-secondary">
                                     <div class="logistics-freight-result-main">
@@ -2017,7 +2017,7 @@
                                     <div class="logistics-freight-result-details logistics-freight-result-details-single">
                                         <div><span>Costo/km:</span> <strong id="logistics-freight-rate">-</strong></div>
                                     </div>
-                                    <div id="logistics-freight-note" class="logistics-freight-note">Completá origen y destino para estimar el flete.</div>
+                                    <div id="logistics-freight-note" class="logistics-freight-note">Completar origen y destino.</div>
                                     <div class="logistics-freight-total-row logistics-freight-total-row-emphasis">
                                             <span>Costo Total</span>
                                             <strong id="logistics-freight-total">US$ 0,00</strong>
@@ -3878,6 +3878,14 @@
 
                 <div class="cotizacion-setup-item">
                     <label class="cotizacion-setup-check">
+                        <input type="checkbox" id="cot-config-flete_traslados-check">
+                        <span>Flete/Traslados</span>
+                    </label>
+                    <input type="number" id="cot-config-flete_traslados-rows" min="1" max="50" step="1" placeholder="1">
+                </div>
+
+                <div class="cotizacion-setup-item">
+                    <label class="cotizacion-setup-check">
                         <input type="checkbox" id="cot-config-externos-check" checked>
                         <span>Externos a BPB</span>
                     </label>
@@ -4127,6 +4135,11 @@
                                     <td id="cot-sum-import-may">$ 0.00</td>
                                 </tr>
                                 <tr>
+                                    <td id="cot-sum-label-flete-traslados">Costo de Flete/Traslados</td>
+                                    <td id="cot-sum-flete-traslados-min">$ 0.00</td>
+                                    <td id="cot-sum-flete-traslados-may">$ 0.00</td>
+                                </tr>
+                                <tr>
                                     <td id="cot-sum-label-extra">Costo Extra</td>
                                     <td id="cot-sum-extra-min">$ 0.00</td>
                                     <td id="cot-sum-extra-may">$ 0.00</td>
@@ -4199,6 +4212,7 @@
                 <option value="ensamble">Ensamble</option>
                 <option value="embalaje">Embalaje</option>
                 <option value="deposito_logistica">Dep&oacute;sito y Log&iacute;stica</option>
+                <option value="flete_traslados">Flete/Traslados</option>
                 <option value="externos">Externos a BPB</option>
                 <option value="importacion">Gastos de Importaci&oacute;n</option>
                 <option value="costo_byp">Costo BPB</option>

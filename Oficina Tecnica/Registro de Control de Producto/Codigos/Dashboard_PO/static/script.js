@@ -29684,7 +29684,7 @@ function scheduleLogisticsFreightSuggestions(fieldKey, query) {
     }, LOGISTICS_FREIGHT_AUTOCOMPLETE_DEBOUNCE_MS);
 }
 
-function resetLogisticsFreightEstimate(note = 'Completá origen y destino para estimar el flete.') {
+function resetLogisticsFreightEstimate(note = 'Completar origen y destino.') {
     window._lastLogisticsFreightEstimate = null;
     const costEl = document.getElementById('logistics-freight-cost');
     const distanceEl = document.getElementById('logistics-freight-distance');
