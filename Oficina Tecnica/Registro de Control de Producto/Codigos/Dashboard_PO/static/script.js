@@ -29385,6 +29385,7 @@ const LOGISTICS_FREIGHT_AUTOCOMPLETE_DEBOUNCE_MS = 180;
 window._logisticsFreightSelections = window._logisticsFreightSelections || { origin: null, destination: null };
 window._logisticsFreightAutocompleteTimers = window._logisticsFreightAutocompleteTimers || {};
 window._lastLogisticsFreightEstimate = window._lastLogisticsFreightEstimate || null;
+window._logisticsPackingDirty = window._logisticsPackingDirty || false;
 
 function formatLogisticsArsCurrency(value) {
     const numeric = Number(value || 0);
@@ -29416,6 +29417,11 @@ function formatLogisticsVolumeM3(value) {
     return `${numeric.toLocaleString('es-AR', { minimumFractionDigits: 3, maximumFractionDigits: 3 })} m3`;
 }
 
+function formatLogisticsPercent(value) {
+    const numeric = Number(value || 0) * 100;
+    return `${numeric.toLocaleString('es-AR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`;
+}
+
 function getLogisticsFreightMetrics() {
     let totalWeightKg = 0;
     let totalVolumeM3 = 0;
@@ -29433,30 +29439,85 @@ function getLogisticsFreightMetrics() {
         totalVolumeM3 += ((l * w * h) / 1000000000) * qty;
     });
 
-    const volumetricWeightKg = totalVolumeM3 * 333;
-    const chargeableWeightKg = Math.max(totalWeightKg, volumetricWeightKg);
-
     return {
         total_weight_kg: Number(totalWeightKg.toFixed(3)),
         total_volume_m3: Number(totalVolumeM3.toFixed(6)),
-        volumetric_weight_kg: Number(volumetricWeightKg.toFixed(3)),
-        chargeable_weight_kg: Number(chargeableWeightKg.toFixed(3))
+        chargeable_weight_kg: Number(totalWeightKg.toFixed(3))
+    };
+}
+
+function getLogisticsFreightBasis() {
+    const backendBasis = (!window._logisticsPackingDirty && lastLogisticsData && typeof lastLogisticsData.freight_basis === 'object')
+        ? lastLogisticsData.freight_basis
+        : null;
+
+    if (backendBasis) {
+        return {
+            source: backendBasis.source || 'post_packing_top_level_units',
+            package_count: Number(backendBasis.package_count || 0),
+            actual_weight_kg: Number(backendBasis.actual_weight_kg || 0),
+            consolidated_volume_m3: Number(backendBasis.consolidated_volume_m3 || 0),
+            chargeable_weight_kg: Number(backendBasis.chargeable_weight_kg || 0),
+            load_fraction: Number(backendBasis.load_fraction || 0),
+            weight_fraction: Number(backendBasis.weight_fraction || 0),
+            volume_fraction: Number(backendBasis.volume_fraction || 0),
+            dominant_basis: String(backendBasis.dominant_basis || 'weight'),
+            standard_payload_kg: Number(backendBasis.standard_payload_kg || 0),
+            standard_volume_m3: Number(backendBasis.standard_volume_m3 || 0),
+            shipment_bbox_dims_mm: backendBasis.shipment_bbox_dims_mm || null,
+            shipment_bbox_volume_m3: Number(backendBasis.shipment_bbox_volume_m3 || 0),
+            packages: Array.isArray(backendBasis.packages) ? backendBasis.packages : [],
+            basis_label: 'Post-packing consolidado'
+        };
+    }
+
+    const rawMetrics = getLogisticsFreightMetrics();
+    const standardPayloadKg = 30000;
+    const standardVolumeM3 = 90;
+    const weightFraction = Number(rawMetrics.total_weight_kg || 0) / standardPayloadKg;
+    const volumeFraction = Number(rawMetrics.total_volume_m3 || 0) / standardVolumeM3;
+    return {
+        source: 'raw_items_form',
+        package_count: 0,
+        actual_weight_kg: Number(rawMetrics.total_weight_kg || 0),
+        consolidated_volume_m3: Number(rawMetrics.total_volume_m3 || 0),
+        chargeable_weight_kg: Number(rawMetrics.chargeable_weight_kg || 0),
+        load_fraction: Number((Math.max(weightFraction, volumeFraction)).toFixed(6)),
+        weight_fraction: Number(weightFraction.toFixed(6)),
+        volume_fraction: Number(volumeFraction.toFixed(6)),
+        dominant_basis: weightFraction >= volumeFraction ? 'weight' : 'volume',
+        standard_payload_kg: standardPayloadKg,
+        standard_volume_m3: standardVolumeM3,
+        shipment_bbox_dims_mm: null,
+        shipment_bbox_volume_m3: 0,
+        packages: [],
+        basis_label: 'Piezas sin reconsolidar'
     };
 }
 
 function updateLogisticsFreightMetrics(metrics = null) {
-    const safeMetrics = metrics && typeof metrics === 'object' ? metrics : getLogisticsFreightMetrics();
+    const safeMetrics = metrics && typeof metrics === 'object' ? metrics : getLogisticsFreightBasis();
     const weightEl = document.getElementById('logistics-freight-weight');
     const volumeEl = document.getElementById('logistics-freight-volume');
     const chargeableEl = document.getElementById('logistics-freight-chargeable');
 
-    if (weightEl) weightEl.textContent = formatLogisticsWeightKg(safeMetrics.total_weight_kg || 0);
-    if (volumeEl) volumeEl.textContent = formatLogisticsVolumeM3(safeMetrics.total_volume_m3 || 0);
+    if (weightEl) weightEl.textContent = formatLogisticsWeightKg(safeMetrics.actual_weight_kg || safeMetrics.total_weight_kg || 0);
+    if (volumeEl) volumeEl.textContent = formatLogisticsVolumeM3(safeMetrics.consolidated_volume_m3 || safeMetrics.total_volume_m3 || 0);
     if (chargeableEl) {
-        const chargeableValue = Number(
-            window._lastLogisticsFreightEstimate?.chargeable_weight_kg ?? safeMetrics.chargeable_weight_kg ?? 0
-        );
-        chargeableEl.textContent = formatLogisticsWeightKg(chargeableValue);
+        const dominantBasis = String(
+            window._lastLogisticsFreightEstimate?.dominant_basis ?? safeMetrics.dominant_basis ?? 'weight'
+        ).toLowerCase();
+        if (dominantBasis === 'volume') {
+            const chargeableVolume = Number(
+                window._lastLogisticsFreightEstimate?.consolidated_volume_m3 ?? safeMetrics.consolidated_volume_m3 ?? 0
+            );
+            chargeableEl.textContent = formatLogisticsVolumeM3(chargeableVolume);
+        } else {
+            const chargeableWeight = Number(
+                window._lastLogisticsFreightEstimate?.chargeable_weight_kg ?? safeMetrics.chargeable_weight_kg ?? 0
+            );
+            chargeableEl.textContent = formatLogisticsWeightKg(chargeableWeight);
+        }
     }
 
     return safeMetrics;
@@ -29468,6 +29529,30 @@ function getLogisticsFreightInput(fieldKey) {
 
 function getLogisticsFreightSuggestionsContainer(fieldKey) {
     return document.getElementById(`logistics-freight-${fieldKey}-suggestions`);
+}
+
+function getLogisticsFreightAdjustmentInput() {
+    return document.getElementById('logistics-freight-adjustment');
+}
+
+function getLogisticsFreightTotalElement() {
+    return document.getElementById('logistics-freight-total');
+}
+
+function getLogisticsFreightAdjustmentValue() {
+    const input = getLogisticsFreightAdjustmentInput();
+    if (!(input instanceof HTMLInputElement)) return 0;
+    return Number.parseFloat(String(input.value || '0').replace(',', '.')) || 0;
+}
+
+function renderLogisticsFreightTotal(estimatedCostUsd = null) {
+    const totalEl = getLogisticsFreightTotalElement();
+    if (!(totalEl instanceof HTMLElement)) return;
+    const safeEstimated = estimatedCostUsd == null
+        ? Number(window._lastLogisticsFreightEstimate?.estimated_cost_usd || 0)
+        : Number(estimatedCostUsd || 0);
+    const total = safeEstimated + getLogisticsFreightAdjustmentValue();
+    totalEl.textContent = formatLogisticsUsdCurrency(total);
 }
 
 function hideLogisticsFreightSuggestions(fieldKey) {
@@ -29569,6 +29654,7 @@ function resetLogisticsFreightEstimate(note = 'Completá origen y destino para e
     if (sourceEl) sourceEl.textContent = '-';
     if (noteEl) noteEl.textContent = note;
 
+    renderLogisticsFreightTotal(0);
     updateLogisticsFreightMetrics();
 }
 
@@ -29587,29 +29673,37 @@ function renderLogisticsFreightEstimate(data) {
 
     if (costEl) costEl.textContent = formatLogisticsUsdCurrency(data.estimated_cost_usd || 0);
     if (distanceEl) distanceEl.textContent = `${Number(data.distance_km || 0).toLocaleString('es-AR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} km`;
-    if (rateEl) rateEl.textContent = `${formatLogisticsUsdCurrency(data.tariff_per_ton_usd || 0)} / tn`;
-    if (sourceEl) sourceEl.textContent = String(data.source_label || '-');
+    if (rateEl) rateEl.textContent = `${formatLogisticsUsdCurrency(data.sell_cost_per_km_usd || data.reference_cost_per_km_usd || 0)} / km`;
+    if (sourceEl) sourceEl.textContent = String(data.source_label || '').trim();
     if (noteEl) {
-        const exchangeDate = String(data.exchange_date || '').trim();
-        const exchangeRate = Number(data.exchange_rate_ars || 0);
-        const exchangeText = exchangeDate && exchangeRate > 0
-            ? ` Dólar oficial venta ${exchangeDate}: ${formatLogisticsArsCurrency(exchangeRate)}.`
-            : '';
-        noteEl.textContent = `${String(data.note || '')}${exchangeText}`.trim();
+        noteEl.textContent = String(data.note || '').trim();
     }
 
+    renderLogisticsFreightTotal(data.estimated_cost_usd || 0);
     updateLogisticsFreightMetrics({
-        total_weight_kg: data.actual_weight_kg || 0,
-        total_volume_m3: data.volume_m3 || 0,
-        chargeable_weight_kg: data.chargeable_weight_kg || 0
+        actual_weight_kg: data.actual_weight_kg || 0,
+        consolidated_volume_m3: data.consolidated_volume_m3 || 0,
+        chargeable_weight_kg: data.chargeable_weight_kg || 0,
+        dominant_basis: data.dominant_basis || 'weight'
     });
 }
 
 function collectLogisticsFreightConfig() {
+    const adjustmentUsd = getLogisticsFreightAdjustmentValue();
+    const estimatedCostUsd = Number(window._lastLogisticsFreightEstimate?.estimated_cost_usd || 0);
+    const totalCostUsd = estimatedCostUsd + adjustmentUsd;
     return {
         origin: window._logisticsFreightSelections?.origin || null,
         destination: window._logisticsFreightSelections?.destination || null,
-        last_estimate: window._lastLogisticsFreightEstimate || null
+        adjustment_usd: Number(adjustmentUsd.toFixed(4)),
+        total_cost_usd: Number(totalCostUsd.toFixed(4)),
+        last_estimate: window._lastLogisticsFreightEstimate
+            ? {
+                ...window._lastLogisticsFreightEstimate,
+                adjustment_usd: Number(adjustmentUsd.toFixed(4)),
+                total_cost_usd: Number(totalCostUsd.toFixed(4))
+            }
+            : null
     };
 }
 
@@ -29620,13 +29714,18 @@ function restoreLogisticsFreightConfig(freight) {
 
     const originInput = getLogisticsFreightInput('origin');
     const destinationInput = getLogisticsFreightInput('destination');
+    const adjustmentInput = getLogisticsFreightAdjustmentInput();
     if (originInput instanceof HTMLInputElement && !safeFreight.origin) originInput.value = '';
     if (destinationInput instanceof HTMLInputElement && !safeFreight.destination) destinationInput.value = '';
+    if (adjustmentInput instanceof HTMLInputElement) {
+        adjustmentInput.value = String(Number(safeFreight.adjustment_usd || safeFreight.last_estimate?.adjustment_usd || 0));
+    }
 
     if (safeFreight.last_estimate && typeof safeFreight.last_estimate === 'object') {
         renderLogisticsFreightEstimate(safeFreight.last_estimate);
     } else {
         resetLogisticsFreightEstimate();
+        renderLogisticsFreightTotal(0);
     }
 }
 
@@ -29640,7 +29739,7 @@ async function calculateLogisticsFreightEstimate() {
         return;
     }
 
-    const metrics = getLogisticsFreightMetrics();
+    const freightBasis = getLogisticsFreightBasis();
     try {
         const response = await fetch(LOGISTICS_FREIGHT_ESTIMATE_ENDPOINT, {
             method: 'POST',
@@ -29648,8 +29747,9 @@ async function calculateLogisticsFreightEstimate() {
             body: JSON.stringify({
                 origin,
                 destination,
-                weight_kg: metrics.total_weight_kg,
-                volume_m3: metrics.total_volume_m3
+                weight_kg: freightBasis.actual_weight_kg,
+                volume_m3: freightBasis.consolidated_volume_m3,
+                freight_basis: freightBasis
             })
         });
         const data = await response.json();
@@ -29701,10 +29801,151 @@ function ensureLogisticsFreightBindings() {
         const target = event.target;
         if (!(target instanceof HTMLInputElement)) return;
         if (!target.closest('#logistics-items-table')) return;
+        window._logisticsPackingDirty = true;
         updateLogisticsFreightMetrics();
     }, true);
 
+    document.addEventListener('change', (event) => {
+        const target = event.target;
+        if (!(target instanceof HTMLElement)) return;
+        if (!target.closest('#view-logistics')) return;
+        if (target.closest('#logistics-freight')) return;
+        if (target.closest('#logistics-save-modal')) return;
+        window._logisticsPackingDirty = true;
+        updateLogisticsFreightMetrics();
+    }, true);
+
+    document.addEventListener('input', (event) => {
+        const target = event.target;
+        if (!(target instanceof HTMLInputElement)) return;
+        if (target.id !== 'logistics-freight-adjustment') return;
+        renderLogisticsFreightTotal();
+    }, true);
+
     window._logisticsFreightBindingsReady = true;
+}
+
+function showLogisticsFreightInfo() {
+    const estimate = window._lastLogisticsFreightEstimate || null;
+    const basis = getLogisticsFreightBasis();
+    const model = estimate && typeof estimate.cost_model === 'object' ? estimate.cost_model : null;
+    const profitMarginPct = Number(estimate?.profit_margin_pct || 30);
+    const sellCostPerKmArs = Number(estimate?.sell_cost_per_km_ars || 0);
+    const sellCostPerKmUsd = Number(estimate?.sell_cost_per_km_usd || 0);
+    const dominantBasisLabel = (estimate?.dominant_basis || basis.dominant_basis || 'weight') === 'volume' ? 'Volumen' : 'Peso';
+
+    const basisRows = [
+        ['Base', basis.basis_label || basis.source || '-'],
+        ['Dominante', dominantBasisLabel],
+        ['Peso', formatLogisticsWeightKg(basis.actual_weight_kg || 0)],
+        ['Volumen', formatLogisticsVolumeM3(basis.consolidated_volume_m3 || 0)],
+        ['Frac. peso', formatLogisticsPercent(estimate?.weight_fraction ?? basis.weight_fraction ?? 0)],
+        ['Frac. volumen', formatLogisticsPercent(estimate?.volume_fraction ?? basis.volume_fraction ?? 0)],
+        ['Frac. usada', formatLogisticsPercent(estimate?.load_fraction ?? basis.load_fraction ?? 0)],
+    ];
+
+    if (basis.shipment_bbox_dims_mm && typeof basis.shipment_bbox_dims_mm === 'object') {
+        basisRows.push([
+            'Caja envolvente',
+            `${Number(basis.shipment_bbox_dims_mm.w || 0).toLocaleString('es-AR')} x ${Number(basis.shipment_bbox_dims_mm.h || 0).toLocaleString('es-AR')} x ${Number(basis.shipment_bbox_dims_mm.d || 0).toLocaleString('es-AR')} mm`
+        ]);
+    }
+
+    const componentRows = model
+        ? model.components.map((component) => `
+            <tr>
+                <td style="padding: 6px 8px; border-bottom: 1px solid rgba(255,255,255,0.08);">${escapeCotizacionHTML(component.label || '-')}</td>
+                <td style="padding: 6px 8px; border-bottom: 1px solid rgba(255,255,255,0.08); text-align: right;">${Number(component.annual_adjustment_pct_2024 || 0).toLocaleString('es-AR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%</td>
+                <td style="padding: 6px 8px; border-bottom: 1px solid rgba(255,255,255,0.08); text-align: right;">${formatLogisticsArsCurrency(component.ars_per_km_jan_2025 || 0)}</td>
+                <td style="padding: 6px 8px; border-bottom: 1px solid rgba(255,255,255,0.08); text-align: right;">${formatLogisticsUsdCurrency(component.usd_per_km_jan_2025 || 0)}</td>
+            </tr>
+        `).join('')
+        : '<tr><td colspan="4" style="padding: 8px; text-align:center;">Calculá el flete para ver el detalle del modelo.</td></tr>';
+
+    const basisHtml = basisRows.map(([label, value]) => `
+        <div style="display:flex; justify-content:space-between; gap:1rem; padding:4px 0;">
+            <span style="color: var(--text-secondary);">${escapeCotizacionHTML(label)}</span>
+            <strong>${escapeCotizacionHTML(String(value || '-'))}</strong>
+        </div>
+    `).join('');
+
+    const html = `
+        <div style="text-align:left;">
+            <div style="margin-bottom: 1.2rem;">
+                ${basisHtml}
+            </div>
+            <div style="margin-bottom: 1.2rem;">
+                <div style="font-weight:700; margin-bottom:0.65rem; color: var(--text-primary);">Tarifa por km</div>
+                <table style="width:100%; border-collapse:collapse; font-size:0.9rem;">
+                    <thead>
+                        <tr>
+                            <th style="text-align:left; padding: 6px 8px; color: var(--text-secondary); letter-spacing: 0.06em; text-transform: uppercase; font-size: 0.8rem;">Rubro</th>
+                            <th style="text-align:right; padding: 6px 8px; color: var(--text-secondary); letter-spacing: 0.06em; text-transform: uppercase; font-size: 0.8rem;">Var. 2024</th>
+                            <th style="text-align:right; padding: 6px 8px; color: var(--text-secondary); letter-spacing: 0.06em; text-transform: uppercase; font-size: 0.8rem;">ARS/km</th>
+                            <th style="text-align:right; padding: 6px 8px; color: var(--text-secondary); letter-spacing: 0.06em; text-transform: uppercase; font-size: 0.8rem;">USD/km</th>
+                        </tr>
+                    </thead>
+                    <tbody>${componentRows}</tbody>
+                    ${model ? `
+                    <tfoot>
+                        <tr>
+                            <td style="padding: 8px; font-weight: 700; border-top: 1px solid rgba(255,255,255,0.12);">Costo base</td>
+                            <td style="border-top: 1px solid rgba(255,255,255,0.12);"></td>
+                            <td style="padding: 8px; text-align:right; font-weight: 700; border-top: 1px solid rgba(255,255,255,0.12);">${formatLogisticsArsCurrency(model.total_ars_per_km_jan_2025 || 0)}</td>
+                            <td style="padding: 8px; text-align:right; font-weight: 700; border-top: 1px solid rgba(255,255,255,0.12);">${formatLogisticsUsdCurrency(model.total_usd_per_km_jan_2025 || 0)}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px; font-weight: 700; color: var(--bpb-blue);">Precio con utilidad (${profitMarginPct.toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 1 })}%)</td>
+                            <td></td>
+                            <td style="padding: 8px; text-align:right; font-weight: 700; color: var(--bpb-blue);">${formatLogisticsArsCurrency(sellCostPerKmArs)}</td>
+                            <td style="padding: 8px; text-align:right; font-weight: 700; color: var(--bpb-blue);">${formatLogisticsUsdCurrency(sellCostPerKmUsd)}</td>
+                        </tr>
+                    </tfoot>` : ''}
+                </table>
+            </div>
+            <p style="margin:0; color: var(--text-secondary); font-size:0.85rem; line-height: 1.35;">
+                ${escapeCotizacionHTML(model
+                    ? 'Fuente: costos de transporte de larga distancia de marzo 2024, actualizados a enero 2025 con la variación acumulada 2024 y dólar oficial venta del 2025-01-01.'
+                    : 'Modelo no disponible todavía.')}
+            </p>
+        </div>
+    `;
+
+    let modal = document.getElementById('logistics-freight-info-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'logistics-freight-info-modal';
+        modal.className = 'modal-overlay';
+        modal.style.display = 'none';
+        modal.innerHTML = `
+            <div class="modal-confirm-wrapper" style="width: 960px; max-width: 92%; max-height: 88vh; padding: 0; text-align: left; overflow: hidden;">
+                <div style="display:flex; align-items:center; justify-content:space-between; gap:1rem; padding: 1.1rem 1.25rem; border-bottom: 1px solid rgba(255,255,255,0.08);">
+                    <h3 style="margin:0; color: var(--bpb-blue);">Detalle del cálculo de flete</h3>
+                    <button type="button" class="btn" data-role="close-freight-info" style="padding: 0.5rem 0.9rem;">Cerrar</button>
+                </div>
+                <div data-role="freight-info-content" style="padding: 1.25rem; overflow-y: auto; max-height: calc(88vh - 74px);"></div>
+            </div>
+        `;
+        modal.addEventListener('click', (event) => {
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+        document.body.appendChild(modal);
+    }
+
+    const content = modal.querySelector('[data-role="freight-info-content"]');
+    const closeButton = modal.querySelector('[data-role="close-freight-info"]');
+    if (content instanceof HTMLElement) {
+        content.innerHTML = html;
+    }
+    if (closeButton instanceof HTMLButtonElement) {
+        closeButton.onclick = () => {
+            modal.style.display = 'none';
+        };
+    }
+
+    modal.style.display = 'flex';
 }
 
 function setLogisticsPrintButtonVisibility(visible) {
@@ -31773,6 +32014,7 @@ async function calculateLogistics(maximize = false) {
             statusEl.textContent = '';
             lastLogisticsData = data;
             lastContainerData = container;
+            window._logisticsPackingDirty = false;
 
             if (containerType === 'none' && data.bin_dims) {
                 lastContainerData = {
@@ -32862,6 +33104,7 @@ function resetLogisticsCalculator() {
     lastLogisticsData = null;
     lastContainerData = null;
     currentLogisticsJobId = null;
+    window._logisticsPackingDirty = false;
     setLogisticsCancelVisibility(false);
     setLogistics3DNoteVisibility(false);
     clearLogisticsFreightSelection('origin');

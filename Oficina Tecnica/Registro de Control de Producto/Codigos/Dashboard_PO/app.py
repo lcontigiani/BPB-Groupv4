@@ -1491,6 +1491,80 @@ def _do_pack_internal(container_data, items_data, config):
         all_unfitted = unfitted_from_palletizing + unfitted_final
         unfitted_serialized = [{'name': i.name, 'w': float(i.width), 'h': float(i.height), 'd': float(i.depth)} for i in all_unfitted]
 
+        def _build_freight_basis(top_level_units):
+            packages = []
+            total_weight_kg = 0.0
+            consolidated_volume_m3 = 0.0
+            max_x = 0.0
+            max_y = 0.0
+            max_z = 0.0
+
+            for unit in top_level_units:
+                unit_rt = getattr(unit, 'effective_rotation_type', unit.rotation_type)
+                unit_dims = dims_for_rotation(unit, unit_rt)
+                unit_w = float(unit_dims[0] or 0)
+                unit_h = float(unit_dims[1] or 0)
+                unit_d = float(unit_dims[2] or 0)
+                unit_weight = float(getattr(unit, 'weight', 0) or 0)
+                unit_volume_m3 = max((unit_w * unit_h * unit_d) / 1000000000.0, 0.0)
+                unit_x = float(getattr(unit, 'position', [0, 0, 0])[0] or 0)
+                unit_y = float(getattr(unit, 'position', [0, 0, 0])[1] or 0)
+                unit_z = float(getattr(unit, 'position', [0, 0, 0])[2] or 0)
+
+                max_x = max(max_x, unit_x + unit_w)
+                max_y = max(max_y, unit_y + unit_h)
+                max_z = max(max_z, unit_z + unit_d)
+                total_weight_kg += unit_weight
+                consolidated_volume_m3 += unit_volume_m3
+
+                unit_kind = 'loose'
+                pallet_type = str(getattr(unit, 'pallet_type', '') or '').strip().lower()
+                if hasattr(unit, 'inner_items'):
+                    if pallet_type == 'tray':
+                        unit_kind = 'tray'
+                    elif pallet_type in ('collars', 'collars_120x100'):
+                        unit_kind = 'collars'
+                    else:
+                        unit_kind = 'pallet'
+
+                packages.append({
+                    'kind': unit_kind,
+                    'name': str(getattr(unit, 'name', unit_kind.upper()) or unit_kind.upper()),
+                    'dims_mm': {
+                        'w': round(unit_w, 3),
+                        'h': round(unit_h, 3),
+                        'd': round(unit_d, 3),
+                    },
+                    'gross_weight_kg': round(unit_weight, 3),
+                    'outer_volume_m3': round(unit_volume_m3, 6),
+                })
+
+            basis_metrics = _logistics_load_basis(total_weight_kg, consolidated_volume_m3)
+            chargeable_weight_kg = total_weight_kg
+            load_fraction = basis_metrics['load_fraction']
+            bbox_volume_m3 = max((max_x * max_y * max_z) / 1000000000.0, 0.0)
+
+            return {
+                'source': 'post_packing_top_level_units',
+                'package_count': len(packages),
+                'packages': packages,
+                'actual_weight_kg': round(total_weight_kg, 3),
+                'consolidated_volume_m3': round(consolidated_volume_m3, 6),
+                'chargeable_weight_kg': round(chargeable_weight_kg, 3),
+                'load_fraction': round(load_fraction, 6),
+                'weight_fraction': basis_metrics['weight_fraction'],
+                'volume_fraction': basis_metrics['volume_fraction'],
+                'dominant_basis': basis_metrics['dominant_basis'],
+                'standard_payload_kg': round(float(LOGISTICS_FREIGHT_STANDARD_PAYLOAD_KG), 3),
+                'standard_volume_m3': round(float(LOGISTICS_FREIGHT_STANDARD_VOLUME_M3), 6),
+                'shipment_bbox_dims_mm': {
+                    'w': round(max_x, 3),
+                    'h': round(max_y, 3),
+                    'd': round(max_z, 3),
+                },
+                'shipment_bbox_volume_m3': round(bbox_volume_m3, 6),
+            }
+
         vol_bin = float(result_bin.width * result_bin.height * result_bin.depth)
         
         # EFFICIENCY CALCULATION REFINEMENT
@@ -1547,7 +1621,8 @@ def _do_pack_internal(container_data, items_data, config):
                 'width': float(container_data.get('width', 0)),
                 'height': float(container_data.get('height', 0))
             },
-            'grouped_pallets': []
+            'grouped_pallets': [],
+            'freight_basis': _build_freight_basis(packed_top_level)
         }
 
         # --- KPI & GROUPING LOGIC ---
@@ -2531,6 +2606,8 @@ def _build_logistics_version_snapshot(source, version_number=1):
         'freight': {
             'origin': data.get('freight', {}).get('origin'),
             'destination': data.get('freight', {}).get('destination'),
+            'adjustment_usd': data.get('freight', {}).get('adjustment_usd', 0),
+            'total_cost_usd': data.get('freight', {}).get('total_cost_usd', 0),
             'last_estimate': data.get('freight', {}).get('last_estimate')
         },
         'items': _clean_logistics_items(data.get('items', []))
@@ -4789,36 +4866,123 @@ def calculate_logistics():
 
 LOGISTICS_GEOREF_LOOKUP_URL = 'https://apis.datos.gob.ar/georef/api/localidades'
 LOGISTICS_ROUTE_DISTANCE_URL = 'https://router.project-osrm.org/route/v1/driving/{lon1},{lat1};{lon2},{lat2}?overview=false'
-LOGISTICS_FREIGHT_VOLUMETRIC_KG_PER_M3 = 333.0
-LOGISTICS_FREIGHT_REFERENCE_DATE = '2026-01-31'
-LOGISTICS_FREIGHT_TARIFF_BREAKPOINTS = [
-    (1, 8453.24),
-    (10, 8453.24),
-    (50, 15985.53),
-    (100, 23853.32),
-    (150, 29802.40),
-    (200, 36339.14),
-    (250, 42919.72),
-    (300, 50177.88),
-    (350, 55947.14),
-    (400, 61894.02),
-    (450, 66106.41),
-    (500, 70316.60),
-    (550, 72893.11),
-    (600, 75320.55),
-    (650, 77612.03),
-    (700, 79774.12),
-    (750, 82938.33),
-    (800, 85995.13),
-    (850, 88299.76),
-    (900, 90527.62),
-    (950, 92676.56),
-    (1000, 94755.37),
-    (1050, 97296.80),
-    (1100, 99673.83),
-    (1150, 101941.17),
-    (1200, 104107.68),
+LOGISTICS_FREIGHT_REFERENCE_DATE = '2025-01-01'
+LOGISTICS_FREIGHT_STANDARD_PAYLOAD_KG = 30000.0
+LOGISTICS_FREIGHT_STANDARD_VOLUME_M3 = 90.0
+LOGISTICS_FREIGHT_COST_BASE_DATE = '2024-03'
+LOGISTICS_FREIGHT_COST_UPDATE_TARGET = '2025-01'
+LOGISTICS_FREIGHT_COST_COMPONENTS = [
+    {
+        'key': 'mano_obra',
+        'label': 'Mano de obra',
+        'ars_per_km_mar_2024': 190.70,
+        'share_pct_mar_2024': 15.9,
+        'annual_adjustment_pct_2024': 187.7,
+    },
+    {
+        'key': 'combustibles',
+        'label': 'Combustibles',
+        'ars_per_km_mar_2024': 343.20,
+        'share_pct_mar_2024': 28.7,
+        'annual_adjustment_pct_2024': 67.0,
+    },
+    {
+        'key': 'neumaticos',
+        'label': 'Neumáticos',
+        'ars_per_km_mar_2024': 140.50,
+        'share_pct_mar_2024': 11.7,
+        'annual_adjustment_pct_2024': 11.7,
+    },
+    {
+        'key': 'mantenimiento',
+        'label': 'Mantenimiento',
+        'ars_per_km_mar_2024': 74.10,
+        'share_pct_mar_2024': 6.2,
+        'annual_adjustment_pct_2024': 32.3,
+    },
+    {
+        'key': 'material_rodante',
+        'label': 'Material rodante',
+        'ars_per_km_mar_2024': 100.70,
+        'share_pct_mar_2024': 8.4,
+        'annual_adjustment_pct_2024': 85.6,
+    },
+    {
+        'key': 'patentes_registros',
+        'label': 'Patentes y registros',
+        'ars_per_km_mar_2024': 17.20,
+        'share_pct_mar_2024': 1.4,
+        'annual_adjustment_pct_2024': 270.0,
+    },
+    {
+        'key': 'seguros',
+        'label': 'Seguros',
+        'ars_per_km_mar_2024': 29.90,
+        'share_pct_mar_2024': 2.5,
+        'annual_adjustment_pct_2024': 239.6,
+    },
+    {
+        'key': 'gastos_generales',
+        'label': 'Gastos generales',
+        'ars_per_km_mar_2024': 37.20,
+        'share_pct_mar_2024': 3.1,
+        'annual_adjustment_pct_2024': 193.3,
+    },
+    {
+        'key': 'costos_financieros',
+        'label': 'Costos financieros',
+        'ars_per_km_mar_2024': 262.90,
+        'share_pct_mar_2024': 22.0,
+        'annual_adjustment_pct_2024': -13.4,
+    },
 ]
+LOGISTICS_FREIGHT_EXCLUDED_COMPONENTS = [
+    {
+        'label': 'Peajes y otros',
+        'reason': 'La lámina base de marzo 2024 indica que los peajes no están incluidos en el costo por km utilizado.',
+        'annual_adjustment_pct_2024': 332.5,
+    }
+]
+LOGISTICS_FREIGHT_DISTANCE_PROVIDER_LABELS = {
+    'openrouteservice': 'OpenRouteService',
+    'graphhopper': 'GraphHopper',
+    'mapbox': 'Mapbox Directions',
+    'osrm': 'OSRM',
+    'haversine': 'Haversine ajustada',
+}
+LOGISTICS_FREIGHT_MODEL_CACHE = {}
+
+
+def _logistics_margin_for_fraction(load_fraction):
+    fraction = max(0.0, min(float(load_fraction or 0), 1.0))
+    if fraction < 0.05:
+        return 1.00
+    if fraction <= 0.20:
+        return 0.60
+    if fraction <= 0.60:
+        return 0.40
+    if fraction <= 0.90:
+        return 0.30
+    return 0.20
+
+
+def _logistics_load_basis(actual_weight_kg, consolidated_volume_m3):
+    weight_fraction = 0.0
+    volume_fraction = 0.0
+    if LOGISTICS_FREIGHT_STANDARD_PAYLOAD_KG > 0:
+        weight_fraction = max(float(actual_weight_kg or 0) / float(LOGISTICS_FREIGHT_STANDARD_PAYLOAD_KG), 0.0)
+    if LOGISTICS_FREIGHT_STANDARD_VOLUME_M3 > 0:
+        volume_fraction = max(float(consolidated_volume_m3 or 0) / float(LOGISTICS_FREIGHT_STANDARD_VOLUME_M3), 0.0)
+
+    dominant_basis = 'weight' if weight_fraction >= volume_fraction else 'volume'
+    load_fraction = min(max(weight_fraction, volume_fraction), 1.0)
+
+    return {
+        'weight_fraction': round(weight_fraction, 6),
+        'volume_fraction': round(volume_fraction, 6),
+        'load_fraction': round(load_fraction, 6),
+        'dominant_basis': dominant_basis,
+    }
 
 
 def _normalize_logistics_city_payload(city):
@@ -5020,11 +5184,157 @@ def _logistics_haversine_km(lat1, lon1, lat2, lon2):
     return radius_km * c
 
 
+def _fetch_external_json_request(url, timeout=4, headers=None, method='GET', data=None):
+    req_headers = {'User-Agent': 'BPB-Dashboard/1.0'}
+    if isinstance(headers, dict):
+        req_headers.update(headers)
+    req = urllib.request.Request(url, headers=req_headers, data=data, method=method)
+    with urllib.request.urlopen(req, timeout=timeout) as resp:
+        charset = resp.headers.get_content_charset() or 'utf-8'
+        raw = resp.read().decode(charset, errors='replace')
+    return json.loads(raw)
+
+
+def _build_logistics_freight_cost_model():
+    cache_key = LOGISTICS_FREIGHT_REFERENCE_DATE
+    cached = LOGISTICS_FREIGHT_MODEL_CACHE.get(cache_key)
+    if cached:
+        return deepcopy(cached)
+
+    exchange_rate = _get_official_sale_dollar_rate(LOGISTICS_FREIGHT_REFERENCE_DATE)
+    ars_per_usd = float(exchange_rate.get('value') or 0)
+    if not math.isfinite(ars_per_usd) or ars_per_usd <= 0:
+        raise ValueError('dólar oficial de referencia inválido para el modelo de flete')
+
+    components = []
+    total_ars_per_km = 0.0
+    for component in LOGISTICS_FREIGHT_COST_COMPONENTS:
+        base_ars = float(component.get('ars_per_km_mar_2024') or 0)
+        annual_adjustment_pct = float(component.get('annual_adjustment_pct_2024') or 0)
+        updated_ars = base_ars * (1.0 + (annual_adjustment_pct / 100.0))
+        total_ars_per_km += updated_ars
+        components.append({
+            'key': component.get('key'),
+            'label': component.get('label'),
+            'ars_per_km_mar_2024': round(base_ars, 4),
+            'share_pct_mar_2024': round(float(component.get('share_pct_mar_2024') or 0), 2),
+            'annual_adjustment_pct_2024': round(annual_adjustment_pct, 2),
+            'ars_per_km_jan_2025': round(updated_ars, 4),
+            'usd_per_km_jan_2025': round(updated_ars / ars_per_usd, 6),
+        })
+
+    model = {
+        'reference_date': LOGISTICS_FREIGHT_REFERENCE_DATE,
+        'exchange_rate_ars': round(ars_per_usd, 2),
+        'exchange_date': str(exchange_rate.get('date') or LOGISTICS_FREIGHT_REFERENCE_DATE),
+        'exchange_source': str(exchange_rate.get('source') or ''),
+        'base_cost_date': LOGISTICS_FREIGHT_COST_BASE_DATE,
+        'updated_cost_date': LOGISTICS_FREIGHT_COST_UPDATE_TARGET,
+        'standard_payload_kg': round(LOGISTICS_FREIGHT_STANDARD_PAYLOAD_KG, 3),
+        'standard_volume_m3': round(LOGISTICS_FREIGHT_STANDARD_VOLUME_M3, 6),
+        'components': components,
+        'excluded_components': deepcopy(LOGISTICS_FREIGHT_EXCLUDED_COMPONENTS),
+        'total_ars_per_km_jan_2025': round(total_ars_per_km, 4),
+        'total_usd_per_km_jan_2025': round(total_ars_per_km / ars_per_usd, 6),
+        'methodology_note': (
+            'Costo por km base de marzo 2024 actualizado rubro por rubro con la variación acumulada 2024 '
+            'y convertido a USD con dólar oficial venta del 2025-01-01.'
+        ),
+    }
+    LOGISTICS_FREIGHT_MODEL_CACHE[cache_key] = deepcopy(model)
+    return model
+
+
+def _logistics_route_distance_openrouteservice(origin, destination):
+    api_key = str(os.environ.get('OPENROUTESERVICE_API_KEY') or '').strip()
+    if not api_key:
+        return None
+
+    payload = {
+        'coordinates': [
+            [float(origin['lon']), float(origin['lat'])],
+            [float(destination['lon']), float(destination['lat'])],
+        ]
+    }
+    data = _fetch_external_json_request(
+        'https://api.openrouteservice.org/v2/directions/driving-car/json',
+        timeout=10,
+        method='POST',
+        headers={'Authorization': api_key, 'Content-Type': 'application/json'},
+        data=json.dumps(payload).encode('utf-8')
+    )
+    routes = data.get('routes', []) if isinstance(data, dict) else []
+    if not routes:
+        return None
+    summary = routes[0].get('summary', {}) if isinstance(routes[0], dict) else {}
+    distance_m = float(summary.get('distance') or 0)
+    if distance_m <= 0:
+        return None
+    return distance_m / 1000.0, LOGISTICS_FREIGHT_DISTANCE_PROVIDER_LABELS['openrouteservice']
+
+
+def _logistics_route_distance_graphhopper(origin, destination):
+    api_key = str(os.environ.get('GRAPHHOPPER_API_KEY') or '').strip()
+    if not api_key:
+        return None
+
+    origin_point = f"{float(origin['lat'])},{float(origin['lon'])}"
+    destination_point = f"{float(destination['lat'])},{float(destination['lon'])}"
+    url = (
+        'https://graphhopper.com/api/1/route'
+        f'?point={quote(origin_point)}'
+        f'&point={quote(destination_point)}'
+        '&profile=car&locale=es&calc_points=false'
+        f'&key={quote(api_key)}'
+    )
+    data = _fetch_external_json_request(url, timeout=10)
+    paths = data.get('paths', []) if isinstance(data, dict) else []
+    if not paths:
+        return None
+    distance_m = float(paths[0].get('distance') or 0)
+    if distance_m <= 0:
+        return None
+    return distance_m / 1000.0, LOGISTICS_FREIGHT_DISTANCE_PROVIDER_LABELS['graphhopper']
+
+
+def _logistics_route_distance_mapbox(origin, destination):
+    api_key = str(os.environ.get('MAPBOX_API_TOKEN') or '').strip()
+    if not api_key:
+        return None
+
+    url = (
+        'https://api.mapbox.com/directions/v5/mapbox/driving/'
+        f'{float(origin["lon"])},{float(origin["lat"])};{float(destination["lon"])},{float(destination["lat"])}'
+        f'?overview=false&access_token={quote(api_key)}'
+    )
+    data = _fetch_external_json_request(url, timeout=10)
+    routes = data.get('routes', []) if isinstance(data, dict) else []
+    if not routes:
+        return None
+    distance_m = float(routes[0].get('distance') or 0)
+    if distance_m <= 0:
+        return None
+    return distance_m / 1000.0, LOGISTICS_FREIGHT_DISTANCE_PROVIDER_LABELS['mapbox']
+
+
 def _logistics_route_distance_km(origin, destination):
     lat1 = float(origin['lat'])
     lon1 = float(origin['lon'])
     lat2 = float(destination['lat'])
     lon2 = float(destination['lon'])
+
+    providers = [
+        _logistics_route_distance_openrouteservice,
+        _logistics_route_distance_graphhopper,
+        _logistics_route_distance_mapbox,
+    ]
+    for provider in providers:
+        try:
+            result = provider(origin, destination)
+            if result:
+                return result
+        except Exception:
+            continue
 
     try:
         route_url = LOGISTICS_ROUTE_DISTANCE_URL.format(lon1=lon1, lat1=lat1, lon2=lon2, lat2=lat2)
@@ -5033,34 +5343,13 @@ def _logistics_route_distance_km(origin, destination):
         if routes:
             distance_m = float(routes[0].get('distance') or 0)
             if distance_m > 0:
-                return distance_m / 1000.0, 'OSRM'
+                return distance_m / 1000.0, LOGISTICS_FREIGHT_DISTANCE_PROVIDER_LABELS['osrm']
     except Exception:
         pass
 
     direct_km = _logistics_haversine_km(lat1, lon1, lat2, lon2)
     road_estimate_km = max(1.0, direct_km * 1.22)
-    return road_estimate_km, 'Haversine ajustada'
-
-
-def _logistics_interpolate_tariff_per_ton(distance_km):
-    safe_distance = max(1.0, float(distance_km or 1))
-    points = LOGISTICS_FREIGHT_TARIFF_BREAKPOINTS
-
-    if safe_distance <= points[0][0]:
-        return float(points[0][1])
-
-    for index in range(1, len(points)):
-        prev_km, prev_value = points[index - 1]
-        next_km, next_value = points[index]
-        if safe_distance <= next_km:
-            span = max(1.0, float(next_km - prev_km))
-            ratio = (safe_distance - prev_km) / span
-            return float(prev_value + ((next_value - prev_value) * ratio))
-
-    last_km, last_value = points[-1]
-    prev_km, prev_value = points[-2]
-    slope = (last_value - prev_value) / max(1.0, float(last_km - prev_km))
-    return float(last_value + ((safe_distance - last_km) * slope))
+    return road_estimate_km, LOGISTICS_FREIGHT_DISTANCE_PROVIDER_LABELS['haversine']
 
 
 @app.route('/api/logistics/cities-lookup', methods=['GET'])
@@ -5087,21 +5376,31 @@ def logistics_freight_estimate():
         if not origin or not destination:
             return jsonify({'status': 'error', 'message': 'Origen o destino inválido.'}), 400
 
-        weight_kg = max(0.0, float(data.get('weight_kg') or 0))
-        volume_m3 = max(0.0, float(data.get('volume_m3') or 0))
-        volumetric_weight_kg = volume_m3 * LOGISTICS_FREIGHT_VOLUMETRIC_KG_PER_M3
-        chargeable_weight_kg = max(weight_kg, volumetric_weight_kg)
-        chargeable_tons = max(0.001, chargeable_weight_kg / 1000.0)
+        freight_basis = data.get('freight_basis', {}) if isinstance(data.get('freight_basis', {}), dict) else {}
+        actual_weight_kg = max(0.0, float(
+            freight_basis.get('actual_weight_kg', data.get('weight_kg') or 0)
+        ))
+        consolidated_volume_m3 = max(0.0, float(
+            freight_basis.get('consolidated_volume_m3', data.get('volume_m3') or 0)
+        ))
+        basis_metrics = _logistics_load_basis(actual_weight_kg, consolidated_volume_m3)
+        chargeable_weight_kg = actual_weight_kg
+        load_fraction = basis_metrics['load_fraction']
+        profit_margin = _logistics_margin_for_fraction(load_fraction)
 
         distance_km, distance_source = _logistics_route_distance_km(origin, destination)
-        tariff_per_ton = _logistics_interpolate_tariff_per_ton(distance_km)
-        estimated_cost = tariff_per_ton * chargeable_tons
-        exchange_rate = _get_official_sale_dollar_rate(LOGISTICS_FREIGHT_REFERENCE_DATE)
-        usd_rate = float(exchange_rate.get('value') or 0)
-        if not math.isfinite(usd_rate) or usd_rate <= 0:
-            raise ValueError('dolar oficial de referencia invalido')
-        estimated_cost_usd = estimated_cost / usd_rate
-        tariff_per_ton_usd = tariff_per_ton / usd_rate
+        cost_model = _build_logistics_freight_cost_model()
+        cost_per_km_ars = float(cost_model.get('total_ars_per_km_jan_2025') or 0)
+        cost_per_km_usd = float(cost_model.get('total_usd_per_km_jan_2025') or 0)
+        if not math.isfinite(cost_per_km_ars) or cost_per_km_ars <= 0:
+            raise ValueError('costo por km inválido en modelo de flete')
+        if not math.isfinite(cost_per_km_usd) or cost_per_km_usd <= 0:
+            raise ValueError('costo por km USD inválido en modelo de flete')
+        sell_cost_per_km_ars = cost_per_km_ars * (1.0 + profit_margin)
+        sell_cost_per_km_usd = cost_per_km_usd * (1.0 + profit_margin)
+
+        estimated_cost_ars = distance_km * sell_cost_per_km_ars * load_fraction
+        estimated_cost_usd = distance_km * sell_cost_per_km_usd * load_fraction
 
         return jsonify({
             'status': 'success',
@@ -5110,19 +5409,37 @@ def logistics_freight_estimate():
                 'destination': destination,
                 'distance_km': round(distance_km, 1),
                 'distance_source': distance_source,
-                'actual_weight_kg': round(weight_kg, 3),
-                'volume_m3': round(volume_m3, 6),
-                'volumetric_weight_kg': round(volumetric_weight_kg, 3),
+                'actual_weight_kg': round(actual_weight_kg, 3),
+                'consolidated_volume_m3': round(consolidated_volume_m3, 6),
                 'chargeable_weight_kg': round(chargeable_weight_kg, 3),
-                'chargeable_tons': round(chargeable_tons, 6),
-                'tariff_per_ton_ars': round(tariff_per_ton, 2),
-                'tariff_per_ton_usd': round(tariff_per_ton_usd, 4),
-                'estimated_cost_ars': round(estimated_cost, 2),
+                'load_fraction': round(load_fraction, 6),
+                'weight_fraction': basis_metrics['weight_fraction'],
+                'volume_fraction': basis_metrics['volume_fraction'],
+                'dominant_basis': basis_metrics['dominant_basis'],
+                'reference_payload_kg': round(float(LOGISTICS_FREIGHT_STANDARD_PAYLOAD_KG), 3),
+                'reference_volume_m3': round(float(LOGISTICS_FREIGHT_STANDARD_VOLUME_M3), 6),
+                'reference_cost_per_km_ars': round(cost_per_km_ars, 4),
+                'reference_cost_per_km_usd': round(cost_per_km_usd, 6),
+                'sell_cost_per_km_ars': round(sell_cost_per_km_ars, 4),
+                'sell_cost_per_km_usd': round(sell_cost_per_km_usd, 6),
+                'profit_margin_pct': round(profit_margin * 100.0, 2),
+                'estimated_cost_ars': round(estimated_cost_ars, 2),
                 'estimated_cost_usd': round(estimated_cost_usd, 4),
-                'exchange_rate_ars': round(usd_rate, 2),
-                'exchange_date': str(exchange_rate.get('date') or LOGISTICS_FREIGHT_REFERENCE_DATE),
-                'source_label': 'CATAC 31/01/2026 + dólar oficial venta 31/01/2026',
-                'note': 'Estimación basada en tarifa de referencia CATAC 31/01/2026 para larga distancia, aplicada sobre el mayor entre peso real y peso volumétrico y convertida con dólar oficial venta del 31/01/2026.'
+                'exchange_rate_ars': round(float(cost_model.get('exchange_rate_ars') or 0), 2),
+                'exchange_date': str(cost_model.get('exchange_date') or LOGISTICS_FREIGHT_REFERENCE_DATE),
+                'source_label': '',
+                'note': (
+                    f"Base: {'peso' if basis_metrics['dominant_basis'] == 'weight' else 'volumen'} | "
+                    f"Fracción: {round(load_fraction * 100.0, 1)}% | "
+                    f"Utilidad: {round(profit_margin * 100.0, 1)}%"
+                ),
+                'freight_basis': {
+                    'source': freight_basis.get('source') or 'request_payload',
+                    'package_count': int(freight_basis.get('package_count') or 0),
+                    'shipment_bbox_dims_mm': freight_basis.get('shipment_bbox_dims_mm') if isinstance(freight_basis.get('shipment_bbox_dims_mm'), dict) else None,
+                    'shipment_bbox_volume_m3': round(float(freight_basis.get('shipment_bbox_volume_m3') or 0), 6) if freight_basis else 0.0,
+                },
+                'cost_model': cost_model,
             }
         })
     except Exception as e:
@@ -5356,11 +5673,7 @@ def delete_logistics_record():
 
 # --- COTIZACION ROUTES ---
 def _fetch_external_json(url, timeout=4):
-    req = urllib.request.Request(url, headers={'User-Agent': 'BPB-Dashboard/1.0'})
-    with urllib.request.urlopen(req, timeout=timeout) as resp:
-        charset = resp.headers.get_content_charset() or 'utf-8'
-        raw = resp.read().decode(charset, errors='replace')
-    return json.loads(raw)
+    return _fetch_external_json_request(url, timeout=timeout)
 
 
 def _to_positive_float(value):

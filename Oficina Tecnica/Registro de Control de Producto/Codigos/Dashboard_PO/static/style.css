@@ -3310,15 +3310,35 @@ tbody tr:nth-child(n+11) {
 .logistics-freight-header {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: center;
     gap: 1rem;
     margin-bottom: 1rem;
+    position: relative;
 }
 
 .logistics-freight-header h4 {
     margin: 0;
     color: var(--text-primary);
     font-size: 0.98rem;
+    text-align: center;
+    width: 100%;
+}
+
+.logistics-freight-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    position: absolute;
+    right: 0;
+}
+
+.logistics-freight-info-btn {
+    width: 32px;
+    min-width: 32px;
+    height: 32px;
+    padding: 0;
+    border-radius: 8px;
+    font-weight: 700;
 }
 
 .logistics-freight-grid {
@@ -3448,6 +3468,39 @@ tbody tr:nth-child(n+11) {
     margin-top: 0.8rem;
     color: var(--text-secondary);
     font-size: 0.8rem;
+}
+
+.logistics-freight-totals {
+    margin-top: 0.8rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.logistics-freight-adjust-row,
+.logistics-freight-total-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.logistics-freight-adjust-row span,
+.logistics-freight-total-row span {
+    color: var(--text-secondary);
+}
+
+.logistics-freight-adjustment-input {
+    width: 170px;
+    text-align: right;
+    padding: 0.45rem 0.6rem;
+}
+
+.logistics-freight-total-row strong {
+    color: var(--text-primary);
+    font-size: 1rem;
 }
 
 .logistics-freight-input {

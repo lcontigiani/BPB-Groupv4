@@ -1716,8 +1716,11 @@
 
                         <div class="logistics-freight-section" style="display:none;">
                             <div class="logistics-freight-header">
-                                <h4>Costo de Flete</h4>
-                                <button type="button" class="btn btn-sm" onclick="calculateLogisticsFreightEstimate()">Calcular Flete</button>
+                                <h4 style="text-align:center; width:100%;">Costo de Flete</h4>
+                                <div class="logistics-freight-actions">
+                                    <button type="button" class="btn btn-sm logistics-freight-info-btn" onclick="showLogisticsFreightInfo()" title="Ver detalle del cálculo de flete">i</button>
+                                    <button type="button" class="btn btn-sm" onclick="calculateLogisticsFreightEstimate()">Calcular Flete</button>
+                                </div>
                             </div>
 
                             <div class="logistics-freight-grid">
@@ -1758,6 +1761,16 @@
                                     <span class="logistics-freight-result-label">Costo estimado</span>
                                     <div id="logistics-freight-cost-legacy" class="logistics-freight-result-value">$ 0,00</div>
                                 </div>
+                                <div class="logistics-freight-totals">
+                                    <label class="logistics-freight-adjust-row">
+                                        <span>Costo Ajuste</span>
+                                        <input type="number" id="logistics-freight-adjustment-legacy" class="logistics-input logistics-freight-adjustment-input" value="0" step="0.01" placeholder="0,00">
+                                    </label>
+                                    <div class="logistics-freight-total-row">
+                                        <span>Costo Total</span>
+                                        <strong id="logistics-freight-total-legacy">$ 0,00</strong>
+                                    </div>
+                                </div>
                                 <div class="logistics-freight-result-details">
                                     <div><span>Distancia:</span> <strong id="logistics-freight-distance-legacy">-</strong></div>
                                     <div><span>Tarifa ref.:</span> <strong id="logistics-freight-rate-legacy">-</strong></div>
@@ -1774,29 +1787,29 @@
                     <!-- Result Tabs Navigation -->
 
                     <div
-                        style="display: flex; gap: 1rem; border-bottom: 1px solid var(--border); margin-bottom: 1rem; margin-top: 1rem;">
+                        style="display: flex; gap: 1rem; justify-content: center; border-bottom: 1px solid var(--border); margin-bottom: 1rem; margin-top: 1rem;">
 
-                        <div style="padding: 0.5rem 1rem; border-bottom: 2px solid var(--bpb-blue); cursor: pointer; color: var(--text-primary);"
+                        <div style="padding: 0.5rem 1rem; border-bottom: 2px solid var(--bpb-blue); cursor: pointer; color: var(--text-primary); text-align: center;"
                             onclick="switchLogisticsTab('summary', this)">
 
                             Resumen</div>
 
-                        <div style="padding: 0.5rem 1rem; color: var(--text-secondary); cursor: pointer; border-bottom: none;"
+                        <div style="padding: 0.5rem 1rem; color: var(--text-secondary); cursor: pointer; border-bottom: none; text-align: center;"
                             onclick="switchLogisticsTab('details', this)">
 
                             Detalle de Carga</div>
 
-                        <div style="padding: 0.5rem 1rem; color: var(--text-secondary); cursor: pointer; border-bottom: none;"
+                        <div style="padding: 0.5rem 1rem; color: var(--text-secondary); cursor: pointer; border-bottom: none; text-align: center;"
                             onclick="switchLogisticsTab('constraints', this)">
 
                             Limitantes</div>
 
-                        <div style="padding: 0.5rem 1rem; color: var(--text-secondary); cursor: pointer; border-bottom: none;"
+                        <div style="padding: 0.5rem 1rem; color: var(--text-secondary); cursor: pointer; border-bottom: none; text-align: center;"
                             onclick="switchLogisticsTab('3d', this)">
 
                             Visualización 3D</div>
 
-                        <div style="padding: 0.5rem 1rem; color: var(--text-secondary); cursor: pointer; border-bottom: none;"
+                        <div style="padding: 0.5rem 1rem; color: var(--text-secondary); cursor: pointer; border-bottom: none; text-align: center;"
                             onclick="switchLogisticsTab('freight', this)">
 
                             Costo de Flete</div>
@@ -1930,8 +1943,11 @@
                     <div id="logistics-freight" style="display: none;">
                         <div class="logistics-freight-section" style="margin-top: 0;">
                             <div class="logistics-freight-header">
-                                <h4>Costo de Flete</h4>
-                                <button type="button" class="btn btn-sm" onclick="calculateLogisticsFreightEstimate()">Calcular Flete</button>
+                                <h4 style="text-align:center; width:100%;">Costo de Flete</h4>
+                                <div class="logistics-freight-actions">
+                                    <button type="button" class="btn btn-sm logistics-freight-info-btn" onclick="showLogisticsFreightInfo()" title="Ver detalle del cálculo de flete">i</button>
+                                    <button type="button" class="btn btn-sm" onclick="calculateLogisticsFreightEstimate()">Calcular Flete</button>
+                                </div>
                             </div>
 
                             <div class="logistics-freight-grid">
@@ -1962,7 +1978,7 @@
                                     <strong id="logistics-freight-volume">0,000 m3</strong>
                                 </div>
                                 <div class="logistics-freight-metric-card">
-                                    <span class="logistics-freight-metric-label">Peso cobrable</span>
+                                    <span class="logistics-freight-metric-label">Base cobrable</span>
                                     <strong id="logistics-freight-chargeable">0,00 kg</strong>
                                 </div>
                             </div>
@@ -1972,10 +1988,19 @@
                                     <span class="logistics-freight-result-label">Costo estimado</span>
                                     <div id="logistics-freight-cost" class="logistics-freight-result-value">$ 0,00</div>
                                 </div>
+                                <div class="logistics-freight-totals">
+                                    <label class="logistics-freight-adjust-row">
+                                        <span>Costo Ajuste</span>
+                                        <input type="number" id="logistics-freight-adjustment" class="logistics-input logistics-freight-adjustment-input" value="0" step="0.01" placeholder="0,00">
+                                    </label>
+                                    <div class="logistics-freight-total-row">
+                                        <span>Costo Total</span>
+                                        <strong id="logistics-freight-total">$ 0,00</strong>
+                                    </div>
+                                </div>
                                 <div class="logistics-freight-result-details">
                                     <div><span>Distancia:</span> <strong id="logistics-freight-distance">-</strong></div>
-                                    <div><span>Tarifa ref.:</span> <strong id="logistics-freight-rate">-</strong></div>
-                                    <div><span>Fuente:</span> <strong id="logistics-freight-source">-</strong></div>
+                                    <div><span>Tarifa:</span> <strong id="logistics-freight-rate">-</strong></div>
                                 </div>
                                 <div id="logistics-freight-note" class="logistics-freight-note">Completá origen y destino para estimar el flete.</div>
                             </div>
