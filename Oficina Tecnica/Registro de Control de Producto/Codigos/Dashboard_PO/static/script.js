@@ -29499,26 +29499,9 @@ function updateLogisticsFreightMetrics(metrics = null) {
     const safeMetrics = metrics && typeof metrics === 'object' ? metrics : getLogisticsFreightBasis();
     const weightEl = document.getElementById('logistics-freight-weight');
     const volumeEl = document.getElementById('logistics-freight-volume');
-    const chargeableEl = document.getElementById('logistics-freight-chargeable');
 
     if (weightEl) weightEl.textContent = formatLogisticsWeightKg(safeMetrics.actual_weight_kg || safeMetrics.total_weight_kg || 0);
     if (volumeEl) volumeEl.textContent = formatLogisticsVolumeM3(safeMetrics.consolidated_volume_m3 || safeMetrics.total_volume_m3 || 0);
-    if (chargeableEl) {
-        const dominantBasis = String(
-            window._lastLogisticsFreightEstimate?.dominant_basis ?? safeMetrics.dominant_basis ?? 'weight'
-        ).toLowerCase();
-        if (dominantBasis === 'volume') {
-            const chargeableVolume = Number(
-                window._lastLogisticsFreightEstimate?.consolidated_volume_m3 ?? safeMetrics.consolidated_volume_m3 ?? 0
-            );
-            chargeableEl.textContent = formatLogisticsVolumeM3(chargeableVolume);
-        } else {
-            const chargeableWeight = Number(
-                window._lastLogisticsFreightEstimate?.chargeable_weight_kg ?? safeMetrics.chargeable_weight_kg ?? 0
-            );
-            chargeableEl.textContent = formatLogisticsWeightKg(chargeableWeight);
-        }
-    }
 
     return safeMetrics;
 }
@@ -29539,20 +29522,81 @@ function getLogisticsFreightTotalElement() {
     return document.getElementById('logistics-freight-total');
 }
 
+function getLogisticsFreightOutsourcedInput() {
+    return document.getElementById('logistics-freight-outsourced');
+}
+
+function getLogisticsFreightOutsourcedAdjustmentInput() {
+    return document.getElementById('logistics-freight-outsourced-adjustment');
+}
+
+function getLogisticsFreightOutsourcedCompanyInput() {
+    return document.getElementById('logistics-freight-outsourced-company');
+}
+
+function getLogisticsFreightOutsourcedDisplayElement() {
+    return document.getElementById('logistics-freight-outsourced-display');
+}
+
+function getLogisticsFreightOutsourcedRateElement() {
+    return document.getElementById('logistics-freight-outsourced-rate');
+}
+
+function getLogisticsFreightUniqueLoadInput() {
+    return document.getElementById('logistics-freight-unique-load');
+}
+
 function getLogisticsFreightAdjustmentValue() {
     const input = getLogisticsFreightAdjustmentInput();
     if (!(input instanceof HTMLInputElement)) return 0;
     return Number.parseFloat(String(input.value || '0').replace(',', '.')) || 0;
 }
 
-function renderLogisticsFreightTotal(estimatedCostUsd = null) {
+function getLogisticsFreightOutsourcedValue() {
+    const input = getLogisticsFreightOutsourcedInput();
+    if (!(input instanceof HTMLInputElement)) return 0;
+    return Number.parseFloat(String(input.value || '0').replace(',', '.')) || 0;
+}
+
+function getLogisticsFreightOutsourcedAdjustmentValue() {
+    const input = getLogisticsFreightOutsourcedAdjustmentInput();
+    if (!(input instanceof HTMLInputElement)) return 0;
+    return Number.parseFloat(String(input.value || '0').replace(',', '.')) || 0;
+}
+
+function getLogisticsFreightUniqueLoadValue() {
+    const input = getLogisticsFreightUniqueLoadInput();
+    return input instanceof HTMLInputElement ? !!input.checked : false;
+}
+
+function renderLogisticsFreightTotal(estimatedCostArs = null) {
     const totalEl = getLogisticsFreightTotalElement();
     if (!(totalEl instanceof HTMLElement)) return;
-    const safeEstimated = estimatedCostUsd == null
-        ? Number(window._lastLogisticsFreightEstimate?.estimated_cost_usd || 0)
-        : Number(estimatedCostUsd || 0);
+    const estimate = window._lastLogisticsFreightEstimate || null;
+    const fallbackUsd = estimate?.dollar_rate?.value
+        ? Number(estimate?.estimated_cost_ars || 0) / Number(estimate.dollar_rate.value || 1)
+        : 0;
+    const safeEstimated = estimatedCostArs == null
+        ? Number(estimate?.estimated_cost_usd || fallbackUsd || 0)
+        : Number(estimatedCostArs || 0);
     const total = safeEstimated + getLogisticsFreightAdjustmentValue();
     totalEl.textContent = formatLogisticsUsdCurrency(total);
+}
+
+function renderLogisticsFreightOutsourced() {
+    const displayEl = getLogisticsFreightOutsourcedDisplayElement();
+    const rateEl = getLogisticsFreightOutsourcedRateElement();
+    const baseValue = getLogisticsFreightOutsourcedValue();
+    const totalValue = baseValue + getLogisticsFreightOutsourcedAdjustmentValue();
+    const distanceKm = Number(window._lastLogisticsFreightEstimate?.distance_km || 0);
+    const costPerKm = distanceKm > 0 ? totalValue / distanceKm : 0;
+
+    if (displayEl instanceof HTMLElement) {
+        displayEl.textContent = formatLogisticsUsdCurrency(totalValue);
+    }
+    if (rateEl instanceof HTMLElement) {
+        rateEl.textContent = distanceKm > 0 ? `${formatLogisticsUsdCurrency(costPerKm)} / km` : '-';
+    }
 }
 
 function hideLogisticsFreightSuggestions(fieldKey) {
@@ -29655,6 +29699,7 @@ function resetLogisticsFreightEstimate(note = 'Completá origen y destino para e
     if (noteEl) noteEl.textContent = note;
 
     renderLogisticsFreightTotal(0);
+    renderLogisticsFreightOutsourced();
     updateLogisticsFreightMetrics();
 }
 
@@ -29671,19 +29716,22 @@ function renderLogisticsFreightEstimate(data) {
     const sourceEl = document.getElementById('logistics-freight-source');
     const noteEl = document.getElementById('logistics-freight-note');
 
-    if (costEl) costEl.textContent = formatLogisticsUsdCurrency(data.estimated_cost_usd || 0);
+    const estimateUsd = Number(data.estimated_cost_usd || (data.dollar_rate?.value ? Number(data.estimated_cost_ars || 0) / Number(data.dollar_rate.value || 1) : 0));
+    const rateUsd = Number(data.reference_cost_per_km_usd || (data.dollar_rate?.value ? Number(data.reference_cost_per_km_ars || 0) / Number(data.dollar_rate.value || 1) : 0));
+
+    if (costEl) costEl.textContent = formatLogisticsUsdCurrency(estimateUsd);
     if (distanceEl) distanceEl.textContent = `${Number(data.distance_km || 0).toLocaleString('es-AR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} km`;
-    if (rateEl) rateEl.textContent = `${formatLogisticsUsdCurrency(data.sell_cost_per_km_usd || data.reference_cost_per_km_usd || 0)} / km`;
+    if (rateEl) rateEl.textContent = `${formatLogisticsUsdCurrency(rateUsd)} / km`;
     if (sourceEl) sourceEl.textContent = String(data.source_label || '').trim();
     if (noteEl) {
         noteEl.textContent = String(data.note || '').trim();
     }
 
-    renderLogisticsFreightTotal(data.estimated_cost_usd || 0);
+    renderLogisticsFreightTotal(estimateUsd);
+    renderLogisticsFreightOutsourced();
     updateLogisticsFreightMetrics({
         actual_weight_kg: data.actual_weight_kg || 0,
         consolidated_volume_m3: data.consolidated_volume_m3 || 0,
-        chargeable_weight_kg: data.chargeable_weight_kg || 0,
         dominant_basis: data.dominant_basis || 'weight'
     });
 }
@@ -29692,16 +29740,51 @@ function collectLogisticsFreightConfig() {
     const adjustmentUsd = getLogisticsFreightAdjustmentValue();
     const estimatedCostUsd = Number(window._lastLogisticsFreightEstimate?.estimated_cost_usd || 0);
     const totalCostUsd = estimatedCostUsd + adjustmentUsd;
+    const outsourcedCostUsd = getLogisticsFreightOutsourcedValue();
+    const outsourcedAdjustmentUsd = getLogisticsFreightOutsourcedAdjustmentValue();
+    const outsourcedTotalUsd = outsourcedCostUsd + outsourcedAdjustmentUsd;
+    const outsourcedCompanyInput = getLogisticsFreightOutsourcedCompanyInput();
+    const outsourcedCompany = outsourcedCompanyInput instanceof HTMLInputElement ? String(outsourcedCompanyInput.value || '').trim() : '';
+    const latestEstimate = window._lastLogisticsFreightEstimate || null;
+    const dollarRateValue = Number(latestEstimate?.dollar_rate?.value || 0);
+    const estimatedCostArs = Number(latestEstimate?.estimated_cost_ars || (dollarRateValue > 0 ? estimatedCostUsd * dollarRateValue : 0));
+    const adjustmentArs = dollarRateValue > 0 ? adjustmentUsd * dollarRateValue : 0;
+    const totalCostArs = estimatedCostArs + adjustmentArs;
+    const outsourcedCostArs = dollarRateValue > 0 ? outsourcedCostUsd * dollarRateValue : 0;
+    const outsourcedAdjustmentArs = dollarRateValue > 0 ? outsourcedAdjustmentUsd * dollarRateValue : 0;
+    const outsourcedTotalArs = outsourcedCostArs + outsourcedAdjustmentArs;
+    const uniqueLoad = getLogisticsFreightUniqueLoadValue();
     return {
         origin: window._logisticsFreightSelections?.origin || null,
         destination: window._logisticsFreightSelections?.destination || null,
-        adjustment_usd: Number(adjustmentUsd.toFixed(4)),
-        total_cost_usd: Number(totalCostUsd.toFixed(4)),
+        unique_load: uniqueLoad,
+        outsourced_company: outsourcedCompany,
+        own_adjustment_ars: Number(adjustmentArs.toFixed(2)),
+        own_total_ars: Number(totalCostArs.toFixed(2)),
+        outsourced_cost_ars: Number(outsourcedCostArs.toFixed(2)),
+        outsourced_adjustment_ars: Number(outsourcedAdjustmentArs.toFixed(2)),
+        outsourced_total_ars: Number(outsourcedTotalArs.toFixed(2)),
+        own_adjustment_usd: Number(adjustmentUsd.toFixed(2)),
+        own_total_usd: Number(totalCostUsd.toFixed(2)),
+        outsourced_cost_usd: Number(outsourcedCostUsd.toFixed(2)),
+        outsourced_adjustment_usd: Number(outsourcedAdjustmentUsd.toFixed(2)),
+        outsourced_total_usd: Number(outsourcedTotalUsd.toFixed(2)),
+        dollar_rate: latestEstimate?.dollar_rate || null,
         last_estimate: window._lastLogisticsFreightEstimate
             ? {
                 ...window._lastLogisticsFreightEstimate,
-                adjustment_usd: Number(adjustmentUsd.toFixed(4)),
-                total_cost_usd: Number(totalCostUsd.toFixed(4))
+                unique_load: uniqueLoad,
+                outsourced_company: outsourcedCompany,
+                own_adjustment_ars: Number(adjustmentArs.toFixed(2)),
+                own_total_ars: Number(totalCostArs.toFixed(2)),
+                outsourced_cost_ars: Number(outsourcedCostArs.toFixed(2)),
+                outsourced_adjustment_ars: Number(outsourcedAdjustmentArs.toFixed(2)),
+                outsourced_total_ars: Number(outsourcedTotalArs.toFixed(2)),
+                own_adjustment_usd: Number(adjustmentUsd.toFixed(2)),
+                own_total_usd: Number(totalCostUsd.toFixed(2)),
+                outsourced_cost_usd: Number(outsourcedCostUsd.toFixed(2)),
+                outsourced_adjustment_usd: Number(outsourcedAdjustmentUsd.toFixed(2)),
+                outsourced_total_usd: Number(outsourcedTotalUsd.toFixed(2))
             }
             : null
     };
@@ -29715,10 +29798,36 @@ function restoreLogisticsFreightConfig(freight) {
     const originInput = getLogisticsFreightInput('origin');
     const destinationInput = getLogisticsFreightInput('destination');
     const adjustmentInput = getLogisticsFreightAdjustmentInput();
+    const outsourcedInput = getLogisticsFreightOutsourcedInput();
+    const outsourcedAdjustmentInput = getLogisticsFreightOutsourcedAdjustmentInput();
+    const outsourcedCompanyInput = getLogisticsFreightOutsourcedCompanyInput();
+    const uniqueLoadInput = getLogisticsFreightUniqueLoadInput();
+    const restoredDollarRate = Number(safeFreight.dollar_rate?.value || safeFreight.last_estimate?.dollar_rate?.value || 0);
     if (originInput instanceof HTMLInputElement && !safeFreight.origin) originInput.value = '';
     if (destinationInput instanceof HTMLInputElement && !safeFreight.destination) destinationInput.value = '';
     if (adjustmentInput instanceof HTMLInputElement) {
-        adjustmentInput.value = String(Number(safeFreight.adjustment_usd || safeFreight.last_estimate?.adjustment_usd || 0));
+        const adjustmentValue = safeFreight.own_adjustment_usd
+            ?? safeFreight.last_estimate?.own_adjustment_usd
+            ?? (restoredDollarRate > 0 ? Number(safeFreight.own_adjustment_ars || safeFreight.last_estimate?.own_adjustment_ars || 0) / restoredDollarRate : 0);
+        adjustmentInput.value = String(Number(adjustmentValue || 0));
+    }
+    if (outsourcedInput instanceof HTMLInputElement) {
+        const outsourcedValue = safeFreight.outsourced_cost_usd
+            ?? safeFreight.last_estimate?.outsourced_cost_usd
+            ?? (restoredDollarRate > 0 ? Number(safeFreight.outsourced_cost_ars || safeFreight.last_estimate?.outsourced_cost_ars || 0) / restoredDollarRate : 0);
+        outsourcedInput.value = String(Number(outsourcedValue || 0));
+    }
+    if (outsourcedAdjustmentInput instanceof HTMLInputElement) {
+        const outsourcedAdjustmentValue = safeFreight.outsourced_adjustment_usd
+            ?? safeFreight.last_estimate?.outsourced_adjustment_usd
+            ?? (restoredDollarRate > 0 ? Number(safeFreight.outsourced_adjustment_ars || safeFreight.last_estimate?.outsourced_adjustment_ars || 0) / restoredDollarRate : 0);
+        outsourcedAdjustmentInput.value = String(Number(outsourcedAdjustmentValue || 0));
+    }
+    if (outsourcedCompanyInput instanceof HTMLInputElement) {
+        outsourcedCompanyInput.value = String(safeFreight.outsourced_company || safeFreight.last_estimate?.outsourced_company || '').trim();
+    }
+    if (uniqueLoadInput instanceof HTMLInputElement) {
+        uniqueLoadInput.checked = !!(safeFreight.unique_load ?? safeFreight.last_estimate?.unique_load ?? false);
     }
 
     if (safeFreight.last_estimate && typeof safeFreight.last_estimate === 'object') {
@@ -29727,6 +29836,7 @@ function restoreLogisticsFreightConfig(freight) {
         resetLogisticsFreightEstimate();
         renderLogisticsFreightTotal(0);
     }
+    renderLogisticsFreightOutsourced();
 }
 
 async function calculateLogisticsFreightEstimate() {
@@ -29749,6 +29859,7 @@ async function calculateLogisticsFreightEstimate() {
                 destination,
                 weight_kg: freightBasis.actual_weight_kg,
                 volume_m3: freightBasis.consolidated_volume_m3,
+                unique_load: getLogisticsFreightUniqueLoadValue(),
                 freight_basis: freightBasis
             })
         });
@@ -29822,6 +29933,29 @@ function ensureLogisticsFreightBindings() {
         renderLogisticsFreightTotal();
     }, true);
 
+    document.addEventListener('input', (event) => {
+        const target = event.target;
+        if (!(target instanceof HTMLInputElement)) return;
+        if (target.id !== 'logistics-freight-outsourced') return;
+        renderLogisticsFreightOutsourced();
+    }, true);
+
+    document.addEventListener('input', (event) => {
+        const target = event.target;
+        if (!(target instanceof HTMLInputElement)) return;
+        if (target.id !== 'logistics-freight-outsourced-adjustment') return;
+        renderLogisticsFreightOutsourced();
+    }, true);
+
+    document.addEventListener('change', (event) => {
+        const target = event.target;
+        if (!(target instanceof HTMLInputElement)) return;
+        if (target.id !== 'logistics-freight-unique-load') return;
+        if (window._lastLogisticsFreightEstimate) {
+            calculateLogisticsFreightEstimate();
+        }
+    }, true);
+
     window._logisticsFreightBindingsReady = true;
 }
 
@@ -29829,19 +29963,18 @@ function showLogisticsFreightInfo() {
     const estimate = window._lastLogisticsFreightEstimate || null;
     const basis = getLogisticsFreightBasis();
     const model = estimate && typeof estimate.cost_model === 'object' ? estimate.cost_model : null;
-    const profitMarginPct = Number(estimate?.profit_margin_pct || 30);
-    const sellCostPerKmArs = Number(estimate?.sell_cost_per_km_ars || 0);
-    const sellCostPerKmUsd = Number(estimate?.sell_cost_per_km_usd || 0);
     const dominantBasisLabel = (estimate?.dominant_basis || basis.dominant_basis || 'weight') === 'volume' ? 'Volumen' : 'Peso';
 
     const basisRows = [
         ['Base', basis.basis_label || basis.source || '-'],
         ['Dominante', dominantBasisLabel],
+        ['Carga única', estimate?.unique_load ? 'Sí' : 'No'],
         ['Peso', formatLogisticsWeightKg(basis.actual_weight_kg || 0)],
         ['Volumen', formatLogisticsVolumeM3(basis.consolidated_volume_m3 || 0)],
         ['Frac. peso', formatLogisticsPercent(estimate?.weight_fraction ?? basis.weight_fraction ?? 0)],
         ['Frac. volumen', formatLogisticsPercent(estimate?.volume_fraction ?? basis.volume_fraction ?? 0)],
         ['Frac. usada', formatLogisticsPercent(estimate?.load_fraction ?? basis.load_fraction ?? 0)],
+        ['Cap. Ranger 2020', `${formatLogisticsWeightKg(estimate?.reference_payload_kg ?? basis.standard_payload_kg ?? 0)} / ${formatLogisticsVolumeM3(estimate?.reference_volume_m3 ?? basis.standard_volume_m3 ?? 0)}`],
     ];
 
     if (basis.shipment_bbox_dims_mm && typeof basis.shipment_bbox_dims_mm === 'object') {
@@ -29852,15 +29985,19 @@ function showLogisticsFreightInfo() {
     }
 
     const componentRows = model
-        ? model.components.map((component) => `
+        ? [
+            ['Combustible', formatLogisticsArsCurrency(model.fuel_cost_ars || 0)],
+            ['Chofer', formatLogisticsArsCurrency(model.driver_trip_ars || 0)],
+            [`Peaje (${model.toll_label || '-'})`, formatLogisticsArsCurrency(model.toll_ars || 0)],
+            ['Mantenimiento y seguro', formatLogisticsArsCurrency(model.maintenance_insurance_trip_ars || 0)],
+            ['Extras', formatLogisticsArsCurrency(model.extras_trip_ars || 0)],
+        ].map(([label, value]) => `
             <tr>
-                <td style="padding: 6px 8px; border-bottom: 1px solid rgba(255,255,255,0.08);">${escapeCotizacionHTML(component.label || '-')}</td>
-                <td style="padding: 6px 8px; border-bottom: 1px solid rgba(255,255,255,0.08); text-align: right;">${Number(component.annual_adjustment_pct_2024 || 0).toLocaleString('es-AR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%</td>
-                <td style="padding: 6px 8px; border-bottom: 1px solid rgba(255,255,255,0.08); text-align: right;">${formatLogisticsArsCurrency(component.ars_per_km_jan_2025 || 0)}</td>
-                <td style="padding: 6px 8px; border-bottom: 1px solid rgba(255,255,255,0.08); text-align: right;">${formatLogisticsUsdCurrency(component.usd_per_km_jan_2025 || 0)}</td>
+                <td style="padding: 6px 8px; border-bottom: 1px solid rgba(255,255,255,0.08);">${escapeCotizacionHTML(label)}</td>
+                <td style="padding: 6px 8px; border-bottom: 1px solid rgba(255,255,255,0.08); text-align: right;">${escapeCotizacionHTML(String(value))}</td>
             </tr>
         `).join('')
-        : '<tr><td colspan="4" style="padding: 8px; text-align:center;">Calculá el flete para ver el detalle del modelo.</td></tr>';
+        : '<tr><td colspan="2" style="padding: 8px; text-align:center;">Calculá el flete para ver el detalle del modelo.</td></tr>';
 
     const basisHtml = basisRows.map(([label, value]) => `
         <div style="display:flex; justify-content:space-between; gap:1rem; padding:4px 0;">
@@ -29869,43 +30006,41 @@ function showLogisticsFreightInfo() {
         </div>
     `).join('');
 
+    const dollarRateText = estimate?.dollar_rate?.value
+        ? `${formatLogisticsArsCurrency(estimate.dollar_rate.value)} (${estimate.dollar_rate.effective_date || estimate.dollar_rate.requested_date || '-'})`
+        : '-';
+
     const html = `
         <div style="text-align:left;">
             <div style="margin-bottom: 1.2rem;">
                 ${basisHtml}
             </div>
             <div style="margin-bottom: 1.2rem;">
-                <div style="font-weight:700; margin-bottom:0.65rem; color: var(--text-primary);">Tarifa por km</div>
+                <div style="font-weight:700; margin-bottom:0.65rem; color: var(--text-primary);">Costo propio por viaje</div>
                 <table style="width:100%; border-collapse:collapse; font-size:0.9rem;">
                     <thead>
                         <tr>
                             <th style="text-align:left; padding: 6px 8px; color: var(--text-secondary); letter-spacing: 0.06em; text-transform: uppercase; font-size: 0.8rem;">Rubro</th>
-                            <th style="text-align:right; padding: 6px 8px; color: var(--text-secondary); letter-spacing: 0.06em; text-transform: uppercase; font-size: 0.8rem;">Var. 2024</th>
-                            <th style="text-align:right; padding: 6px 8px; color: var(--text-secondary); letter-spacing: 0.06em; text-transform: uppercase; font-size: 0.8rem;">ARS/km</th>
-                            <th style="text-align:right; padding: 6px 8px; color: var(--text-secondary); letter-spacing: 0.06em; text-transform: uppercase; font-size: 0.8rem;">USD/km</th>
+                            <th style="text-align:right; padding: 6px 8px; color: var(--text-secondary); letter-spacing: 0.06em; text-transform: uppercase; font-size: 0.8rem;">ARS</th>
                         </tr>
                     </thead>
                     <tbody>${componentRows}</tbody>
                     ${model ? `
                     <tfoot>
                         <tr>
-                            <td style="padding: 8px; font-weight: 700; border-top: 1px solid rgba(255,255,255,0.12);">Costo base</td>
-                            <td style="border-top: 1px solid rgba(255,255,255,0.12);"></td>
-                            <td style="padding: 8px; text-align:right; font-weight: 700; border-top: 1px solid rgba(255,255,255,0.12);">${formatLogisticsArsCurrency(model.total_ars_per_km_jan_2025 || 0)}</td>
-                            <td style="padding: 8px; text-align:right; font-weight: 700; border-top: 1px solid rgba(255,255,255,0.12);">${formatLogisticsUsdCurrency(model.total_usd_per_km_jan_2025 || 0)}</td>
+                            <td style="padding: 8px; font-weight: 700; border-top: 1px solid rgba(255,255,255,0.12);">Costo viaje completo</td>
+                            <td style="padding: 8px; text-align:right; font-weight: 700; border-top: 1px solid rgba(255,255,255,0.12);">${formatLogisticsArsCurrency(model.total_trip_ars || 0)}</td>
                         </tr>
                         <tr>
-                            <td style="padding: 8px; font-weight: 700; color: var(--bpb-blue);">Precio con utilidad (${profitMarginPct.toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 1 })}%)</td>
-                            <td></td>
-                            <td style="padding: 8px; text-align:right; font-weight: 700; color: var(--bpb-blue);">${formatLogisticsArsCurrency(sellCostPerKmArs)}</td>
-                            <td style="padding: 8px; text-align:right; font-weight: 700; color: var(--bpb-blue);">${formatLogisticsUsdCurrency(sellCostPerKmUsd)}</td>
+                            <td style="padding: 8px; font-weight: 700; color: var(--bpb-blue);">Costo asignado</td>
+                            <td style="padding: 8px; text-align:right; font-weight: 700; color: var(--bpb-blue);">${formatLogisticsUsdCurrency(estimate?.estimated_cost_usd || 0)}</td>
                         </tr>
                     </tfoot>` : ''}
                 </table>
             </div>
             <p style="margin:0; color: var(--text-secondary); font-size:0.85rem; line-height: 1.35;">
                 ${escapeCotizacionHTML(model
-                    ? 'Fuente: costos de transporte de larga distancia de marzo 2024, actualizados a enero 2025 con la variación acumulada 2024 y dólar oficial venta del 2025-01-01.'
+                    ? `Fuente: parametros internos de operacion para costo propio nacional, capacidad de referencia Ford Ranger 2020 y dolar oficial venta ${dollarRateText}.`
                     : 'Modelo no disponible todavía.')}
             </p>
         </div>
@@ -30736,7 +30871,7 @@ async function printLogisticsRecord() {
         configRows.push(['Origen flete', String(freightEstimate.origin?.label || '-').trim() || '-']);
         configRows.push(['Destino flete', String(freightEstimate.destination?.label || '-').trim() || '-']);
         configRows.push(['Distancia flete', `${formatNumber(freightEstimate.distance_km || 0, 1)} km`]);
-        configRows.push(['Costo estimado flete', formatLogisticsUsdCurrency(freightEstimate.estimated_cost_usd || 0)]);
+        configRows.push(['Costo propio flete', formatLogisticsUsdCurrency(freightEstimate.estimated_cost_usd || 0)]);
     }
 
     const kpis = lastLogisticsData.kpis || {};

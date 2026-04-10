@@ -2606,8 +2606,19 @@ def _build_logistics_version_snapshot(source, version_number=1):
         'freight': {
             'origin': data.get('freight', {}).get('origin'),
             'destination': data.get('freight', {}).get('destination'),
-            'adjustment_usd': data.get('freight', {}).get('adjustment_usd', 0),
-            'total_cost_usd': data.get('freight', {}).get('total_cost_usd', 0),
+            'unique_load': bool(data.get('freight', {}).get('unique_load', False)),
+            'outsourced_company': str(data.get('freight', {}).get('outsourced_company') or '').strip(),
+            'own_adjustment_ars': data.get('freight', {}).get('own_adjustment_ars', 0),
+            'own_total_ars': data.get('freight', {}).get('own_total_ars', 0),
+            'outsourced_cost_ars': data.get('freight', {}).get('outsourced_cost_ars', 0),
+            'outsourced_adjustment_ars': data.get('freight', {}).get('outsourced_adjustment_ars', 0),
+            'outsourced_total_ars': data.get('freight', {}).get('outsourced_total_ars', 0),
+            'own_adjustment_usd': data.get('freight', {}).get('own_adjustment_usd', 0),
+            'own_total_usd': data.get('freight', {}).get('own_total_usd', 0),
+            'outsourced_cost_usd': data.get('freight', {}).get('outsourced_cost_usd', 0),
+            'outsourced_adjustment_usd': data.get('freight', {}).get('outsourced_adjustment_usd', 0),
+            'outsourced_total_usd': data.get('freight', {}).get('outsourced_total_usd', 0),
+            'dollar_rate': data.get('freight', {}).get('dollar_rate'),
             'last_estimate': data.get('freight', {}).get('last_estimate')
         },
         'items': _clean_logistics_items(data.get('items', []))
@@ -4866,83 +4877,17 @@ def calculate_logistics():
 
 LOGISTICS_GEOREF_LOOKUP_URL = 'https://apis.datos.gob.ar/georef/api/localidades'
 LOGISTICS_ROUTE_DISTANCE_URL = 'https://router.project-osrm.org/route/v1/driving/{lon1},{lat1};{lon2},{lat2}?overview=false'
-LOGISTICS_FREIGHT_REFERENCE_DATE = '2025-01-01'
-LOGISTICS_FREIGHT_STANDARD_PAYLOAD_KG = 30000.0
-LOGISTICS_FREIGHT_STANDARD_VOLUME_M3 = 90.0
-LOGISTICS_FREIGHT_COST_BASE_DATE = '2024-03'
-LOGISTICS_FREIGHT_COST_UPDATE_TARGET = '2025-01'
-LOGISTICS_FREIGHT_COST_COMPONENTS = [
-    {
-        'key': 'mano_obra',
-        'label': 'Mano de obra',
-        'ars_per_km_mar_2024': 190.70,
-        'share_pct_mar_2024': 15.9,
-        'annual_adjustment_pct_2024': 187.7,
-    },
-    {
-        'key': 'combustibles',
-        'label': 'Combustibles',
-        'ars_per_km_mar_2024': 343.20,
-        'share_pct_mar_2024': 28.7,
-        'annual_adjustment_pct_2024': 67.0,
-    },
-    {
-        'key': 'neumaticos',
-        'label': 'Neumáticos',
-        'ars_per_km_mar_2024': 140.50,
-        'share_pct_mar_2024': 11.7,
-        'annual_adjustment_pct_2024': 11.7,
-    },
-    {
-        'key': 'mantenimiento',
-        'label': 'Mantenimiento',
-        'ars_per_km_mar_2024': 74.10,
-        'share_pct_mar_2024': 6.2,
-        'annual_adjustment_pct_2024': 32.3,
-    },
-    {
-        'key': 'material_rodante',
-        'label': 'Material rodante',
-        'ars_per_km_mar_2024': 100.70,
-        'share_pct_mar_2024': 8.4,
-        'annual_adjustment_pct_2024': 85.6,
-    },
-    {
-        'key': 'patentes_registros',
-        'label': 'Patentes y registros',
-        'ars_per_km_mar_2024': 17.20,
-        'share_pct_mar_2024': 1.4,
-        'annual_adjustment_pct_2024': 270.0,
-    },
-    {
-        'key': 'seguros',
-        'label': 'Seguros',
-        'ars_per_km_mar_2024': 29.90,
-        'share_pct_mar_2024': 2.5,
-        'annual_adjustment_pct_2024': 239.6,
-    },
-    {
-        'key': 'gastos_generales',
-        'label': 'Gastos generales',
-        'ars_per_km_mar_2024': 37.20,
-        'share_pct_mar_2024': 3.1,
-        'annual_adjustment_pct_2024': 193.3,
-    },
-    {
-        'key': 'costos_financieros',
-        'label': 'Costos financieros',
-        'ars_per_km_mar_2024': 262.90,
-        'share_pct_mar_2024': 22.0,
-        'annual_adjustment_pct_2024': -13.4,
-    },
-]
-LOGISTICS_FREIGHT_EXCLUDED_COMPONENTS = [
-    {
-        'label': 'Peajes y otros',
-        'reason': 'La lámina base de marzo 2024 indica que los peajes no están incluidos en el costo por km utilizado.',
-        'annual_adjustment_pct_2024': 332.5,
-    }
-]
+LOGISTICS_FREIGHT_STANDARD_PAYLOAD_KG = 1350.0
+LOGISTICS_FREIGHT_STANDARD_VOLUME_M3 = 1.18
+LOGISTICS_FREIGHT_OWN_CONSUMPTION_L_PER_100KM = 15.0
+LOGISTICS_FREIGHT_OWN_FUEL_COST_ARS_PER_L = 1498.0
+LOGISTICS_FREIGHT_OWN_DRIVER_SALARY_ARS_PER_MONTH = 1400000.0
+LOGISTICS_FREIGHT_OWN_TRIPS_PER_MONTH = 20.0
+LOGISTICS_FREIGHT_OWN_MAINTENANCE_INSURANCE_ARS_PER_MONTH = 200000.0
+LOGISTICS_FREIGHT_OWN_EXTRAS_ARS_PER_MONTH = 50000.0
+LOGISTICS_FREIGHT_OWN_TOLL_ARS_CORDOBA = 15000.0
+LOGISTICS_FREIGHT_OWN_TOLL_ARS_BUENOS_AIRES = 25000.0
+LOGISTICS_FREIGHT_OWN_TOLL_ARS_CORDOBA_CITIES = 5000.0
 LOGISTICS_FREIGHT_DISTANCE_PROVIDER_LABELS = {
     'openrouteservice': 'OpenRouteService',
     'graphhopper': 'GraphHopper',
@@ -4950,20 +4895,6 @@ LOGISTICS_FREIGHT_DISTANCE_PROVIDER_LABELS = {
     'osrm': 'OSRM',
     'haversine': 'Haversine ajustada',
 }
-LOGISTICS_FREIGHT_MODEL_CACHE = {}
-
-
-def _logistics_margin_for_fraction(load_fraction):
-    fraction = max(0.0, min(float(load_fraction or 0), 1.0))
-    if fraction < 0.05:
-        return 1.00
-    if fraction <= 0.20:
-        return 0.60
-    if fraction <= 0.60:
-        return 0.40
-    if fraction <= 0.90:
-        return 0.30
-    return 0.20
 
 
 def _logistics_load_basis(actual_weight_kg, consolidated_volume_m3):
@@ -4982,6 +4913,62 @@ def _logistics_load_basis(actual_weight_kg, consolidated_volume_m3):
         'volume_fraction': round(volume_fraction, 6),
         'load_fraction': round(load_fraction, 6),
         'dominant_basis': dominant_basis,
+    }
+
+
+def _logistics_own_toll_payload(destination):
+    city_name = _normalize_logistics_compare_text(destination.get('name', ''))
+    province_name = _normalize_logistics_compare_text(destination.get('province', ''))
+    label = _normalize_logistics_compare_text(destination.get('label', ''))
+
+    if 'buenos aires' in province_name or 'buenos aires' in label:
+        return {
+            'label': 'Buenos Aires',
+            'toll_ars': round(LOGISTICS_FREIGHT_OWN_TOLL_ARS_BUENOS_AIRES, 2)
+        }
+
+    if province_name == 'cordoba':
+        if city_name in ('cordoba', 'ciudad de cordoba', 'cordoba capital') or label.startswith('cordoba'):
+            return {
+                'label': 'Córdoba',
+                'toll_ars': round(LOGISTICS_FREIGHT_OWN_TOLL_ARS_CORDOBA, 2)
+            }
+        return {
+            'label': 'Ciudades de Córdoba',
+            'toll_ars': round(LOGISTICS_FREIGHT_OWN_TOLL_ARS_CORDOBA_CITIES, 2)
+        }
+
+    return {
+        'label': 'Nacional general',
+        'toll_ars': round(LOGISTICS_FREIGHT_OWN_TOLL_ARS_CORDOBA, 2)
+    }
+
+
+def _build_logistics_own_cost_model(distance_km, destination):
+    distance = max(float(distance_km or 0), 0.0)
+    fuel_liters = distance * (LOGISTICS_FREIGHT_OWN_CONSUMPTION_L_PER_100KM / 100.0)
+    fuel_cost_ars = fuel_liters * LOGISTICS_FREIGHT_OWN_FUEL_COST_ARS_PER_L
+    driver_trip_ars = LOGISTICS_FREIGHT_OWN_DRIVER_SALARY_ARS_PER_MONTH / max(LOGISTICS_FREIGHT_OWN_TRIPS_PER_MONTH, 1.0)
+    maintenance_insurance_trip_ars = LOGISTICS_FREIGHT_OWN_MAINTENANCE_INSURANCE_ARS_PER_MONTH / max(LOGISTICS_FREIGHT_OWN_TRIPS_PER_MONTH, 1.0)
+    extras_trip_ars = LOGISTICS_FREIGHT_OWN_EXTRAS_ARS_PER_MONTH / max(LOGISTICS_FREIGHT_OWN_TRIPS_PER_MONTH, 1.0)
+    toll_payload = _logistics_own_toll_payload(destination)
+    toll_ars = float(toll_payload.get('toll_ars') or 0)
+
+    total_trip_ars = fuel_cost_ars + driver_trip_ars + toll_ars + maintenance_insurance_trip_ars + extras_trip_ars
+    cost_per_km_ars = (total_trip_ars / distance) if distance > 0 else 0.0
+
+    return {
+        'distance_km': round(distance, 1),
+        'fuel_liters': round(fuel_liters, 3),
+        'fuel_cost_ars': round(fuel_cost_ars, 2),
+        'driver_trip_ars': round(driver_trip_ars, 2),
+        'toll_ars': round(toll_ars, 2),
+        'toll_label': str(toll_payload.get('label') or ''),
+        'maintenance_insurance_trip_ars': round(maintenance_insurance_trip_ars, 2),
+        'extras_trip_ars': round(extras_trip_ars, 2),
+        'cost_per_km_ars': round(cost_per_km_ars, 4),
+        'total_trip_ars': round(total_trip_ars, 2),
+        'methodology_note': 'Costo propio por viaje con combustible, chofer, peaje, mantenimiento/seguro y extras.'
     }
 
 
@@ -5073,6 +5060,29 @@ def _get_official_sale_dollar_rate(requested_date=''):
         except Exception as exc:
             errors.append(f'{source_name}: {exc}')
     raise RuntimeError('; '.join(errors) or 'sin proveedores disponibles')
+
+
+def _get_logistics_calculation_dollar_rate():
+    requested_date = datetime.now().date().isoformat()
+    errors = []
+
+    try:
+        rate_data = _get_official_sale_dollar_rate(requested_date)
+        rate_data['requested_date'] = requested_date
+        rate_data['mode'] = 'requested_date'
+        return rate_data
+    except Exception as exc:
+        errors.append(f'requested_date: {exc}')
+
+    try:
+        rate_data = _get_official_sale_dollar_rate('')
+        rate_data['requested_date'] = requested_date
+        rate_data['mode'] = 'latest_available'
+        return rate_data
+    except Exception as exc:
+        errors.append(f'latest_available: {exc}')
+
+    raise RuntimeError('; '.join(errors) or 'sin cotizacion oficial disponible')
 
 
 def _resolve_logistics_city(city):
@@ -5193,56 +5203,6 @@ def _fetch_external_json_request(url, timeout=4, headers=None, method='GET', dat
         charset = resp.headers.get_content_charset() or 'utf-8'
         raw = resp.read().decode(charset, errors='replace')
     return json.loads(raw)
-
-
-def _build_logistics_freight_cost_model():
-    cache_key = LOGISTICS_FREIGHT_REFERENCE_DATE
-    cached = LOGISTICS_FREIGHT_MODEL_CACHE.get(cache_key)
-    if cached:
-        return deepcopy(cached)
-
-    exchange_rate = _get_official_sale_dollar_rate(LOGISTICS_FREIGHT_REFERENCE_DATE)
-    ars_per_usd = float(exchange_rate.get('value') or 0)
-    if not math.isfinite(ars_per_usd) or ars_per_usd <= 0:
-        raise ValueError('dólar oficial de referencia inválido para el modelo de flete')
-
-    components = []
-    total_ars_per_km = 0.0
-    for component in LOGISTICS_FREIGHT_COST_COMPONENTS:
-        base_ars = float(component.get('ars_per_km_mar_2024') or 0)
-        annual_adjustment_pct = float(component.get('annual_adjustment_pct_2024') or 0)
-        updated_ars = base_ars * (1.0 + (annual_adjustment_pct / 100.0))
-        total_ars_per_km += updated_ars
-        components.append({
-            'key': component.get('key'),
-            'label': component.get('label'),
-            'ars_per_km_mar_2024': round(base_ars, 4),
-            'share_pct_mar_2024': round(float(component.get('share_pct_mar_2024') or 0), 2),
-            'annual_adjustment_pct_2024': round(annual_adjustment_pct, 2),
-            'ars_per_km_jan_2025': round(updated_ars, 4),
-            'usd_per_km_jan_2025': round(updated_ars / ars_per_usd, 6),
-        })
-
-    model = {
-        'reference_date': LOGISTICS_FREIGHT_REFERENCE_DATE,
-        'exchange_rate_ars': round(ars_per_usd, 2),
-        'exchange_date': str(exchange_rate.get('date') or LOGISTICS_FREIGHT_REFERENCE_DATE),
-        'exchange_source': str(exchange_rate.get('source') or ''),
-        'base_cost_date': LOGISTICS_FREIGHT_COST_BASE_DATE,
-        'updated_cost_date': LOGISTICS_FREIGHT_COST_UPDATE_TARGET,
-        'standard_payload_kg': round(LOGISTICS_FREIGHT_STANDARD_PAYLOAD_KG, 3),
-        'standard_volume_m3': round(LOGISTICS_FREIGHT_STANDARD_VOLUME_M3, 6),
-        'components': components,
-        'excluded_components': deepcopy(LOGISTICS_FREIGHT_EXCLUDED_COMPONENTS),
-        'total_ars_per_km_jan_2025': round(total_ars_per_km, 4),
-        'total_usd_per_km_jan_2025': round(total_ars_per_km / ars_per_usd, 6),
-        'methodology_note': (
-            'Costo por km base de marzo 2024 actualizado rubro por rubro con la variación acumulada 2024 '
-            'y convertido a USD con dólar oficial venta del 2025-01-01.'
-        ),
-    }
-    LOGISTICS_FREIGHT_MODEL_CACHE[cache_key] = deepcopy(model)
-    return model
 
 
 def _logistics_route_distance_openrouteservice(origin, destination):
@@ -5384,23 +5344,21 @@ def logistics_freight_estimate():
             freight_basis.get('consolidated_volume_m3', data.get('volume_m3') or 0)
         ))
         basis_metrics = _logistics_load_basis(actual_weight_kg, consolidated_volume_m3)
-        chargeable_weight_kg = actual_weight_kg
-        load_fraction = basis_metrics['load_fraction']
-        profit_margin = _logistics_margin_for_fraction(load_fraction)
+        unique_load = bool(data.get('unique_load', False))
+        load_fraction = 1.0 if unique_load else basis_metrics['load_fraction']
 
         distance_km, distance_source = _logistics_route_distance_km(origin, destination)
-        cost_model = _build_logistics_freight_cost_model()
-        cost_per_km_ars = float(cost_model.get('total_ars_per_km_jan_2025') or 0)
-        cost_per_km_usd = float(cost_model.get('total_usd_per_km_jan_2025') or 0)
-        if not math.isfinite(cost_per_km_ars) or cost_per_km_ars <= 0:
-            raise ValueError('costo por km inválido en modelo de flete')
-        if not math.isfinite(cost_per_km_usd) or cost_per_km_usd <= 0:
-            raise ValueError('costo por km USD inválido en modelo de flete')
-        sell_cost_per_km_ars = cost_per_km_ars * (1.0 + profit_margin)
-        sell_cost_per_km_usd = cost_per_km_usd * (1.0 + profit_margin)
-
-        estimated_cost_ars = distance_km * sell_cost_per_km_ars * load_fraction
-        estimated_cost_usd = distance_km * sell_cost_per_km_usd * load_fraction
+        own_cost_model = _build_logistics_own_cost_model(distance_km, destination)
+        own_trip_cost_ars = float(own_cost_model.get('total_trip_ars') or 0)
+        own_cost_per_km_ars = float(own_cost_model.get('cost_per_km_ars') or 0)
+        estimated_cost_ars = own_trip_cost_ars * load_fraction
+        dollar_rate = _get_logistics_calculation_dollar_rate()
+        dollar_value = float(dollar_rate.get('value') or 0)
+        if not math.isfinite(dollar_value) or dollar_value <= 0:
+            raise ValueError('cotizacion oficial venta invalida')
+        own_trip_cost_usd = own_trip_cost_ars / dollar_value
+        own_cost_per_km_usd = own_cost_per_km_ars / dollar_value
+        estimated_cost_usd = estimated_cost_ars / dollar_value
 
         return jsonify({
             'status': 'success',
@@ -5411,35 +5369,38 @@ def logistics_freight_estimate():
                 'distance_source': distance_source,
                 'actual_weight_kg': round(actual_weight_kg, 3),
                 'consolidated_volume_m3': round(consolidated_volume_m3, 6),
-                'chargeable_weight_kg': round(chargeable_weight_kg, 3),
                 'load_fraction': round(load_fraction, 6),
                 'weight_fraction': basis_metrics['weight_fraction'],
                 'volume_fraction': basis_metrics['volume_fraction'],
                 'dominant_basis': basis_metrics['dominant_basis'],
+                'unique_load': unique_load,
                 'reference_payload_kg': round(float(LOGISTICS_FREIGHT_STANDARD_PAYLOAD_KG), 3),
                 'reference_volume_m3': round(float(LOGISTICS_FREIGHT_STANDARD_VOLUME_M3), 6),
-                'reference_cost_per_km_ars': round(cost_per_km_ars, 4),
-                'reference_cost_per_km_usd': round(cost_per_km_usd, 6),
-                'sell_cost_per_km_ars': round(sell_cost_per_km_ars, 4),
-                'sell_cost_per_km_usd': round(sell_cost_per_km_usd, 6),
-                'profit_margin_pct': round(profit_margin * 100.0, 2),
+                'reference_cost_per_km_ars': round(own_cost_per_km_ars, 4),
+                'reference_cost_per_km_usd': round(own_cost_per_km_usd, 4),
+                'own_trip_cost_ars': round(own_trip_cost_ars, 2),
+                'own_trip_cost_usd': round(own_trip_cost_usd, 2),
                 'estimated_cost_ars': round(estimated_cost_ars, 2),
-                'estimated_cost_usd': round(estimated_cost_usd, 4),
-                'exchange_rate_ars': round(float(cost_model.get('exchange_rate_ars') or 0), 2),
-                'exchange_date': str(cost_model.get('exchange_date') or LOGISTICS_FREIGHT_REFERENCE_DATE),
+                'estimated_cost_usd': round(estimated_cost_usd, 2),
                 'source_label': '',
                 'note': (
-                    f"Base: {'peso' if basis_metrics['dominant_basis'] == 'weight' else 'volumen'} | "
-                    f"Fracción: {round(load_fraction * 100.0, 1)}% | "
-                    f"Utilidad: {round(profit_margin * 100.0, 1)}%"
+                    f"Base: {'carga única' if unique_load else ('peso' if basis_metrics['dominant_basis'] == 'weight' else 'volumen')} | "
+                    f"Fracción: {round(load_fraction * 100.0, 1)}%"
                 ),
+                'dollar_rate': {
+                    'value': round(dollar_value, 2),
+                    'requested_date': str(dollar_rate.get('requested_date') or ''),
+                    'effective_date': str(dollar_rate.get('date') or dollar_rate.get('requested_date') or ''),
+                    'source': str(dollar_rate.get('source') or ''),
+                    'mode': str(dollar_rate.get('mode') or ''),
+                },
                 'freight_basis': {
                     'source': freight_basis.get('source') or 'request_payload',
                     'package_count': int(freight_basis.get('package_count') or 0),
                     'shipment_bbox_dims_mm': freight_basis.get('shipment_bbox_dims_mm') if isinstance(freight_basis.get('shipment_bbox_dims_mm'), dict) else None,
                     'shipment_bbox_volume_m3': round(float(freight_basis.get('shipment_bbox_volume_m3') or 0), 6) if freight_basis else 0.0,
                 },
-                'cost_model': cost_model,
+                'cost_model': own_cost_model,
             }
         })
     except Exception as e:

@@ -1750,33 +1750,47 @@
                                     <span class="logistics-freight-metric-label">Volumen total</span>
                                     <strong id="logistics-freight-volume-legacy">0,000 m3</strong>
                                 </div>
-                                <div class="logistics-freight-metric-card">
-                                    <span class="logistics-freight-metric-label">Peso cobrable</span>
-                                    <strong id="logistics-freight-chargeable-legacy">0,00 kg</strong>
-                                </div>
                             </div>
 
-                            <div class="logistics-freight-result">
-                                <div class="logistics-freight-result-main">
-                                    <span class="logistics-freight-result-label">Costo estimado</span>
-                                    <div id="logistics-freight-cost-legacy" class="logistics-freight-result-value">$ 0,00</div>
-                                </div>
-                                <div class="logistics-freight-totals">
-                                    <label class="logistics-freight-adjust-row">
-                                        <span>Costo Ajuste</span>
-                                        <input type="number" id="logistics-freight-adjustment-legacy" class="logistics-input logistics-freight-adjustment-input" value="0" step="0.01" placeholder="0,00">
-                                    </label>
-                                    <div class="logistics-freight-total-row">
-                                        <span>Costo Total</span>
-                                        <strong id="logistics-freight-total-legacy">$ 0,00</strong>
+                            <div class="logistics-freight-results-grid">
+                                <div class="logistics-freight-result">
+                                    <div class="logistics-freight-result-main">
+                                        <span class="logistics-freight-result-label">Costo Propio</span>
+                                        <div id="logistics-freight-cost-legacy" class="logistics-freight-result-value">$ 0,00</div>
                                     </div>
+                                    <div class="logistics-freight-totals">
+                                        <label class="logistics-freight-check-row">
+                                            <span>Carga Única</span>
+                                            <input type="checkbox" id="logistics-freight-unique-load-legacy">
+                                        </label>
+                                        <label class="logistics-freight-adjust-row">
+                                            <span>Costo Ajuste</span>
+                                            <input type="number" id="logistics-freight-adjustment-legacy" class="logistics-input logistics-freight-adjustment-input" value="0" step="0.01" placeholder="0,00">
+                                        </label>
+                                        <div class="logistics-freight-total-row">
+                                            <span>Costo Total</span>
+                                            <strong id="logistics-freight-total-legacy">$ 0,00</strong>
+                                        </div>
+                                    </div>
+                                    <div class="logistics-freight-result-details">
+                                        <div><span>Distancia:</span> <strong id="logistics-freight-distance-legacy">-</strong></div>
+                                        <div><span>Costo/km:</span> <strong id="logistics-freight-rate-legacy">-</strong></div>
+                                    </div>
+                                    <div id="logistics-freight-note-legacy" class="logistics-freight-note">Completá origen y destino para estimar el flete.</div>
                                 </div>
-                                <div class="logistics-freight-result-details">
-                                    <div><span>Distancia:</span> <strong id="logistics-freight-distance-legacy">-</strong></div>
-                                    <div><span>Tarifa ref.:</span> <strong id="logistics-freight-rate-legacy">-</strong></div>
-                                    <div><span>Fuente:</span> <strong id="logistics-freight-source-legacy">-</strong></div>
+                                <div class="logistics-freight-result logistics-freight-result-secondary">
+                                    <div class="logistics-freight-result-main">
+                                        <span class="logistics-freight-result-label">Costo Tercerizado</span>
+                                        <div id="logistics-freight-outsourced-display-legacy" class="logistics-freight-result-value">$ 0,00</div>
+                                    </div>
+                                    <div class="logistics-freight-totals">
+                                        <label class="logistics-freight-adjust-row">
+                                            <span>Valor cargado</span>
+                                            <input type="number" id="logistics-freight-outsourced-legacy" class="logistics-input logistics-freight-adjustment-input" value="0" step="0.01" placeholder="0,00">
+                                        </label>
+                                    </div>
+                                    <div class="logistics-freight-note">Ingresá el costo cotizado por un tercero.</div>
                                 </div>
-                                <div id="logistics-freight-note-legacy" class="logistics-freight-note">Completá origen y destino para estimar el flete.</div>
                             </div>
                         </div>
 
@@ -1978,31 +1992,62 @@
                                     <strong id="logistics-freight-volume">0,000 m3</strong>
                                 </div>
                                 <div class="logistics-freight-metric-card">
-                                    <span class="logistics-freight-metric-label">Base cobrable</span>
-                                    <strong id="logistics-freight-chargeable">0,00 kg</strong>
+                                    <span class="logistics-freight-metric-label">Distancia</span>
+                                    <strong id="logistics-freight-distance">-</strong>
                                 </div>
                             </div>
 
-                            <div class="logistics-freight-result">
-                                <div class="logistics-freight-result-main">
-                                    <span class="logistics-freight-result-label">Costo estimado</span>
-                                    <div id="logistics-freight-cost" class="logistics-freight-result-value">$ 0,00</div>
-                                </div>
-                                <div class="logistics-freight-totals">
-                                    <label class="logistics-freight-adjust-row">
-                                        <span>Costo Ajuste</span>
-                                        <input type="number" id="logistics-freight-adjustment" class="logistics-input logistics-freight-adjustment-input" value="0" step="0.01" placeholder="0,00">
-                                    </label>
-                                    <div class="logistics-freight-total-row">
-                                        <span>Costo Total</span>
-                                        <strong id="logistics-freight-total">$ 0,00</strong>
+                            <div class="logistics-freight-results-grid">
+                                <div class="logistics-freight-result">
+                                    <div class="logistics-freight-card-title">BPB</div>
+                                    <div class="logistics-freight-totals">
+                                        <div class="logistics-freight-total-row">
+                                            <span>Costo Propio</span>
+                                            <strong id="logistics-freight-cost">US$ 0,00</strong>
+                                        </div>
+                                        <label class="logistics-freight-adjust-row">
+                                            <span>Ajuste (USD)</span>
+                                            <input type="number" id="logistics-freight-adjustment" class="logistics-input logistics-freight-adjustment-input" value="0" step="0.01" placeholder="0,00">
+                                        </label>
+                                        <label class="logistics-freight-check-row">
+                                            <span>Carga Única</span>
+                                            <input type="checkbox" id="logistics-freight-unique-load">
+                                        </label>
+                                    </div>
+                                    <div class="logistics-freight-result-details logistics-freight-result-details-single">
+                                        <div><span>Costo/km:</span> <strong id="logistics-freight-rate">-</strong></div>
+                                    </div>
+                                    <div id="logistics-freight-note" class="logistics-freight-note">Completá origen y destino para estimar el flete.</div>
+                                    <div class="logistics-freight-total-row logistics-freight-total-row-emphasis">
+                                            <span>Costo Total</span>
+                                            <strong id="logistics-freight-total">US$ 0,00</strong>
                                     </div>
                                 </div>
-                                <div class="logistics-freight-result-details">
-                                    <div><span>Distancia:</span> <strong id="logistics-freight-distance">-</strong></div>
-                                    <div><span>Tarifa:</span> <strong id="logistics-freight-rate">-</strong></div>
+                                <div class="logistics-freight-result logistics-freight-result-secondary">
+                                    <div class="logistics-freight-card-title">TERCIARIZADO</div>
+                                    <div class="logistics-freight-totals">
+                                        <label class="logistics-freight-adjust-row">
+                                            <span>Empresa</span>
+                                            <input type="text" id="logistics-freight-outsourced-company" class="logistics-input logistics-freight-adjustment-input logistics-freight-company-input" value="" placeholder="Nombre">
+                                        </label>
+                                        <label class="logistics-freight-adjust-row">
+                                            <span>Valor (USD)</span>
+                                            <input type="number" id="logistics-freight-outsourced" class="logistics-input logistics-freight-adjustment-input" value="0" step="0.01" placeholder="0,00">
+                                        </label>
+                                        <label class="logistics-freight-adjust-row">
+                                            <span>Ajuste (USD)</span>
+                                            <input type="number" id="logistics-freight-outsourced-adjustment" class="logistics-input logistics-freight-adjustment-input" value="0" step="0.01" placeholder="0,00">
+                                        </label>
+                                    </div>
+                                    <div class="logistics-freight-result-details logistics-freight-result-details-single">
+                                        <div><span>Costo/km:</span> <strong id="logistics-freight-outsourced-rate">-</strong></div>
+                                    </div>
+                                    <div class="logistics-freight-note">Ingresá el costo cotizado por un tercero.</div>
+                                    <div class="logistics-freight-total-row logistics-freight-total-row-emphasis">
+                                            <span>Costo Total</span>
+                                            <strong id="logistics-freight-outsourced-display">US$ 0,00</strong>
+                                    </div>
                                 </div>
-                                <div id="logistics-freight-note" class="logistics-freight-note">Completá origen y destino para estimar el flete.</div>
                             </div>
                         </div>
                     </div>

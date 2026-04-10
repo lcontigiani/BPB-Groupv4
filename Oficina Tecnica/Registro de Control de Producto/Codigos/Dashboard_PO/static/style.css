@@ -3428,6 +3428,20 @@ tbody tr:nth-child(n+11) {
     border-radius: 12px;
     background: linear-gradient(135deg, rgba(207, 22, 37, 0.12), rgba(255, 255, 255, 0.03));
     padding: 1rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.logistics-freight-results-grid {
+    margin-top: 1rem;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+}
+
+.logistics-freight-result-secondary {
+    border-color: rgba(207, 22, 37, 0.22);
+    background: linear-gradient(135deg, rgba(207, 22, 37, 0.12), rgba(255, 255, 255, 0.03));
 }
 
 .logistics-freight-result-main {
@@ -3454,7 +3468,7 @@ tbody tr:nth-child(n+11) {
 .logistics-freight-result-details {
     margin-top: 0.8rem;
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     gap: 0.65rem;
     color: var(--text-secondary);
     font-size: 0.84rem;
@@ -3464,10 +3478,24 @@ tbody tr:nth-child(n+11) {
     color: var(--text-primary);
 }
 
+.logistics-freight-result-details-single {
+    grid-template-columns: 1fr;
+}
+
+.logistics-freight-card-title {
+    margin-bottom: 0.9rem;
+    color: var(--text-primary);
+    font-size: 1.2rem;
+    font-weight: 800;
+    text-align: center;
+    letter-spacing: 0.05em;
+}
+
 .logistics-freight-note {
     margin-top: 0.8rem;
     color: var(--text-secondary);
     font-size: 0.8rem;
+    min-height: 2.1rem;
 }
 
 .logistics-freight-totals {
@@ -3478,7 +3506,8 @@ tbody tr:nth-child(n+11) {
 }
 
 .logistics-freight-adjust-row,
-.logistics-freight-total-row {
+.logistics-freight-total-row,
+.logistics-freight-check-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -3488,14 +3517,18 @@ tbody tr:nth-child(n+11) {
 }
 
 .logistics-freight-adjust-row span,
-.logistics-freight-total-row span {
+.logistics-freight-total-row span,
+.logistics-freight-check-row span {
     color: var(--text-secondary);
 }
 
 .logistics-freight-adjustment-input {
-    width: 170px;
+    width: 120px;
+    min-width: 120px;
     text-align: right;
     padding: 0.45rem 0.6rem;
+    appearance: textfield;
+    -moz-appearance: textfield;
 }
 
 .logistics-freight-total-row strong {
@@ -3503,11 +3536,51 @@ tbody tr:nth-child(n+11) {
     font-size: 1rem;
 }
 
+.logistics-freight-total-row-emphasis {
+    margin-top: 1rem;
+    padding-top: 0.85rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    margin-top: auto;
+}
+
+.logistics-freight-total-row-emphasis span {
+    color: var(--text-primary);
+    font-size: 1.15rem;
+    font-weight: 700;
+}
+
+.logistics-freight-total-row-emphasis strong {
+    font-size: 1.7rem;
+    font-weight: 800;
+}
+
+.logistics-freight-adjustment-input::-webkit-outer-spin-button,
+.logistics-freight-adjustment-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.logistics-freight-check-row input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+}
+
 .logistics-freight-input {
     min-width: 0;
     padding: 0.65rem 0.7rem;
     font-size: 0.92rem;
     box-sizing: border-box;
+}
+
+.logistics-freight-company-input {
+    text-align: left;
+}
+
+@media (max-width: 900px) {
+    .logistics-freight-metrics,
+    .logistics-freight-results-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 .kpi-value {
