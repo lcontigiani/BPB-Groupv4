@@ -5327,6 +5327,28 @@ def logistics_cities_lookup():
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
 
+@app.route('/api/logistics/cotizacion-lookup', methods=['GET'])
+def logistics_cotizacion_lookup():
+    try:
+        query = str(request.args.get('q', '') or '').strip().lower()
+        groups = _read_logistics_record_groups()
+        results = []
+        for group in groups:
+            latest = _logistics_get_latest_version(group) or {}
+            save_name = str(latest.get('save_name') or group.get('save_name') or '').strip()
+            if not query or query in save_name.lower():
+                results.append({
+                    'id': group.get('id', ''),
+                    'save_name': save_name,
+                    'folder': _normalize_logistics_folder_name(group.get('folder')),
+                    'version_count': len(group.get('versions', [])),
+                    'latest_version': int(group.get('latest_version') or len(group.get('versions', [])) or 1)
+                })
+        return jsonify({'status': 'success', 'records': results[:20]})
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
 @app.route('/api/logistics/freight-estimate', methods=['POST'])
 def logistics_freight_estimate():
     try:
@@ -5544,6 +5566,12 @@ def get_logistics_history():
 
         history = []
         for version in versions:
+            freight = version.get('freight', {}) if isinstance(version.get('freight'), dict) else {}
+            own_total_usd = float(freight.get('own_total_usd') or 0)
+            outsourced_total_usd = float(freight.get('outsourced_total_usd') or 0)
+            outsourced_company = str(freight.get('outsourced_company') or '').strip()
+            items = version.get('items', []) if isinstance(version.get('items'), list) else []
+            total_qty = sum(int(it.get('qty') or 0) for it in items if isinstance(it, dict))
             history.append({
                 'version_id': version.get('version_id', ''),
                 'version_number': int(version.get('version_number') or 1),
@@ -5553,7 +5581,12 @@ def get_logistics_history():
                 'largest_unit_label': version.get('largest_unit_label', ''),
                 'history_label': version.get('history_label', ''),
                 'save_name': version.get('save_name', ''),
-                'save_description': version.get('save_description', '')
+                'save_description': version.get('save_description', ''),
+                'own_total_usd': own_total_usd,
+                'outsourced_total_usd': outsourced_total_usd,
+                'outsourced_company': outsourced_company,
+                'total_qty': total_qty,
+                'has_freight_data': own_total_usd > 0 or outsourced_total_usd > 0
             })
 
         return jsonify({
@@ -6265,6 +6298,7 @@ def _clean_cotizacion_items(raw_items):
             'source_record_id': str(item.get('source_record_id', '')),
             'source_version_id': str(item.get('source_version_id', '')),
             'is_muda': bool(item.get('is_muda')),
+            'muda_kind': str(item.get('muda_kind', '')),
             'rate_formula': str(item.get('rate_formula', '')),
             'cantidad_formula': str(item.get('cantidad_formula', '')),
             'costo_formula': str(item.get('costo_formula', '')),
@@ -9303,7 +9337,12 @@ def open_r016_folder():
 
         _open_path_in_file_manager(target_path)
 
-        return jsonify({"status": "success"})
+        return jsonify({
+            "status": "success",
+            "message": "La carpeta se abrio en la PC servidora.",
+            "target_path": str(target_path),
+            "opened_on_server": True
+        })
 
     except Exception as e:
 

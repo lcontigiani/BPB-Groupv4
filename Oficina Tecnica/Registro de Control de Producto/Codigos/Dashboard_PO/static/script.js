@@ -13749,8 +13749,18 @@ async function openR016Folder() {
         const data = await res.json();
 
         if (data.status === 'success') {
+            const targetPath = String(data.target_path || '').trim();
+            const isRemoteHost = Boolean(window.location && window.location.hostname && !['127.0.0.1', 'localhost'].includes(window.location.hostname));
 
-            showNotification('Abriendo carpeta original...', 'success');
+            if (targetPath && navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(targetPath).catch(() => {});
+            }
+
+            if (isRemoteHost) {
+                showNotification('La carpeta se abrió en la PC servidora. La ruta quedó copiada al portapapeles.', 'warning');
+            } else {
+                showNotification('Abriendo carpeta original en esta PC...', 'success');
+            }
 
         } else {
 
@@ -13972,6 +13982,9 @@ window._cotizacionComplementariosLookupTimer = null;
 window._cotizacionComplementariosLookupContext = null;
 window._cotizacionComplementariosLookupDocBound = false;
 window._cotizacionComplementariosLookupErrorShown = false;
+window._cotizacionFleteLogisticsLookupToken = 0;
+window._cotizacionFleteLogisticsLookupTimer = null;
+window._cotizacionFleteLogisticsLookupContext = null;
 const COTIZACION_SUBCONCEPTO_INDEX_CATEGORIES = new Set(['produccion', 'ensamble', 'embalaje', 'deposito_logistica']);
 const COTIZACION_SUBCONCEPTO_AUTO_HORA_CATEGORIES = new Set(['produccion', 'ensamble', 'embalaje', 'deposito_logistica']);
 const COTIZACION_SUBCONCEPTO_MANO_OBRA_LABEL = 'Mano de Obra Aislada';
@@ -13981,7 +13994,7 @@ const COTIZACION_PIEZA_ALL_LABEL = 'Todas las piezas';
 const COTIZACION_PIEZA_MULTI_SEPARATOR = '||';
 const COTIZACION_ATTACHMENTS_MAX_FILES = 40;
 const COTIZACION_ATTACHMENTS_MAX_FILE_SIZE = 12 * 1024 * 1024;
-const COTIZACION_SUBCONCEPTO_FIXED_DASH_CATEGORIES = new Set(['materia_prima', 'conjunto', 'complementarios', 'importacion', 'costo_byp']);
+const COTIZACION_SUBCONCEPTO_FIXED_DASH_CATEGORIES = new Set(['materia_prima', 'conjunto', 'complementarios', 'importacion', 'costo_byp', 'flete_traslados']);
 const COTIZACION_SUBCONCEPTO_EXTERNOS_OPTIONS = [
     'Zincado',
     'Galvanizado',
@@ -14129,6 +14142,7 @@ const COTIZACION_SUMMARY_ROW_CONFIG = [
     { key: 'desperdicios', label: 'Costo de Desperdicios', labelId: 'cot-sum-label-desperdicios', minId: 'cot-sum-desperdicios-min', mayId: 'cot-sum-desperdicios-may' },
     { key: 'externo', label: 'Costo Externo a B&P', labelId: 'cot-sum-label-externo', minId: 'cot-sum-externo-min', mayId: 'cot-sum-externo-may' },
     { key: 'importacion', label: 'Costo de Importacion', labelId: 'cot-sum-label-importacion', minId: 'cot-sum-import-min', mayId: 'cot-sum-import-may' },
+    { key: 'flete_traslados', label: 'Costo de Flete/Traslados', labelId: 'cot-sum-label-flete-traslados', minId: 'cot-sum-flete-traslados-min', mayId: 'cot-sum-flete-traslados-may' },
     { key: 'extra', label: 'Costo Extra', labelId: 'cot-sum-label-extra', minId: 'cot-sum-extra-min', mayId: 'cot-sum-extra-may' },
     { key: 'venta', label: 'Costo de Venta \"Estanteria\"', labelId: 'cot-sum-label-venta', minId: 'cot-sum-venta-min', mayId: 'cot-sum-venta-may' },
     { key: 'comadm', label: 'Costo de Com y Adm', labelId: 'cot-sum-label-comadm', minId: 'cot-sum-comadm-min', mayId: 'cot-sum-comadm-may' },
@@ -14141,6 +14155,7 @@ const COTIZACION_STATS_PIE_SEGMENTS = [
     { key: 'desperdicios', label: 'Costo de Desperdicios' },
     { key: 'externo', label: 'Costo Externo a B&P' },
     { key: 'importacion', label: 'Costo de Importacion' },
+    { key: 'flete_traslados', label: 'Costo de Flete/Traslados' },
     { key: 'extra', label: 'Costo Extra' },
     { key: 'comadm', label: 'Costo de Com y Adm' }
 ];
@@ -14156,6 +14171,7 @@ const COTIZACION_STATS_BAR_SEGMENTS = [
     { key: 'desperdicios', label: 'Desperdicios', color: '#cf1625' },
     { key: 'externo', label: 'Externo a B&P', color: '#e67e22' },
     { key: 'importacion', label: 'Importacion', color: '#1abc9c' },
+    { key: 'flete_traslados', label: 'Flete/Traslados', color: '#f39c12' },
     { key: 'extra', label: 'Extra', color: '#e74c3c' },
     { key: 'comadm', label: 'Com y Adm', color: '#2ecc71' }
 ];
@@ -14169,6 +14185,9 @@ const COTIZACION_PROVIDER_LOOKUP_ENDPOINT = '/api/cotizacion/providers-lookup';
 const COTIZACION_PROVIDER_LOOKUP_MIN_CHARS = 1;
 const COTIZACION_PROVIDER_LOOKUP_DEBOUNCE_MS = 140;
 const COTIZACION_PROVIDER_LOOKUP_LIMIT = 12;
+const COTIZACION_FLETE_LOGISTICS_LOOKUP_ENDPOINT = '/api/logistics/cotizacion-lookup';
+const COTIZACION_FLETE_LOGISTICS_LOOKUP_MIN_CHARS = 1;
+const COTIZACION_FLETE_LOGISTICS_LOOKUP_DEBOUNCE_MS = 200;
 const COTIZACION_CATEGORY_ALIASES = {
     complemento: 'complementarios',
     complementario: 'complementarios',
@@ -14182,7 +14201,12 @@ const COTIZACION_CATEGORY_ALIASES = {
     externo: 'externos',
     'externos a bpb': 'externos',
     materia: 'materia_prima',
-    'materia prima': 'materia_prima'
+    'materia prima': 'materia_prima',
+    'flete_traslado': 'flete_traslados',
+    'flete traslado': 'flete_traslados',
+    'flete traslados': 'flete_traslados',
+    'flete/traslados': 'flete_traslados',
+    'flete/traslado': 'flete_traslados'
 };
 
 function showPlanillaMenu(filename) {
@@ -21376,6 +21400,14 @@ const COTIZACION_CATEGORY_CONFIG = [
         subCategory: 'Maquina / Proceso'
     },
     {
+        key: 'flete_traslados',
+        label: 'Flete/Traslados',
+        configLabel: 'Flete/Traslados',
+        defaultChecked: false,
+        defaultRows: 1,
+        subCategory: '-'
+    },
+    {
         key: 'externos',
         label: 'Externos a BPB',
         configLabel: 'Externos a BPB',
@@ -21834,6 +21866,10 @@ function resolveCotizacionSelectedPieceNames(categoryKey, rawValue, availablePie
 function buildCotizacionPiezaFieldHTML(categoryKey, currentValue = '') {
     const safeCategory = sanitizeCotizacionCategory(categoryKey);
     const current = String(currentValue || '').trim();
+
+    if (safeCategory === 'flete_traslados') {
+        return `<input type="text" class="cot-input cot-pieza cot-flete-pieza-lookup" placeholder="Buscar calculo..." value="${escapeCotizacionHTML(current)}" autocomplete="off">`;
+    }
 
     if (safeCategory === 'costo_byp') {
         return '<input type="text" class="cot-input cot-pieza cot-pieza-fixed" value="-" readonly>';
@@ -22649,6 +22685,360 @@ function handleCotizacionComplementariosLookupDocumentMouseDown(event) {
     if (isCotizacionComplementariosLookupControl(target)) return;
     hideCotizacionComplementariosLookupMenu();
 }
+
+// ─── FLETE/TRASLADOS LOGISTICS LOOKUP ───────────────────────────────────────
+
+function isCotizacionFleteRow(row) {
+    return row instanceof HTMLTableRowElement &&
+        sanitizeCotizacionCategory(row.dataset.category || '') === 'flete_traslados';
+}
+
+function buildCotizacionFleteDescripcionFieldHTML(selectedVersionId, versionLabel, outsourcedCompany, versions) {
+    const opts = Array.isArray(versions)
+        ? versions.map((v) => ({ value: String(v.version_id || ''), label: String(v.label || v.version_id || '') }))
+        : (selectedVersionId && versionLabel ? [{ value: selectedVersionId, label: versionLabel }] : []);
+    return buildCotizacionSingleSelectHTML({
+        controlClass: 'cot-descripcion',
+        wrapperClass: 'cot-flete-version-wrap',
+        currentValue: selectedVersionId || '',
+        placeholderText: 'Seleccionar version...',
+        options: opts
+    });
+}
+
+function buildCotizacionFleteProveedorFieldHTML(outsourcedCompany, selectedProvider) {
+    const company = String(outsourcedCompany || '').trim() || 'Terciarizado';
+    const opts = [
+        { value: 'BPB', label: 'BPB' },
+        { value: company, label: company }
+    ];
+    return buildCotizacionSingleSelectHTML({
+        controlClass: 'cot-proveedor',
+        wrapperClass: 'cot-flete-provider-wrap',
+        currentValue: selectedProvider || '',
+        placeholderText: 'Seleccionar proveedor...',
+        options: opts
+    });
+}
+
+function ensureCotizacionFleteLogisticsLookupMenu() {
+    let menu = document.getElementById('cotizacion-flete-logistics-lookup-menu');
+    if (menu instanceof HTMLElement) return menu;
+
+    menu = document.createElement('div');
+    menu.id = 'cotizacion-flete-logistics-lookup-menu';
+    menu.className = 'cotizacion-complementarios-lookup-menu';
+    menu.style.display = 'none';
+
+    menu.addEventListener('mousedown', (e) => {
+        if (e.target instanceof HTMLElement && e.target.closest('.cotizacion-complementarios-lookup-item')) {
+            e.preventDefault();
+        }
+    });
+
+    menu.addEventListener('click', (e) => {
+        const btn = e.target instanceof HTMLElement ? e.target.closest('.cotizacion-complementarios-lookup-item') : null;
+        if (!(btn instanceof HTMLButtonElement)) return;
+        const index = parseInt(String(btn.dataset.index || ''), 10);
+        const ctx = window._cotizacionFleteLogisticsLookupContext || null;
+        const records = Array.isArray(ctx?.items) ? ctx.items : [];
+        const row = ctx?.row;
+        const selected = Number.isFinite(index) ? records[index] : null;
+        if (!(row instanceof HTMLTableRowElement) || !selected) {
+            hideCotizacionFleteLogisticsLookupMenu();
+            return;
+        }
+        applyFleteLogisticsRecordSelection(row, selected);
+        hideCotizacionFleteLogisticsLookupMenu();
+    });
+
+    document.body.appendChild(menu);
+    return menu;
+}
+
+function hideCotizacionFleteLogisticsLookupMenu() {
+    const menu = document.getElementById('cotizacion-flete-logistics-lookup-menu');
+    if (menu instanceof HTMLElement) {
+        menu.style.display = 'none';
+        menu.innerHTML = '';
+    }
+    window._cotizacionFleteLogisticsLookupContext = null;
+}
+
+function positionCotizacionFleteLogisticsLookupMenu(anchor) {
+    const menu = ensureCotizacionFleteLogisticsLookupMenu();
+    if (!(anchor instanceof HTMLElement)) return;
+    const rect = anchor.getBoundingClientRect();
+    const vw = window.innerWidth || document.documentElement.clientWidth || 0;
+    const pw = Math.max(rect.width, 340);
+    const w = Math.min(pw, Math.max(240, vw - 24));
+    const left = Math.max(8, Math.min(rect.left, vw - w - 8));
+    menu.style.left = `${Math.round(left)}px`;
+    menu.style.top = `${Math.round(rect.bottom + 4)}px`;
+    menu.style.width = `${Math.round(w)}px`;
+}
+
+function renderCotizacionFleteLogisticsLookupMenu(anchor, records) {
+    const menu = ensureCotizacionFleteLogisticsLookupMenu();
+    if (!Array.isArray(records) || !records.length) {
+        hideCotizacionFleteLogisticsLookupMenu();
+        return;
+    }
+    menu.innerHTML = records.map((rec, i) => {
+        const name = String(rec?.save_name || '').trim() || '(sin nombre)';
+        const folder = String(rec?.folder || '').trim();
+        const versions = rec?.version_count != null ? `v${rec.version_count}` : '';
+        return `<button type="button" class="cotizacion-complementarios-lookup-item" data-index="${i}">
+            <span class="cotizacion-complementarios-lookup-main">${escapeCotizacionHTML(name)}</span>
+            <span class="cotizacion-complementarios-lookup-sub">${escapeCotizacionHTML(folder)}</span>
+            <span class="cotizacion-complementarios-lookup-price">${escapeCotizacionHTML(versions)}</span>
+        </button>`;
+    }).join('');
+    positionCotizacionFleteLogisticsLookupMenu(anchor);
+    menu.style.display = 'block';
+}
+
+async function fetchCotizacionFleteLogisticsLookup(query) {
+    const url = `${COTIZACION_FLETE_LOGISTICS_LOOKUP_ENDPOINT}?q=${encodeURIComponent(query)}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    return Array.isArray(data?.records) ? data.records : [];
+}
+
+function scheduleCotizacionFleteLogisticsLookup(control) {
+    if (!(control instanceof HTMLInputElement)) return;
+    if (!control.classList.contains('cot-flete-pieza-lookup')) return;
+    const row = control.closest('.cotizacion-item-row');
+    if (!(row instanceof HTMLTableRowElement)) return;
+
+    const query = String(control.value || '').trim();
+    if (query.length < COTIZACION_FLETE_LOGISTICS_LOOKUP_MIN_CHARS) {
+        hideCotizacionFleteLogisticsLookupMenu();
+        return;
+    }
+
+    const token = (window._cotizacionFleteLogisticsLookupToken || 0) + 1;
+    window._cotizacionFleteLogisticsLookupToken = token;
+    if (window._cotizacionFleteLogisticsLookupTimer) clearTimeout(window._cotizacionFleteLogisticsLookupTimer);
+
+    window._cotizacionFleteLogisticsLookupTimer = setTimeout(async () => {
+        let records = [];
+        try { records = await fetchCotizacionFleteLogisticsLookup(query); } catch (_) { records = []; }
+        if (token !== window._cotizacionFleteLogisticsLookupToken) return;
+        if (!document.body.contains(control) || !document.body.contains(row)) {
+            hideCotizacionFleteLogisticsLookupMenu();
+            return;
+        }
+        window._cotizacionFleteLogisticsLookupContext = { row, control, items: records };
+        renderCotizacionFleteLogisticsLookupMenu(control, records);
+    }, COTIZACION_FLETE_LOGISTICS_LOOKUP_DEBOUNCE_MS);
+}
+
+async function applyFleteLogisticsRecordSelection(row, record) {
+    if (!(row instanceof HTMLTableRowElement) || !record) return;
+
+    const recordId = String(record.id || '').trim();
+    const recordName = String(record.save_name || '').trim();
+
+    // Set pieza value
+    const piezaInput = row.querySelector('.cot-flete-pieza-lookup');
+    if (piezaInput instanceof HTMLInputElement) piezaInput.value = recordName;
+
+    // Store record ID
+    row.dataset.logisticsFleteRecordId = recordId;
+    delete row.dataset.logisticsFleteVersionId;
+    delete row.dataset.logisticsFleteOwnUsd;
+    delete row.dataset.logisticsFleteOutsourcedUsd;
+    delete row.dataset.logisticsFleteOutsourcedCompany;
+    delete row.dataset.logisticsFleteQty;
+
+    // Rebuild description select (placeholder) and reset proveedor while loading
+    const descCell = row.querySelector('.cot-flete-version-wrap')?.closest('td')
+        || row.querySelector('.cot-descripcion')?.closest('td');
+    if (descCell) {
+        descCell.innerHTML = buildCotizacionFleteDescripcionFieldHTML('', 'Cargando...', '', []);
+    }
+    const provCell = row.querySelector('.cot-flete-provider-wrap')?.closest('td')
+        || row.querySelector('.cot-proveedor')?.closest('td');
+    if (provCell) {
+        provCell.innerHTML = buildCotizacionFleteProveedorFieldHTML('', '');
+    }
+
+    // Fetch version history
+    try {
+        const res = await fetch(`/api/logistics/history?id=${encodeURIComponent(recordId)}`);
+        const data = await res.json();
+        if (data.status !== 'success' || !Array.isArray(data.versions)) return;
+
+        // Only show versions that have freight cost data
+        const versions = data.versions.filter((v) => !!v.has_freight_data);
+        if (!versions.length) return;
+
+        const latestVersionId = versions[0].version_id;
+
+        // Build options list for single-select
+        const versionOpts = versions.map((v) => {
+            const label = String(v.history_label || v.save_description || `v${v.version_number}`)
+                + (v.timestamp_display ? ` — ${v.timestamp_display}` : '');
+            return { version_id: v.version_id, label };
+        });
+
+        // Rebuild description select with all valid versions
+        if (descCell) {
+            descCell.innerHTML = buildCotizacionFleteDescripcionFieldHTML(
+                latestVersionId, versionOpts[0]?.label || '', '', versionOpts
+            );
+        }
+
+        // Load the latest version details to populate proveedor
+        row.dataset.logisticsFleteVersionId = latestVersionId;
+        const latestMeta = versions[0];
+        row.dataset.logisticsFleteOwnUsd = String(latestMeta.own_total_usd || 0);
+        row.dataset.logisticsFleteOutsourcedUsd = String(latestMeta.outsourced_total_usd || 0);
+        row.dataset.logisticsFleteOutsourcedCompany = String(latestMeta.outsourced_company || 'Terciarizado');
+        row.dataset.logisticsFleteQty = String(latestMeta.total_qty || 0);
+
+        if (provCell) {
+            provCell.innerHTML = buildCotizacionFleteProveedorFieldHTML(latestMeta.outsourced_company || '', '');
+        }
+    } catch (e) {
+        console.error('Flete lookup history error', e);
+    }
+
+    recalculateCotizacionFormulaCells();
+    clearCotizacionApprovalSignature(false);
+    updateCotizacionSummary();
+}
+
+async function loadFleteVersionData(row, recordId, versionId) {
+    try {
+        const url = `/api/logistics/version?id=${encodeURIComponent(recordId)}&version_id=${encodeURIComponent(versionId)}`;
+        const res = await fetch(url);
+        const data = await res.json();
+        if (data.status !== 'success' || !data.record) return;
+
+        const version = data.record;
+        const freight = version.freight || {};
+        const items = Array.isArray(version.items) ? version.items : [];
+
+        const ownUsd = Number(freight.own_total_usd || 0);
+        const outsourcedUsd = Number(freight.outsourced_total_usd || 0);
+        const outsourcedCompany = String(freight.outsourced_company || 'Terciarizado').trim() || 'Terciarizado';
+        const totalQty = items.reduce((sum, it) => sum + Number(it.qty || 0), 0);
+
+        row.dataset.logisticsFleteVersionId = versionId;
+        row.dataset.logisticsFleteOwnUsd = String(ownUsd);
+        row.dataset.logisticsFleteOutsourcedUsd = String(outsourcedUsd);
+        row.dataset.logisticsFleteOutsourcedCompany = outsourcedCompany;
+        row.dataset.logisticsFleteQty = String(totalQty);
+
+        // Rebuild proveedor select
+        const currentProv = row.querySelector('.cot-proveedor')?.value || '';
+        const provCell = row.querySelector('.cot-flete-provider-wrap')?.closest('td')
+            || row.querySelector('.cot-proveedor')?.closest('td');
+        if (provCell) {
+            provCell.innerHTML = buildCotizacionFleteProveedorFieldHTML(outsourcedCompany, currentProv);
+        }
+
+        // Apply currently selected provider cost
+        applyFleteProviderCost(row);
+    } catch (e) {
+        console.error('Flete version data error', e);
+    }
+}
+
+function applyFleteProviderCost(row) {
+    if (!isCotizacionFleteRow(row)) return;
+
+    const provSelect = row.querySelector('.cot-proveedor');
+    const selectedProv = String(provSelect?.value || '').trim();
+    if (!selectedProv) return;
+
+    const ownUsd = Number(row.dataset.logisticsFleteOwnUsd || 0);
+    const outsourcedUsd = Number(row.dataset.logisticsFleteOutsourcedUsd || 0);
+    const outsourcedCompany = String(row.dataset.logisticsFleteOutsourcedCompany || 'Terciarizado').trim();
+    const totalQty = Number(row.dataset.logisticsFleteQty || 0);
+
+    const cost = selectedProv === 'BPB' ? ownUsd : outsourcedUsd;
+
+    const rateInput = row.querySelector('.cot-rate');
+    if (rateInput instanceof HTMLInputElement) {
+        rateInput.dataset.formula = '';
+        rateInput.value = Number.isFinite(cost) ? formatCotizacionFormulaValue(cost) : '';
+        rateInput.dataset.preciseValue = String(cost);
+    }
+
+    const qtyInput = row.querySelector('.cot-cantidad');
+    if (qtyInput instanceof HTMLInputElement && totalQty > 0) {
+        qtyInput.dataset.formula = '';
+        qtyInput.value = formatCotizacionFormulaValue(totalQty);
+        qtyInput.dataset.preciseValue = String(totalQty);
+    }
+
+    const indiceCtrl = row.querySelector('.cot-indice');
+    if (indiceCtrl instanceof HTMLElement) {
+        setCotizacionSingleSelectValue(indiceCtrl, 'Unidades', { dispatchEvents: false });
+    }
+
+    // Costo unitario = rate / cantidad  (F/G para flete)
+    const costInput = row.querySelector('.cot-cost');
+    if (costInput instanceof HTMLInputElement) {
+        if (cost > 0 && totalQty > 0) {
+            const defaultRefs = getCotizacionDefaultCostFormulaRefs(row);
+            const unitCost = cost / totalQty;
+            if (defaultRefs?.formula?.startsWith('=')) {
+                costInput.dataset.formula = defaultRefs.formula;
+                costInput.dataset.preciseValue = String(unitCost);
+                evaluateCotizacionFormulaInput(costInput, { fromStored: true, silent: true });
+            } else {
+                costInput.dataset.formula = '';
+                costInput.value = formatCotizacionFormulaValue(unitCost);
+                costInput.dataset.preciseValue = String(unitCost);
+            }
+        } else {
+            costInput.dataset.formula = '';
+            costInput.value = '';
+            delete costInput.dataset.preciseValue;
+        }
+    }
+
+    updateCotizacionRowUnitPlaceholders(row);
+    recalculateCotizacionFormulaCells();
+    clearCotizacionApprovalSignature(false);
+    updateCotizacionSummary();
+}
+
+function handleCotizacionFleteLogisticsLookupInputEvent(event) {
+    const target = event.target;
+    if (!(target instanceof HTMLInputElement)) return;
+    if (!target.classList.contains('cot-flete-pieza-lookup')) return;
+    scheduleCotizacionFleteLogisticsLookup(target);
+}
+
+function handleCotizacionFleteLogisticsLookupFocusOutEvent(event) {
+    const target = event.target;
+    if (!(target instanceof HTMLInputElement) || !target.classList.contains('cot-flete-pieza-lookup')) return;
+    setTimeout(() => {
+        const active = document.activeElement;
+        const menu = document.getElementById('cotizacion-flete-logistics-lookup-menu');
+        if (menu instanceof HTMLElement && active instanceof HTMLElement && menu.contains(active)) return;
+        hideCotizacionFleteLogisticsLookupMenu();
+    }, 140);
+}
+
+async function handleCotizacionFleteVersionChange(row) {
+    if (!isCotizacionFleteRow(row)) return;
+    const recordId = String(row.dataset.logisticsFleteRecordId || '').trim();
+    // cot-descripcion is the hidden input inside the single-select wrapper
+    const versionId = String(row.querySelector('.cot-descripcion')?.value || '').trim();
+    if (!recordId || !versionId) return;
+    await loadFleteVersionData(row, recordId, versionId);
+    recalculateCotizacionFormulaCells();
+    clearCotizacionApprovalSignature(false);
+    updateCotizacionSummary();
+}
+
+// ─── END FLETE/TRASLADOS LOGISTICS LOOKUP ───────────────────────────────────
 
 function ensureCotizacionProviderSuggestionsList() {
     let list = document.getElementById('cotizacion-provider-suggestions');
@@ -23752,6 +24142,8 @@ function refreshCotizacionUnitPlaceholders() {
 
 function applyCotizacionDefaultCostFormulaToRow(row, options = {}) {
     if (!(row instanceof HTMLTableRowElement)) return;
+    // flete_traslados uses F/G and is managed exclusively by applyFleteProviderCost
+    if (sanitizeCotizacionCategory(row.dataset.category || '') === 'flete_traslados') return;
 
     const force = !!options.force;
     const rateInput = row.querySelector('.cot-rate');
@@ -24106,12 +24498,46 @@ function createCotizacionRow(data = {}) {
     if (String(data.source_version_id || '').trim()) {
         tr.dataset.sourceVersionId = String(data.source_version_id).trim();
     }
+    if (String(data.logistics_flete_record_id || '').trim()) {
+        tr.dataset.logisticsFleteRecordId = String(data.logistics_flete_record_id).trim();
+    }
+    if (String(data.logistics_flete_version_id || '').trim()) {
+        tr.dataset.logisticsFleteVersionId = String(data.logistics_flete_version_id).trim();
+    }
+    if (Number.isFinite(Number(data.logistics_flete_own_usd))) {
+        tr.dataset.logisticsFleteOwnUsd = String(Number(data.logistics_flete_own_usd));
+    }
+    if (Number.isFinite(Number(data.logistics_flete_outsourced_usd))) {
+        tr.dataset.logisticsFleteOutsourcedUsd = String(Number(data.logistics_flete_outsourced_usd));
+    }
+    if (String(data.logistics_flete_outsourced_company || '').trim()) {
+        tr.dataset.logisticsFleteOutsourcedCompany = String(data.logistics_flete_outsourced_company).trim();
+    }
+    if (Number.isFinite(Number(data.logistics_flete_qty)) && Number(data.logistics_flete_qty) > 0) {
+        tr.dataset.logisticsFleteQty = String(Number(data.logistics_flete_qty));
+    }
+
+    const isFleteRow = category === 'flete_traslados';
+    const fleteDescHtml = isFleteRow
+        ? buildCotizacionFleteDescripcionFieldHTML(
+            data.logistics_flete_version_id || '',
+            String(data.descripcion || '').trim(),
+            data.logistics_flete_outsourced_company || ''
+          )
+        : `<textarea rows="1" class="cot-input cot-descripcion cot-autogrow">${escapeCotizacionHTML(data.descripcion || '')}</textarea>`;
+    const fleteProvHtml = isFleteRow
+        ? buildCotizacionFleteProveedorFieldHTML(
+            data.logistics_flete_outsourced_company || '',
+            proveedor
+          )
+        : `<input type="text" class="cot-input cot-proveedor" list="cotizacion-provider-suggestions" value="${escapeCotizacionHTML(proveedor)}">`;
+
     tr.innerHTML = `
         <td>${getCotizacionCategoryCellHTML(categoria, { isMuda, mudaLabel })}</td>
         <td class="cot-subconcepto-cell"></td>
         <td class="cot-pieza-cell"></td>
-        <td><textarea rows="1" class="cot-input cot-descripcion cot-autogrow">${escapeCotizacionHTML(data.descripcion || '')}</textarea></td>
-        <td><input type="text" class="cot-input cot-proveedor" list="cotizacion-provider-suggestions" value="${escapeCotizacionHTML(proveedor)}"></td>
+        <td>${fleteDescHtml}</td>
+        <td>${fleteProvHtml}</td>
         <td class="cot-rate-cell"><div class="cot-unit-input-wrap"><span class="cot-unit-prefix">USD $</span><input type="text" class="cot-input cot-rate cot-formula-input" inputmode="decimal" value="${formatCotizacionInitialNumericValue(data.rate)}"></div></td>
         <td><input type="text" class="cot-input cot-cantidad cot-formula-input" value="${formatCotizacionInitialNumericValue(data.cantidad)}"></td>
         <td class="cot-indice-cell"></td>
@@ -24131,7 +24557,10 @@ function createCotizacionRow(data = {}) {
 
     const indiceCell = tr.querySelector('.cot-indice-cell');
     if (indiceCell instanceof HTMLTableCellElement) {
-        indiceCell.innerHTML = buildCotizacionIndiceFieldHTML(category, data.indice || '');
+        indiceCell.innerHTML = buildCotizacionIndiceFieldHTML(
+            category,
+            data.indice || (category === 'flete_traslados' ? 'Unidades' : '')
+        );
     }
     tr.dataset.lastIndice = normalizeCotizacionIndiceFromComplementarioUnit(data.indice || '') || (isCotizacionTimeIndiceCategory(category) ? 'Horas' : '');
 
@@ -24208,6 +24637,12 @@ function collectCotizacionRowData(row, options = {}) {
         })(),
         source_record_id: String(row.dataset.sourceRecordId || '').trim(),
         source_version_id: String(row.dataset.sourceVersionId || '').trim(),
+        logistics_flete_record_id: String(row.dataset.logisticsFleteRecordId || '').trim(),
+        logistics_flete_version_id: String(row.dataset.logisticsFleteVersionId || '').trim(),
+        logistics_flete_own_usd: Number(row.dataset.logisticsFleteOwnUsd || 0),
+        logistics_flete_outsourced_usd: Number(row.dataset.logisticsFleteOutsourcedUsd || 0),
+        logistics_flete_outsourced_company: String(row.dataset.logisticsFleteOutsourcedCompany || '').trim(),
+        logistics_flete_qty: Number(row.dataset.logisticsFleteQty || 0),
         is_muda: String(row.dataset.isMuda || '').trim() === '1',
         muda_kind: String(row.dataset.mudaKind || '').trim(),
         rate_formula: (() => {
@@ -24276,7 +24711,8 @@ function getCotizacionDefaultCostFormulaRefs(row) {
     const qtyRef = String(qtyInput.dataset.cellRef || '').toUpperCase();
     if (!rateRef || !qtyRef) return null;
 
-    return { rateRef, qtyRef, formula: `=${rateRef}*${qtyRef}` };
+    const operator = sanitizeCotizacionCategory(row.dataset.category || '') === 'flete_traslados' ? '/' : '*';
+    return { rateRef, qtyRef, formula: `=${rateRef}${operator}${qtyRef}` };
 }
 
 function getCotizacionRowCostBaseFormula(row) {
@@ -24591,7 +25027,7 @@ function handleCotizacionEditorInput(event) {
         autoResizeCotizacionTextarea(target);
     }
 
-    if (target instanceof HTMLInputElement && target.classList.contains('cot-proveedor')) {
+    if (target instanceof HTMLInputElement && target.classList.contains('cot-proveedor') && !target.closest('.cot-flete-provider-wrap')) {
         scheduleCotizacionProviderSuggestions(target);
     }
 
@@ -24685,8 +25121,11 @@ function ensureCotizacionBindings() {
         view.addEventListener('input', handleCotizacionComplementariosLookupInputEvent, true);
         view.addEventListener('focusout', handleCotizacionComplementariosLookupFocusOutEvent, true);
         view.addEventListener('keydown', handleCotizacionComplementariosLookupKeyDownEvent, true);
+        view.addEventListener('input', handleCotizacionFleteLogisticsLookupInputEvent, true);
+        view.addEventListener('focusout', handleCotizacionFleteLogisticsLookupFocusOutEvent, true);
         view.addEventListener('scroll', () => {
             hideCotizacionComplementariosLookupMenu();
+            hideCotizacionFleteLogisticsLookupMenu();
             closeCotizacionPieceMultiselectMenus();
             closeCotizacionSingleSelectMenus();
         }, true);
@@ -24703,6 +25142,16 @@ function ensureCotizacionBindings() {
                 row.dataset.lastIndice = normalizeCotizacionIndiceFromComplementarioUnit(row.querySelector('.cot-indice')?.value || '') || 'Horas';
                 clearCotizacionApprovalSignature(false);
                 updateCotizacionSummary();
+                return;
+            }
+
+            if (target.classList.contains('cot-descripcion') && isCotizacionFleteRow(row)) {
+                handleCotizacionFleteVersionChange(row);
+                return;
+            }
+
+            if (target.classList.contains('cot-proveedor') && isCotizacionFleteRow(row)) {
+                applyFleteProviderCost(row);
                 return;
             }
 
@@ -26212,6 +26661,7 @@ function createCotizacionSummaryBucket() {
         produccion: 0,
         comadm: 0,
         importacion: 0,
+        flete_traslados: 0,
         externo: 0,
         extra: 0
     };
@@ -26227,6 +26677,7 @@ function addCotizacionCostToSummaryBucket(bucket, category, cost) {
     if (['produccion', 'ensamble', 'embalaje', 'deposito_logistica'].includes(safeCategory)) bucket.transformacion += value;
     if (safeCategory === 'costo_byp') bucket.comadm += value;
     if (safeCategory === 'importacion') bucket.importacion += value;
+    if (safeCategory === 'flete_traslados') bucket.flete_traslados += value;
     if (safeCategory === 'externos') bucket.externo += value;
     if (safeCategory === 'extras') bucket.extra += value;
 }
@@ -26241,6 +26692,7 @@ function finalizeCotizacionSummaryBucket(rawBucket, pieceQty) {
         produccion: 0,
         externo: Number(source.externo || 0),
         importacion: Number(source.importacion || 0),
+        flete_traslados: Number(source.flete_traslados || 0),
         extra: Number(source.extra || 0),
         venta: 0,
         comadm: Number(source.comadm || 0),
@@ -26248,7 +26700,7 @@ function finalizeCotizacionSummaryBucket(rawBucket, pieceQty) {
     };
 
     unitario.produccion = unitario.materia_prima + unitario.transformacion + unitario.complementarios;
-    unitario.venta = unitario.produccion + unitario.desperdicios + unitario.externo + unitario.importacion + unitario.extra;
+    unitario.venta = unitario.produccion + unitario.desperdicios + unitario.externo + unitario.importacion + unitario.flete_traslados + unitario.extra;
     unitario.total = unitario.venta + unitario.comadm;
 
     const piezas = {
@@ -26259,6 +26711,7 @@ function finalizeCotizacionSummaryBucket(rawBucket, pieceQty) {
         produccion: unitario.produccion * pieceQty,
         externo: unitario.externo * pieceQty,
         importacion: unitario.importacion * pieceQty,
+        flete_traslados: unitario.flete_traslados * pieceQty,
         extra: unitario.extra * pieceQty,
         venta: unitario.venta * pieceQty,
         comadm: unitario.comadm * pieceQty,
@@ -26979,6 +27432,7 @@ function getCotizacionStatsBarSegmentKey(categoryKey) {
     if (['produccion', 'ensamble', 'embalaje', 'deposito_logistica'].includes(category)) return 'transformacion';
     if (category === 'externos') return 'externo';
     if (category === 'importacion') return 'importacion';
+    if (category === 'flete_traslados') return 'flete_traslados';
     if (category === 'extras') return 'extra';
     if (category === 'costo_byp') return 'comadm';
     return '';

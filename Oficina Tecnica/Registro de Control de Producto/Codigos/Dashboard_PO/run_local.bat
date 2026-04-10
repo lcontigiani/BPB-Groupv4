@@ -17,10 +17,16 @@ popd
 
 :: Force App to use Local Base
 SET "BPB_BASE_DIR=%LOCAL_BASE%"
+SET "BPB_SERVER_HOST=0.0.0.0"
+SET "BPB_SERVER_PORT=8080"
+SET "BPB_BROWSER_HOST=127.0.0.1"
 
 ECHO.
 ECHO [CONFIG] Forzando directorio base:
 ECHO %BPB_BASE_DIR%
+ECHO.
+ECHO [CONFIG] Host servidor: %BPB_SERVER_HOST%
+ECHO [CONFIG] Puerto: %BPB_SERVER_PORT%
 ECHO.
 
 :: Run App

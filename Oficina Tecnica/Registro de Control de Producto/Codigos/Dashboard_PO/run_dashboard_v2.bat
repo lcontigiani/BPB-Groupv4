@@ -19,8 +19,14 @@ SET "PYTHON_VERSION=3.14.0"
 SET "PYTHON_INSTALLER=%TEMP%\python-%PYTHON_VERSION%-amd64.exe"
 SET "PYTHON_EXE="
 SET "PIP_TARGETS=flask pyyaml requests Pillow pdfplumber openpyxl msoffcrypto-tool waitress pywin32"
+SET "BPB_SERVER_HOST=0.0.0.0"
+SET "BPB_SERVER_PORT=8080"
+SET "BPB_BROWSER_HOST=127.0.0.1"
 
 ECHO Ruta APP_DIR detectada: %APP_DIR%
+ECHO.
+ECHO [CONFIG] Host servidor: %BPB_SERVER_HOST%
+ECHO [CONFIG] Puerto: %BPB_SERVER_PORT%
 ECHO.
 
 call :resolve_python

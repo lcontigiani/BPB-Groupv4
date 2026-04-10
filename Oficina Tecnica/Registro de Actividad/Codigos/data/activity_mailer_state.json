@@ -1,6 +1,46 @@
 {
   "campaigns": [
     {
+      "date": "2026-04-10",
+      "sent_at": "2026-04-10T16:00:03",
+      "subject": "Registro de Actividad Diario 10/04/26",
+      "token": "8af9e115",
+      "recipients": [
+        "dmartin@bpbargentina.com",
+        "lcochis@bpbargentina.com",
+        "tcolacilli@bpbargentina.com",
+        "lcontigiani@bpbargentina.com",
+        "aalberto@bpbargentina.com",
+        "afareleira@bpbargentina.com",
+        "ctorigian@bpbargentina.com",
+        "fbeaz@bpbargentina.com"
+      ],
+      "responses": {
+        "ctorigian@bpbargentina.com": {
+          "from": "ctorigian@bpbargentina.com",
+          "from_name": "Cesar Torigian",
+          "subject": "Re: Registro de Actividad Diario 10/04/26",
+          "date": "2026-04-10 16:09:24",
+          "received_at": "2026-04-10T16:09:24.899636",
+          "snippet": "Proyecto: SimpliseedtyS2\nTiempo destinado: 6 Horas\nDescripci?n: Diseño de partes para enviar a fabricar a China.",
+          "body": "Proyecto: SimpliseedtyS2\nTiempo destinado: 6 Horas\nDescripci?n: Diseño de partes para enviar a fabricar a China.",
+          "uid": 0,
+          "saved_path": "WEB_SUBMISSION"
+        },
+        "lcontigiani@bpbargentina.com": {
+          "from": "lcontigiani@bpbargentina.com",
+          "from_name": "Lorenzo Contigiani",
+          "subject": "Re: Registro de Actividad Diario 10/04/26",
+          "date": "2026-04-10 16:49:26",
+          "received_at": "2026-04-10T16:49:26.880096",
+          "snippet": "Proyecto: Panel de Control O.T\nTiempo destinado: 5 Horas\nDescripci?n: Se llevo la pagina al local. Se termino de arreglar muchos problemas relacionado a ello.\n----------------\nProyecto: Cotizaciones\nTiempo destinado: 3,5 Horas\nDescripci?n: Se termino la cotizacion de la Maza TSG-CCW-C060000.",
+          "body": "Proyecto: Panel de Control O.T\nTiempo destinado: 5 Horas\nDescripci?n: Se llevo la pagina al local. Se termino de arreglar muchos problemas relacionado a ello.\n----------------\nProyecto: Cotizaciones\nTiempo destinado: 3,5 Horas\nDescripci?n: Se termino la cotizacion de la Maza TSG-CCW-C060000.",
+          "uid": 0,
+          "saved_path": "WEB_SUBMISSION"
+        }
+      }
+    },
+    {
       "date": "2026-04-09",
       "sent_at": "2026-04-09T17:00:02",
       "subject": "Registro de Actividad Diario 09/04/26",
@@ -2464,101 +2504,6 @@
           "received_at": "2026-02-24T17:05:52.990666",
           "snippet": "Proyecto: Cuerpo de Siembra\nTiempo destinado: 9 Horas\nDescripci?n: Preparación nuevo cuerpo para PP, actualización planos 35 líneas",
           "body": "Proyecto: Cuerpo de Siembra\nTiempo destinado: 9 Horas\nDescripci?n: Preparación nuevo cuerpo para PP, actualización planos 35 líneas",
-          "uid": 0,
-          "saved_path": "WEB_SUBMISSION"
-        }
-      }
-    },
-    {
-      "date": "2026-02-19",
-      "sent_at": "2026-02-19T17:00:02",
-      "subject": "Registro de Actividad Diario 19/02/26",
-      "token": "4533c161",
-      "recipients": [
-        "dmartin@bpbargentina.com",
-        "lcochis@bpbargentina.com",
-        "tcolacilli@bpbargentina.com",
-        "lcontigiani@bpbargentina.com",
-        "aalberto@bpbargentina.com",
-        "afareleira@bpbargentina.com",
-        "ctorigian@bpbargentina.com",
-        "fbeaz@bpbargentina.com"
-      ],
-      "responses": {
-        "lcontigiani@bpbargentina.com": {
-          "from": "lcontigiani@bpbargentina.com",
-          "from_name": "Lorenzo Contigiani",
-          "subject": "Re: Registro de Actividad Diario 19/02/26",
-          "date": "2026-02-19 17:15:58",
-          "received_at": "2026-02-19T17:15:58.534284",
-          "snippet": "Proyecto: Cuerpo de Siembra\nTiempo destinado: 9 Horas\nDescripci?n: Se inicio el desarrollo del sistema para organización del cuerpo de siembra (PLM, EMP, BOM). Actualmente se puede cargar todos los productos y armar un BOM de cada versión. Queda pendiente sección EMP.",
-          "body": "Proyecto: Cuerpo de Siembra\nTiempo destinado: 9 Horas\nDescripci?n: Se inicio el desarrollo del sistema para organización del cuerpo de siembra (PLM, EMP, BOM). Actualmente se puede cargar todos los productos y armar un BOM de cada versión. Queda pendiente sección EMP.",
-          "uid": 0,
-          "saved_path": "WEB_SUBMISSION"
-        },
-        "dmartin@bpbargentina.com": {
-          "from": "dmartin@bpbargentina.com",
-          "from_name": "David Martin",
-          "subject": "Re: Registro de Actividad Diario 19/02/26",
-          "date": "2026-02-19 17:16:52",
-          "received_at": "2026-02-19T17:16:52.653114",
-          "snippet": "Proyecto: Cuerpo de Siembra\nTiempo destinado: 9 Horas\nDescripci?n: Anclaje dosificador PP: planos y solidos. \nPlanos de armado: Codificación y descripciones para lista de marteriales.",
-          "body": "Proyecto: Cuerpo de Siembra\nTiempo destinado: 9 Horas\nDescripci?n: Anclaje dosificador PP: planos y solidos. \nPlanos de armado: Codificación y descripciones para lista de marteriales.",
-          "uid": 0,
-          "saved_path": "WEB_SUBMISSION"
-        },
-        "afareleira@bpbargentina.com": {
-          "from": "afareleira@bpbargentina.com",
-          "from_name": "Agustin Fareleira",
-          "subject": "Re: Registro de Actividad Diario 19/02/26",
-          "date": "2026-02-19 17:16:53",
-          "received_at": "2026-02-19T17:16:53.881648",
-          "snippet": "Proyecto: Lider Rolamentos\nTiempo destinado: 9 Horas\nDescripci?n: Planimetría  de rodamiento UK215-75RS para pedir cotización en china",
-          "body": "Proyecto: Lider Rolamentos\nTiempo destinado: 9 Horas\nDescripci?n: Planimetría  de rodamiento UK215-75RS para pedir cotización en china",
-          "uid": 0,
-          "saved_path": "WEB_SUBMISSION"
-        },
-        "ctorigian@bpbargentina.com": {
-          "from": "ctorigian@bpbargentina.com",
-          "from_name": "Cesar Torigian",
-          "subject": "Re: Registro de Actividad Diario 19/02/26",
-          "date": "2026-02-19 17:19:44",
-          "received_at": "2026-02-19T17:19:44.216742",
-          "snippet": "Proyecto: SimpliseedtyS1\nTiempo destinado: 8 Horas\nDescripci?n: Prueba y mejoras para funcionamiento optimo.",
-          "body": "Proyecto: SimpliseedtyS1\nTiempo destinado: 8 Horas\nDescripci?n: Prueba y mejoras para funcionamiento optimo.",
-          "uid": 0,
-          "saved_path": "WEB_SUBMISSION"
-        },
-        "aalberto@bpbargentina.com": {
-          "from": "aalberto@bpbargentina.com",
-          "from_name": "Agustin Alberto",
-          "subject": "Re: Registro de Actividad Diario 19/02/26",
-          "date": "2026-02-19 17:19:47",
-          "received_at": "2026-02-19T17:19:47.979046",
-          "snippet": "Proyecto: SimpliseedtyS1\nTiempo destinado: 8,5 Horas\nDescripci?n: Se armaron 2 dosi y se empezó a armar uno nuevo",
-          "body": "Proyecto: SimpliseedtyS1\nTiempo destinado: 8,5 Horas\nDescripci?n: Se armaron 2 dosi y se empezó a armar uno nuevo",
-          "uid": 0,
-          "saved_path": "WEB_SUBMISSION"
-        },
-        "tcolacilli@bpbargentina.com": {
-          "from": "tcolacilli@bpbargentina.com",
-          "from_name": "Tomas Colacilli",
-          "subject": "Re: Registro de Actividad Diario 19/02/26",
-          "date": "2026-02-20 08:06:51",
-          "received_at": "2026-02-20T08:06:51.868881",
-          "snippet": "Proyecto: Cuerpo de Siembra\nTiempo destinado: 1 Horas\nDescripci?n: Preparación archivos para Ascanelli (homologación PP)\n----------------\nProyecto: Fiat\nTiempo destinado: 9 Horas\nDescripci?n: Viaje a planta Fiat por proyectos de 3 cadenas de transporte nuevas",
-          "body": "Proyecto: Cuerpo de Siembra\nTiempo destinado: 1 Horas\nDescripci?n: Preparación archivos para Ascanelli (homologación PP)\n----------------\nProyecto: Fiat\nTiempo destinado: 9 Horas\nDescripci?n: Viaje a planta Fiat por proyectos de 3 cadenas de transporte nuevas",
-          "uid": 0,
-          "saved_path": "WEB_SUBMISSION"
-        },
-        "fbeaz@bpbargentina.com": {
-          "from": "fbeaz@bpbargentina.com",
-          "from_name": "Franco Beaz",
-          "subject": "Re: Registro de Actividad Diario 19/02/26",
-          "date": "2026-02-20 11:14:29",
-          "received_at": "2026-02-20T11:14:29.402255",
-          "snippet": "Proyecto: Caja Eléctrica\nTiempo destinado: 1 Horas\nDescripci?n: Se modifico el marcado de la carcasa de la caja electrica segun requerimientos de Juan Pablo, basicamente se desplazaron las letras para que la fresa de 2 mm pueda meterse\n----------------\nProyecto: Caja Cuchillas Electrica\nTiempo destinado: 8 Horas\nDescripci?n: Diseño del movimiento axial, mediante rodamientos que se colocaron en los porta satelites, se logro eliminar el movimiento axial del sistema del reductor. Mediante una tuerca 5/8 x 18 Unf se logro fijar el excentrico a todo el sistema y de este modo se elimina la posibilidad que el excentrico se desplace en sentido axial.",
-          "body": "Proyecto: Caja Eléctrica\nTiempo destinado: 1 Horas\nDescripci?n: Se modifico el marcado de la carcasa de la caja electrica segun requerimientos de Juan Pablo, basicamente se desplazaron las letras para que la fresa de 2 mm pueda meterse\n----------------\nProyecto: Caja Cuchillas Electrica\nTiempo destinado: 8 Horas\nDescripci?n: Diseño del movimiento axial, mediante rodamientos que se colocaron en los porta satelites, se logro eliminar el movimiento axial del sistema del reductor. Mediante una tuerca 5/8 x 18 Unf se logro fijar el excentrico a todo el sistema y de este modo se elimina la posibilidad que el excentrico se desplace en sentido axial.",
           "uid": 0,
           "saved_path": "WEB_SUBMISSION"
         }
