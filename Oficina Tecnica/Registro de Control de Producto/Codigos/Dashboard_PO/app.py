@@ -6,6 +6,7 @@ from decimal import Decimal
 import os
 
 import json
+import sqlite3
 import sys
 
 import urllib.request
@@ -1988,6 +1989,8 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 SCRIPT_DIR_PATH = Path(SCRIPT_DIR)
 LOGISTICS_RECORDS_FILE = os.path.join(SCRIPT_DIR, 'logistics_records.json')
 COTIZACION_RECORDS_FILE = os.path.join(SCRIPT_DIR, 'cotizacion_records.json')
+COTIZACION_RECORDS_DB_FILE = os.path.join(SCRIPT_DIR, 'cotizacion_records.db')
+COTIZACION_BACKUPS_DIR = os.path.join(SCRIPT_DIR, 'Datos', 'cotizacion_backups')
 LOGISTICS_DEFAULT_FOLDER = 'Sin Carpeta'
 COTIZACION_DEFAULT_FOLDER = 'Sin Carpeta'
 
@@ -2017,7 +2020,7 @@ def add_utf8_header(response):
         content_type = response.headers['Content-Type']
         if 'charset' not in content_type.lower():
             response.headers['Content-Type'] = content_type + '; charset=utf-8'
-    if request.path.startswith('/static/'):
+    if request.path.startswith('/static/') or request.path.startswith('/api/'):
         response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
         response.headers['Pragma'] = 'no-cache'
         response.headers['Expires'] = '0'
@@ -2134,6 +2137,80 @@ def _extract_bp_year_seq(value) -> Optional[Tuple[str, int]]:
         return None
 
 
+def _read_r01901_bp_from_word(path: Path) -> Optional[str]:
+    try:
+        import pythoncom
+        from win32com.client import Dispatch
+    except Exception:
+        return None
+
+    pythoncom.CoInitialize()
+    word = None
+    doc = None
+    try:
+        word = Dispatch("Word.Application")
+        word.Visible = False
+        doc = word.Documents.Open(str(path), ReadOnly=True)
+
+        def _read_text_candidate(name: str) -> Optional[str]:
+            try:
+                if doc.Bookmarks.Exists(name):
+                    value = str(doc.Bookmarks(name).Range.Text or "").strip()
+                    if value:
+                        return value
+            except Exception:
+                pass
+            try:
+                value = str(doc.FormFields(name).Result or "").strip()
+                if value:
+                    return value
+            except Exception:
+                pass
+            try:
+                controls = doc.SelectContentControlsByTitle(name)
+                if controls and controls.Count > 0:
+                    value = str(controls.Item(1).Range.Text or "").strip()
+                    if value:
+                        return value
+            except Exception:
+                pass
+            return None
+
+        raw = _read_text_candidate("BP")
+        if not raw:
+            return None
+        match = re.search(r"BP-?\d{5}", raw.upper())
+        if match:
+            bp = match.group(0).upper()
+            return bp if bp.startswith("BP-") else f"BP-{bp[2:]}"
+        return None
+    except Exception:
+        return None
+    finally:
+        try:
+            if doc is not None:
+                doc.Close(False)
+        except Exception:
+            pass
+        try:
+            if word is not None:
+                word.Quit()
+        except Exception:
+            pass
+        try:
+            pythoncom.CoUninitialize()
+        except Exception:
+            pass
+
+
+def _extract_r01901_bp_year_seq(path: Path, year_two: str) -> Optional[Tuple[str, int]]:
+    bp_value = _read_r01901_bp_from_word(path)
+    bp_parts = _extract_bp_year_seq(bp_value)
+    if bp_parts and bp_parts[0] == year_two:
+        return bp_parts
+    return _extract_bp_year_seq(path.name)
+
+
 def _compute_iso_next_registry() -> dict:
     year_two = datetime.now().strftime("%y")
     last_num = 174
@@ -2171,28 +2248,9 @@ def _compute_iso_next_registry() -> dict:
             for doc in ISO_R01901_DOCS_DIR.iterdir():
                 if not doc.is_file():
                     continue
-                bp_parts = _extract_bp_year_seq(doc.name)
+                bp_parts = _extract_r01901_bp_year_seq(doc, year_two)
                 if bp_parts and bp_parts[0] == year_two:
                     last_seq = max(last_seq, bp_parts[1])
-    except Exception:
-        pass
-
-    try:
-        payloads = _load_iso_payloads()
-        if payloads:
-            source_details.append(f"payloads:{ISO_PAYLOADS_FILE}")
-        for payload in payloads.values():
-            if not isinstance(payload, dict):
-                continue
-            parsed_num = _parse_iso_registry_int(
-                payload.get("Numero_de_Registro") or payload.get("numero")
-            )
-            if parsed_num is not None:
-                last_num = max(last_num, parsed_num)
-
-            bp_parts = _extract_bp_year_seq(payload.get("BP") or payload.get("bp"))
-            if bp_parts and bp_parts[0] == year_two:
-                last_seq = max(last_seq, bp_parts[1])
     except Exception:
         pass
 
@@ -2787,6 +2845,27 @@ def _logistics_version_to_editor_record(group, version):
     data['latest_version'] = int(group.get('latest_version') or version.get('version_number') or 1)
     data['version_count'] = len(group.get('versions', [])) if isinstance(group.get('versions', []), list) else 1
     return data
+
+
+def _logistics_extract_item_names(version):
+    names = []
+    seen = set()
+    items = version.get('items', []) if isinstance(version, dict) else []
+    for item in items if isinstance(items, list) else []:
+        if not isinstance(item, dict):
+            continue
+        name = str(item.get('name') or '').strip()
+        if not name:
+            continue
+        key = name.lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        names.append({
+            'name': name,
+            'qty': int(item.get('qty') or 0)
+        })
+    return names
 
 HISTORIAL_PO_DIR = BASE_DIR / "Auxiliares/Historial PO"
 
@@ -5336,13 +5415,37 @@ def logistics_cotizacion_lookup():
         for group in groups:
             latest = _logistics_get_latest_version(group) or {}
             save_name = str(latest.get('save_name') or group.get('save_name') or '').strip()
-            if not query or query in save_name.lower():
+            folder = _normalize_logistics_folder_name(group.get('folder'))
+            version_count = len(group.get('versions', []))
+            latest_version = int(group.get('latest_version') or version_count or 1)
+
+            item_names = _logistics_extract_item_names(latest)
+            match_record = not query or query in save_name.lower()
+            if match_record:
                 results.append({
+                    'type': 'record',
                     'id': group.get('id', ''),
                     'save_name': save_name,
-                    'folder': _normalize_logistics_folder_name(group.get('folder')),
-                    'version_count': len(group.get('versions', [])),
-                    'latest_version': int(group.get('latest_version') or len(group.get('versions', [])) or 1)
+                    'folder': folder,
+                    'version_count': version_count,
+                    'latest_version': latest_version
+                })
+
+            for piece in item_names:
+                piece_name = str(piece.get('name') or '').strip()
+                if not piece_name:
+                    continue
+                if query and query not in piece_name.lower() and query not in save_name.lower():
+                    continue
+                results.append({
+                    'type': 'piece',
+                    'id': group.get('id', ''),
+                    'save_name': save_name,
+                    'piece_name': piece_name,
+                    'piece_qty': int(piece.get('qty') or 0),
+                    'folder': folder,
+                    'version_count': version_count,
+                    'latest_version': latest_version
                 })
         return jsonify({'status': 'success', 'records': results[:20]})
     except Exception as e:
@@ -6297,6 +6400,13 @@ def _clean_cotizacion_items(raw_items):
             'source_summary': _cotizacion_normalize_source_summary(item.get('source_summary')),
             'source_record_id': str(item.get('source_record_id', '')),
             'source_version_id': str(item.get('source_version_id', '')),
+            'logistics_flete_record_id': str(item.get('logistics_flete_record_id', '')),
+            'logistics_flete_record_name': _cotizacion_fix_text(item.get('logistics_flete_record_name', '')),
+            'logistics_flete_version_id': str(item.get('logistics_flete_version_id', '')),
+            'logistics_flete_own_usd': item.get('logistics_flete_own_usd', 0),
+            'logistics_flete_outsourced_usd': item.get('logistics_flete_outsourced_usd', 0),
+            'logistics_flete_outsourced_company': _cotizacion_fix_text(item.get('logistics_flete_outsourced_company', '')),
+            'logistics_flete_qty': item.get('logistics_flete_qty', 0),
             'is_muda': bool(item.get('is_muda')),
             'muda_kind': str(item.get('muda_kind', '')),
             'rate_formula': str(item.get('rate_formula', '')),
@@ -6428,7 +6538,7 @@ def _cotizacion_normalize_source_summary(raw_summary):
     if not isinstance(raw_summary, dict):
         return None
 
-    keys = ['materia_prima', 'complementarios', 'transformacion', 'desperdicios', 'externo', 'importacion', 'extra', 'comadm', 'produccion', 'venta', 'total']
+    keys = ['materia_prima', 'complementarios', 'transformacion', 'desperdicios', 'externo', 'importacion', 'flete_traslados', 'extra', 'comadm', 'produccion', 'venta', 'total']
     normalized = {}
     has_value = False
 
@@ -6707,16 +6817,9 @@ def _merge_cotizacion_groups(groups):
     return merged_list
 
 
-def _read_cotizacion_records_store():
+def _read_cotizacion_records_store_from_json():
     empty_store = {'folders': [COTIZACION_DEFAULT_FOLDER], 'groups': []}
-    if not os.path.exists(COTIZACION_RECORDS_FILE):
-        return empty_store
-
-    try:
-        with open(COTIZACION_RECORDS_FILE, 'r', encoding='utf-8') as f:
-            raw_records = json.load(f)
-    except Exception:
-        return empty_store
+    raw_records = _load_json_file(COTIZACION_RECORDS_FILE, deepcopy(empty_store))
 
     if isinstance(raw_records, list):
         raw_groups = raw_records
@@ -6745,6 +6848,146 @@ def _read_cotizacion_records_store():
     return {'folders': folders, 'groups': groups}
 
 
+def _get_cotizacion_db_connection():
+    conn = sqlite3.connect(COTIZACION_RECORDS_DB_FILE, timeout=30)
+    conn.row_factory = sqlite3.Row
+    conn.execute('PRAGMA journal_mode=WAL')
+    conn.execute('PRAGMA synchronous=FULL')
+    conn.execute('PRAGMA foreign_keys=ON')
+    return conn
+
+
+def _ensure_cotizacion_sqlite_schema(conn):
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS cotizacion_meta (
+            key TEXT PRIMARY KEY,
+            value TEXT NOT NULL
+        )
+    """)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS cotizacion_folders (
+            name TEXT PRIMARY KEY
+        )
+    """)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS cotizacion_groups (
+            group_id TEXT PRIMARY KEY,
+            folder TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            latest_version INTEGER NOT NULL,
+            latest_revision_label TEXT NOT NULL,
+            revision_count INTEGER NOT NULL,
+            save_name TEXT NOT NULL,
+            save_description TEXT NOT NULL,
+            save_category TEXT NOT NULL,
+            author TEXT NOT NULL,
+            payload_json TEXT NOT NULL
+        )
+    """)
+    conn.execute(
+        "INSERT OR IGNORE INTO cotizacion_meta(key, value) VALUES (?, ?)",
+        ('schema_version', '1')
+    )
+    conn.execute(
+        "INSERT OR IGNORE INTO cotizacion_folders(name) VALUES (?)",
+        (COTIZACION_DEFAULT_FOLDER,)
+    )
+
+
+def _write_cotizacion_records_store_to_sqlite(conn, store):
+    safe_groups = _merge_cotizacion_groups(store.get('groups', []))
+    folder_set = {COTIZACION_DEFAULT_FOLDER}
+    for folder in store.get('folders', []):
+        folder_set.add(_normalize_cotizacion_folder_name(folder))
+    for group in safe_groups:
+        folder_set.add(_normalize_cotizacion_folder_name(group.get('folder')))
+
+    with conn:
+        conn.execute("DELETE FROM cotizacion_folders")
+        conn.executemany(
+            "INSERT INTO cotizacion_folders(name) VALUES (?)",
+            [(name,) for name in sorted(folder_set, key=lambda item: (item != COTIZACION_DEFAULT_FOLDER, item.lower()))]
+        )
+        conn.execute("DELETE FROM cotizacion_groups")
+        conn.executemany(
+            """
+            INSERT INTO cotizacion_groups(
+                group_id, folder, created_at, updated_at, latest_version,
+                latest_revision_label, revision_count, save_name, save_description,
+                save_category, author, payload_json
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            [
+                (
+                    str(group.get('id') or ''),
+                    _normalize_cotizacion_folder_name(group.get('folder')),
+                    _cotizacion_safe_timestamp(group.get('created_at')),
+                    _cotizacion_safe_timestamp(group.get('updated_at')),
+                    int(group.get('latest_version') or 1),
+                    str(group.get('latest_revision_label') or '0'),
+                    int(group.get('revision_count') or 0),
+                    _cotizacion_fix_text(group.get('save_name', '')),
+                    _cotizacion_fix_text(group.get('save_description', '')),
+                    _normalize_cotizacion_record_category(group.get('save_category', '')),
+                    _cotizacion_fix_text(group.get('author', 'Usuario')),
+                    json.dumps(group, ensure_ascii=False)
+                )
+                for group in safe_groups
+            ]
+        )
+
+
+def _read_cotizacion_records_store_from_sqlite():
+    empty_store = {'folders': [COTIZACION_DEFAULT_FOLDER], 'groups': []}
+    with _get_json_lock(COTIZACION_RECORDS_DB_FILE):
+        conn = _get_cotizacion_db_connection()
+        try:
+            _ensure_cotizacion_sqlite_schema(conn)
+            group_count = int(conn.execute("SELECT COUNT(*) FROM cotizacion_groups").fetchone()[0] or 0)
+            if group_count == 0:
+                json_store = _read_cotizacion_records_store_from_json()
+                json_groups = _merge_cotizacion_groups(json_store.get('groups', []))
+                json_folders = json_store.get('folders', [])
+                if json_groups or len(json_folders) > 1:
+                    _write_cotizacion_records_store_to_sqlite(conn, json_store)
+
+            folders = [
+                _normalize_cotizacion_folder_name(row['name'])
+                for row in conn.execute("SELECT name FROM cotizacion_folders ORDER BY CASE WHEN name = ? THEN 0 ELSE 1 END, lower(name)", (COTIZACION_DEFAULT_FOLDER,))
+            ]
+            payload_groups = []
+            for row in conn.execute("SELECT payload_json FROM cotizacion_groups ORDER BY updated_at DESC, group_id ASC"):
+                try:
+                    payload = json.loads(row['payload_json'])
+                except Exception:
+                    continue
+                group = _normalize_cotizacion_group(payload)
+                if group:
+                    payload_groups.append(group)
+
+            groups = _merge_cotizacion_groups(payload_groups)
+            folder_set = {COTIZACION_DEFAULT_FOLDER}
+            for folder in folders:
+                folder_set.add(_normalize_cotizacion_folder_name(folder))
+            for group in groups:
+                folder_set.add(_normalize_cotizacion_folder_name(group.get('folder')))
+            return {
+                'folders': sorted(folder_set, key=lambda name: (name != COTIZACION_DEFAULT_FOLDER, name.lower())),
+                'groups': groups
+            }
+        finally:
+            conn.close()
+
+
+def _sync_cotizacion_json_mirror(store):
+    _write_json_file_atomic(COTIZACION_RECORDS_FILE, store, indent=4, ensure_ascii=False)
+
+
+def _read_cotizacion_records_store():
+    return _read_cotizacion_records_store_from_sqlite()
+
+
 def _read_cotizacion_record_groups():
     return _read_cotizacion_records_store().get('groups', [])
 
@@ -6753,19 +6996,79 @@ def _read_cotizacion_folder_names():
     return _read_cotizacion_records_store().get('folders', [COTIZACION_DEFAULT_FOLDER])
 
 
-def _write_cotizacion_record_groups(groups):
-    safe_groups = _merge_cotizacion_groups(groups if isinstance(groups, list) else [])
-    folder_set = {COTIZACION_DEFAULT_FOLDER}
+def _archive_cotizacion_store_snapshot(store, reason='snapshot'):
+    try:
+        archive_dir = Path(COTIZACION_BACKUPS_DIR)
+        archive_dir.mkdir(parents=True, exist_ok=True)
+        stamp = datetime.now().strftime('%Y%m%d-%H%M%S-%f')
+        filename = f"cotizacion_records-{stamp}-{secure_filename(str(reason) or 'snapshot')}.json"
+        target = archive_dir / filename
+        _write_json_file_atomic(target, store, indent=4, ensure_ascii=False)
+
+        existing = sorted(
+            archive_dir.glob('cotizacion_records-*.json'),
+            key=lambda item: item.stat().st_mtime,
+            reverse=True
+        )
+        for old_file in existing[200:]:
+            try:
+                old_file.unlink()
+            except Exception:
+                pass
+    except Exception as exc:
+        print(f"COTIZACION SNAPSHOT WARNING: {exc}")
+
+
+def _write_cotizacion_records_store(store, *, allow_shrink=False, reason='update'):
     existing_store = _read_cotizacion_records_store()
+    existing_groups = _merge_cotizacion_groups(existing_store.get('groups', []))
+    new_groups = _merge_cotizacion_groups(store.get('groups', []))
+
+    existing_count = len(existing_groups)
+    new_count = len(new_groups)
+    suspicious_shrink = (
+        not allow_shrink
+        and existing_count >= 5
+        and new_count < existing_count
+        and (new_count <= max(1, existing_count // 2))
+    )
+    if suspicious_shrink:
+        _archive_cotizacion_store_snapshot(existing_store, reason='prevented-shrink')
+        raise RuntimeError(
+            f"Safety check prevented overwriting cotizacion_records.json: "
+            f"{existing_count} registros existentes vs {new_count} nuevos."
+        )
+
+    folder_set = {COTIZACION_DEFAULT_FOLDER}
     for folder in existing_store.get('folders', []):
         folder_set.add(_normalize_cotizacion_folder_name(folder))
-    for group in safe_groups:
+    for folder in store.get('folders', []):
+        folder_set.add(_normalize_cotizacion_folder_name(folder))
+    for group in new_groups:
         folder_set.add(_normalize_cotizacion_folder_name(group.get('folder')))
+
     safe_payload = {
         'folders': sorted(folder_set, key=lambda name: (name != COTIZACION_DEFAULT_FOLDER, name.lower())),
-        'groups': safe_groups
+        'groups': new_groups
     }
-    _write_json_file_atomic(COTIZACION_RECORDS_FILE, safe_payload, indent=4, ensure_ascii=False)
+
+    if existing_count or new_count:
+        _archive_cotizacion_store_snapshot(existing_store, reason=f'pre-{reason}')
+    with _get_json_lock(COTIZACION_RECORDS_DB_FILE):
+        conn = _get_cotizacion_db_connection()
+        try:
+            _ensure_cotizacion_sqlite_schema(conn)
+            _write_cotizacion_records_store_to_sqlite(conn, safe_payload)
+        finally:
+            conn.close()
+    _sync_cotizacion_json_mirror(safe_payload)
+
+
+def _write_cotizacion_record_groups(groups, *, allow_shrink=False, reason='update'):
+    _write_cotizacion_records_store({
+        'folders': _read_cotizacion_folder_names(),
+        'groups': groups if isinstance(groups, list) else []
+    }, allow_shrink=allow_shrink, reason=reason)
 
 
 def _cotizacion_get_latest_version(group):
@@ -6802,6 +7105,8 @@ def _cotizacion_group_to_summary(group):
 
 
 def _cotizacion_version_to_editor_record(group, version):
+    items = deepcopy(version.get('items', [])) if isinstance(version.get('items', []), list) else []
+    items = _cotizacion_fill_missing_source_summaries(items, _read_cotizacion_record_groups())
     return {
         'id': group.get('id', ''),
         'folder': _normalize_cotizacion_folder_name(group.get('folder')),
@@ -6824,7 +7129,7 @@ def _cotizacion_version_to_editor_record(group, version):
         'settings': version.get('settings', {}),
         'summary': version.get('summary', {}),
         'attachments': version.get('attachments', []),
-        'items': version.get('items', [])
+        'items': items
     }
 
 
@@ -7158,11 +7463,19 @@ def _cotizacion_fill_missing_source_summaries(items, records):
             continue
         if bool(item.get('is_muda')):
             continue
+        resolved = _cotizacion_resolve_source_summary_from_records(item.get('source_record_id'), records)
         existing = _cotizacion_normalize_source_summary(item.get('source_summary'))
+        if existing and resolved:
+            merged = dict(resolved)
+            merged.update(existing)
+            # Prefer the live source summary for keys that were historically omitted from stored snapshots.
+            for key in ('flete_traslados',):
+                merged[key] = float(resolved.get(key, 0) or 0)
+            item['source_summary'] = _cotizacion_normalize_source_summary(merged)
+            continue
         if existing:
             item['source_summary'] = existing
             continue
-        resolved = _cotizacion_resolve_source_summary_from_records(item.get('source_record_id'), records)
         if resolved:
             item['source_summary'] = resolved
     return items
@@ -7405,88 +7718,89 @@ def _cotizacion_sync_linked_combined_groups(groups, source_group_id):
 @app.route('/api/cotizacion/save', methods=['POST'])
 def save_cotizacion_record():
     try:
-        data = request.json or {}
-        if not data:
-            return jsonify({'status': 'error', 'message': 'No data received'}), 400
+        with _get_json_lock(COTIZACION_RECORDS_DB_FILE):
+            data = request.json or {}
+            if not data:
+                return jsonify({'status': 'error', 'message': 'No data received'}), 400
 
-        header_payload = data.get('header', {}) if isinstance(data.get('header', {}), dict) else {}
-        normalized_code = _cotizacion_fix_text(header_payload.get('piece_code', header_payload.get('code', ''))).strip()
-        normalized_piece = _cotizacion_fix_text(header_payload.get('piece', '')).strip()
-        normalized_category = _normalize_cotizacion_record_category(data.get('save_category', data.get('record_category', '')))
-        normalized_requester = _cotizacion_fix_text(header_payload.get('requested_by', header_payload.get('requester', ''))).strip()
+            header_payload = data.get('header', {}) if isinstance(data.get('header', {}), dict) else {}
+            normalized_code = _cotizacion_fix_text(header_payload.get('piece_code', header_payload.get('code', ''))).strip()
+            normalized_piece = _cotizacion_fix_text(header_payload.get('piece', '')).strip()
+            normalized_category = _normalize_cotizacion_record_category(data.get('save_category', data.get('record_category', '')))
+            normalized_requester = _cotizacion_fix_text(header_payload.get('requested_by', header_payload.get('requester', ''))).strip()
 
-        header_payload['code'] = normalized_code
-        header_payload['piece_code'] = normalized_code
-        header_payload['piece'] = normalized_piece
-        header_payload['requester'] = normalized_requester
-        header_payload['requested_by'] = normalized_requester
-        data['header'] = header_payload
-        data['save_category'] = normalized_category
-        data['record_category'] = normalized_category
-        data['save_name'] = _cotizacion_build_save_name(normalized_code, normalized_piece)
+            header_payload['code'] = normalized_code
+            header_payload['piece_code'] = normalized_code
+            header_payload['piece'] = normalized_piece
+            header_payload['requester'] = normalized_requester
+            header_payload['requested_by'] = normalized_requester
+            data['header'] = header_payload
+            data['save_category'] = normalized_category
+            data['record_category'] = normalized_category
+            data['save_name'] = _cotizacion_build_save_name(normalized_code, normalized_piece)
 
-        rec_id = str(data.get('id') or uuid.uuid4())
-        records = _read_cotizacion_record_groups()
-        data['items'] = _cotizacion_fill_missing_source_summaries(data.get('items', []), records)
-        generate_revision = _cotizacion_is_truthy(data.get('generate_revision'))
+            rec_id = str(data.get('id') or uuid.uuid4())
+            records = _read_cotizacion_record_groups()
+            data['items'] = _cotizacion_fill_missing_source_summaries(data.get('items', []), records)
+            generate_revision = _cotizacion_is_truthy(data.get('generate_revision'))
 
-        group = None
-        for item in records:
-            if str(item.get('id')) == rec_id:
-                group = item
-                break
+            group = None
+            for item in records:
+                if str(item.get('id')) == rec_id:
+                    group = item
+                    break
 
-        if group:
-            current_revision_info = _cotizacion_get_group_revision_info(group)
-            next_revision_label = _cotizacion_revision_index_to_label(int(current_revision_info.get('revision_count') or 0) + 1)
-        else:
-            current_revision_info = {'revision_count': 0, 'latest_revision_label': '0'}
-            next_revision_label = _cotizacion_revision_index_to_label(1)
+            if group:
+                current_revision_info = _cotizacion_get_group_revision_info(group)
+                next_revision_label = _cotizacion_revision_index_to_label(int(current_revision_info.get('revision_count') or 0) + 1)
+            else:
+                current_revision_info = {'revision_count': 0, 'latest_revision_label': '0'}
+                next_revision_label = _cotizacion_revision_index_to_label(1)
 
-        data['is_revision'] = generate_revision
-        data['revision_label'] = next_revision_label if generate_revision else ''
+            data['is_revision'] = generate_revision
+            data['revision_label'] = next_revision_label if generate_revision else ''
 
-        if group:
-            new_version_number = int(group.get('latest_version') or len(group.get('versions', [])) or 0) + 1
-            snapshot = _build_cotizacion_version_snapshot(data, version_number=new_version_number)
-            group.setdefault('versions', []).append(snapshot)
-            group['folder'] = _normalize_cotizacion_folder_name(data.get('folder') or group.get('folder'))
-            group['latest_version'] = new_version_number
-            group['updated_at'] = snapshot.get('timestamp', _cotizacion_now_iso())
-            group['save_name'] = snapshot.get('save_name', '')
-            group['save_description'] = snapshot.get('save_description', '')
-            group['save_category'] = snapshot.get('save_category', '')
-            group['record_category'] = snapshot.get('save_category', '')
-            group['author'] = snapshot.get('author', 'Usuario')
-            revision_info = _cotizacion_get_group_revision_info(group)
-            group['latest_revision_label'] = revision_info.get('latest_revision_label', '0')
-            group['revision_count'] = int(revision_info.get('revision_count') or 0)
-        else:
-            snapshot = _build_cotizacion_version_snapshot(data, version_number=1)
-            created_at = _cotizacion_safe_timestamp(data.get('created_at') or snapshot.get('timestamp'))
-            initial_revision_label = snapshot.get('revision_label', '') if _cotizacion_is_truthy(snapshot.get('is_revision')) else ''
-            group = {
-                'id': rec_id,
-                'folder': _normalize_cotizacion_folder_name(data.get('folder')),
-                'created_at': created_at,
-                'updated_at': snapshot.get('timestamp', created_at),
-                'latest_version': 1,
-                'latest_revision_label': initial_revision_label or '0',
-                'revision_count': 1 if initial_revision_label else 0,
-                'save_name': snapshot.get('save_name', ''),
-                'save_description': snapshot.get('save_description', ''),
-                'save_category': snapshot.get('save_category', ''),
-                'record_category': snapshot.get('save_category', ''),
-                'author': snapshot.get('author', 'Usuario'),
-                'versions': [snapshot]
-            }
-            records.append(group)
+            if group:
+                new_version_number = int(group.get('latest_version') or len(group.get('versions', [])) or 0) + 1
+                snapshot = _build_cotizacion_version_snapshot(data, version_number=new_version_number)
+                group.setdefault('versions', []).append(snapshot)
+                group['folder'] = _normalize_cotizacion_folder_name(data.get('folder') or group.get('folder'))
+                group['latest_version'] = new_version_number
+                group['updated_at'] = snapshot.get('timestamp', _cotizacion_now_iso())
+                group['save_name'] = snapshot.get('save_name', '')
+                group['save_description'] = snapshot.get('save_description', '')
+                group['save_category'] = snapshot.get('save_category', '')
+                group['record_category'] = snapshot.get('save_category', '')
+                group['author'] = snapshot.get('author', 'Usuario')
+                revision_info = _cotizacion_get_group_revision_info(group)
+                group['latest_revision_label'] = revision_info.get('latest_revision_label', '0')
+                group['revision_count'] = int(revision_info.get('revision_count') or 0)
+            else:
+                snapshot = _build_cotizacion_version_snapshot(data, version_number=1)
+                created_at = _cotizacion_safe_timestamp(data.get('created_at') or snapshot.get('timestamp'))
+                initial_revision_label = snapshot.get('revision_label', '') if _cotizacion_is_truthy(snapshot.get('is_revision')) else ''
+                group = {
+                    'id': rec_id,
+                    'folder': _normalize_cotizacion_folder_name(data.get('folder')),
+                    'created_at': created_at,
+                    'updated_at': snapshot.get('timestamp', created_at),
+                    'latest_version': 1,
+                    'latest_revision_label': initial_revision_label or '0',
+                    'revision_count': 1 if initial_revision_label else 0,
+                    'save_name': snapshot.get('save_name', ''),
+                    'save_description': snapshot.get('save_description', ''),
+                    'save_category': snapshot.get('save_category', ''),
+                    'record_category': snapshot.get('save_category', ''),
+                    'author': snapshot.get('author', 'Usuario'),
+                    'versions': [snapshot]
+                }
+                records.append(group)
 
-        if str(data.get('update_linked', '')).lower() in ('1', 'true', 'yes', 'si') or bool(data.get('update_linked')):
-            records = _cotizacion_sync_linked_combined_groups(records, rec_id)
+            if str(data.get('update_linked', '')).lower() in ('1', 'true', 'yes', 'si') or bool(data.get('update_linked')):
+                records = _cotizacion_sync_linked_combined_groups(records, rec_id)
 
-        records = _merge_cotizacion_groups(records)[:1000]
-        _write_cotizacion_record_groups(records)
+            records = _merge_cotizacion_groups(records)[:1000]
+            _write_cotizacion_record_groups(records, reason='save')
 
         return jsonify({
             'status': 'success',
@@ -7521,16 +7835,17 @@ def get_cotizacion_records():
 @app.route('/api/cotizacion/folders', methods=['POST'])
 def create_cotizacion_folder():
     try:
-        data = request.json or {}
-        folder_name = _normalize_cotizacion_folder_name(data.get('name'))
-        store = _read_cotizacion_records_store()
-        folder_set = {_normalize_cotizacion_folder_name(name) for name in store.get('folders', [])}
-        folder_set.add(COTIZACION_DEFAULT_FOLDER)
-        folder_set.add(folder_name)
-        _write_json_file_atomic(COTIZACION_RECORDS_FILE, {
-            'folders': sorted(folder_set, key=lambda name: (name != COTIZACION_DEFAULT_FOLDER, name.lower())),
-            'groups': _merge_cotizacion_groups(store.get('groups', []))
-        }, indent=4, ensure_ascii=False)
+        with _get_json_lock(COTIZACION_RECORDS_DB_FILE):
+            data = request.json or {}
+            folder_name = _normalize_cotizacion_folder_name(data.get('name'))
+            store = _read_cotizacion_records_store()
+            folder_set = {_normalize_cotizacion_folder_name(name) for name in store.get('folders', [])}
+            folder_set.add(COTIZACION_DEFAULT_FOLDER)
+            folder_set.add(folder_name)
+            _write_cotizacion_records_store({
+                'folders': sorted(folder_set, key=lambda name: (name != COTIZACION_DEFAULT_FOLDER, name.lower())),
+                'groups': _merge_cotizacion_groups(store.get('groups', []))
+            }, reason='create-folder')
         return jsonify({'status': 'success', 'folder': folder_name})
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 500
@@ -7539,27 +7854,28 @@ def create_cotizacion_folder():
 @app.route('/api/cotizacion/move-folder', methods=['POST'])
 def move_cotizacion_record_folder():
     try:
-        data = request.json or {}
-        rec_id = str(data.get('id') or '').strip()
-        if not rec_id:
-            return jsonify({'status': 'error', 'message': 'Missing id'}), 400
+        with _get_json_lock(COTIZACION_RECORDS_DB_FILE):
+            data = request.json or {}
+            rec_id = str(data.get('id') or '').strip()
+            if not rec_id:
+                return jsonify({'status': 'error', 'message': 'Missing id'}), 400
 
-        target_folder = _normalize_cotizacion_folder_name(data.get('folder'))
-        store = _read_cotizacion_records_store()
-        groups = store.get('groups', [])
-        group = next((item for item in groups if str(item.get('id')) == rec_id), None)
-        if not group:
-            return jsonify({'status': 'error', 'message': 'Record not found'}), 404
+            target_folder = _normalize_cotizacion_folder_name(data.get('folder'))
+            store = _read_cotizacion_records_store()
+            groups = store.get('groups', [])
+            group = next((item for item in groups if str(item.get('id')) == rec_id), None)
+            if not group:
+                return jsonify({'status': 'error', 'message': 'Record not found'}), 404
 
-        group['folder'] = target_folder
-        folder_set = {_normalize_cotizacion_folder_name(name) for name in store.get('folders', [])}
-        folder_set.add(COTIZACION_DEFAULT_FOLDER)
-        folder_set.add(target_folder)
+            group['folder'] = target_folder
+            folder_set = {_normalize_cotizacion_folder_name(name) for name in store.get('folders', [])}
+            folder_set.add(COTIZACION_DEFAULT_FOLDER)
+            folder_set.add(target_folder)
 
-        _write_json_file_atomic(COTIZACION_RECORDS_FILE, {
-            'folders': sorted(folder_set, key=lambda name: (name != COTIZACION_DEFAULT_FOLDER, name.lower())),
-            'groups': _merge_cotizacion_groups(groups)
-        }, indent=4, ensure_ascii=False)
+            _write_cotizacion_records_store({
+                'folders': sorted(folder_set, key=lambda name: (name != COTIZACION_DEFAULT_FOLDER, name.lower())),
+                'groups': _merge_cotizacion_groups(groups)
+            }, reason='move-folder')
 
         return jsonify({'status': 'success', 'folder': target_folder})
     except Exception as e:
@@ -7659,20 +7975,21 @@ def get_cotizacion_version():
 @app.route('/api/cotizacion/delete', methods=['POST'])
 def delete_cotizacion_record():
     try:
-        data = request.json or {}
-        rec_id = data.get('id')
-        if not rec_id:
-            return jsonify({'status': 'error', 'message': 'Missing id'}), 400
+        with _get_json_lock(COTIZACION_RECORDS_DB_FILE):
+            data = request.json or {}
+            rec_id = data.get('id')
+            if not rec_id:
+                return jsonify({'status': 'error', 'message': 'Missing id'}), 400
 
-        records = _read_cotizacion_record_groups()
-        if not records:
-            return jsonify({'status': 'error', 'message': 'No records file'}), 404
+            records = _read_cotizacion_record_groups()
+            if not records:
+                return jsonify({'status': 'error', 'message': 'No records file'}), 404
 
-        new_records = [r for r in records if r.get('id') != rec_id]
-        if len(new_records) == len(records):
-            return jsonify({'status': 'error', 'message': 'Record not found'}), 404
+            new_records = [r for r in records if r.get('id') != rec_id]
+            if len(new_records) == len(records):
+                return jsonify({'status': 'error', 'message': 'Record not found'}), 404
 
-        _write_cotizacion_record_groups(new_records)
+            _write_cotizacion_record_groups(new_records, allow_shrink=True, reason='delete')
 
         return jsonify({'status': 'success', 'message': 'Record deleted'})
     except Exception as e:
@@ -14595,6 +14912,11 @@ def _format_quality_value(value):
     return str(value).strip()
 
 
+def _quality_is_ar7_item(item):
+    item_code = _format_quality_value(item).upper()
+    return bool(re.fullmatch(r'AR7\d+', item_code))
+
+
 def _quality_force_save_workbook():
     if os.name != 'nt':
         return
@@ -14615,7 +14937,17 @@ try {{
     $excel.DisplayAlerts = $false
     $excel.AskToUpdateLinks = $false
     $excel.EnableEvents = $false
-    $workbook = $excel.Workbooks.Open($path, 0, $false)
+    $excel.ScreenUpdating = $false
+    $excel.Calculation = -4105
+    $workbook = $excel.Workbooks.Open($path, 3, $false)
+    try {{ $workbook.RefreshAll() }} catch {{}}
+    try {{ $excel.CalculateUntilAsyncQueriesDone() }} catch {{}}
+    for ($i = 0; $i -lt 120; $i++) {{
+        $calculationState = 0
+        try {{ $calculationState = [int]$excel.CalculationState }} catch {{}}
+        if ($calculationState -eq 0) {{ break }}
+        Start-Sleep -Milliseconds 500
+    }}
     try {{ $excel.CalculateFullRebuild() }} catch {{}}
     $workbook.Save()
 }}
@@ -14802,6 +15134,7 @@ def _quality_build_control_snapshot():
         canti_real_item = _format_quality_value(_quality_get_value(row, header_map, 'canti_real_item'))
         fecha_ing_raw = _quality_get_value(row, header_map, 'Fecha_ing')
         fecha_partida_raw = _quality_get_value(row, header_map, 'Fecha Partida')
+        ubi = _format_quality_value(_quality_get_value(row, header_map, 'ubi', 'Ubi', 'ubicacion', 'Ubicacion'))
 
         total_qty = _quality_parse_number(canti_real) or 0.0
         remaining_qty = _quality_parse_number(canti_real_item) or 0.0
@@ -14826,10 +15159,12 @@ def _quality_build_control_snapshot():
             'produc': produc,
             'subgrupo': subgrupo,
             'oc_numero': oc_numero,
+            'ubi': ubi,
             'fecha_ing': formatted_ing,
             'fecha_ing_iso': fecha_ing_date.isoformat() if fecha_ing_date else '',
             'fecha_partida': formatted_partida,
             'fecha_partida_iso': fecha_partida_date.isoformat() if fecha_partida_date else '',
+            'remaining_qty': remaining_qty,
             'approved_qty': approved_qty,
             'total_qty': total_qty,
             'progress_pct': progress_pct,
@@ -14876,34 +15211,95 @@ def _quality_build_control_snapshot():
 
 
 def _read_quality_pending_records():
+    _quality_sync_csv_exports(force=True)
     snapshot = _quality_build_control_snapshot()
     registry_items = _quality_register_snapshot_pairs(snapshot['records'])
     handler_state = _quality_load_pending_handlers_state()
     handler_assignments = handler_state.get('assignments') if isinstance(handler_state, dict) else {}
     handler_assignments = handler_assignments if isinstance(handler_assignments, dict) else {}
-    records = []
+    grouped_records = {}
     for record in snapshot['records']:
         key = _quality_tracking_key(record['item'], record['produc'])
         tracked = registry_items.get(key, {}) if isinstance(registry_items, dict) else {}
         row_key = _quality_pending_row_key(record['item'], record['produc'], record['oc_numero'], record['fecha_ing'])
         assigned_handler = handler_assignments.get(row_key) if isinstance(handler_assignments.get(row_key), dict) else {}
+        bucket = grouped_records.get(row_key)
+        if bucket is None:
+            bucket = {
+                'item': record['item'],
+                'produc': record['produc'],
+                'subgrupo': record.get('subgrupo', ''),
+                'row_key': row_key,
+                'oc_numero': record['oc_numero'],
+                'observaciones': _format_quality_value(tracked.get('observacion')),
+                'fecha_ing': record['fecha_ing'],
+                'total_qty_num': max(float(record.get('total_qty') or 0.0), 0.0),
+                'remaining_qty_num': 0.0,
+                'is_ar7_item': _quality_is_ar7_item(record['item']),
+                'encargado': _format_quality_value(assigned_handler.get('name')),
+                'encargado_updated_at': _format_quality_value(assigned_handler.get('updated_at')),
+                'encargado_updated_by': _format_quality_value(assigned_handler.get('updated_by')),
+                '_remaining_signatures': set(),
+            }
+            grouped_records[row_key] = bucket
+
+        bucket['total_qty_num'] = max(bucket['total_qty_num'], float(record.get('total_qty') or 0.0))
+        if not bucket.get('subgrupo') and record.get('subgrupo'):
+            bucket['subgrupo'] = record.get('subgrupo', '')
+
+        remaining_qty = max(float(record.get('remaining_qty') or 0.0), 0.0)
+        remaining_signature = (
+            _format_quality_value(record.get('ubi')),
+            _format_quality_value(remaining_qty),
+            _format_quality_value(record.get('total_qty'))
+        )
+        if remaining_signature not in bucket['_remaining_signatures']:
+            bucket['_remaining_signatures'].add(remaining_signature)
+            bucket['remaining_qty_num'] += remaining_qty
+
+    records = []
+    for bucket in grouped_records.values():
+        total_qty = max(bucket.get('total_qty_num') or 0.0, 0.0)
+        remaining_qty = max(bucket.get('remaining_qty_num') or 0.0, 0.0)
+        if total_qty > 0:
+            remaining_qty = min(remaining_qty, total_qty)
+        approved_qty = max(total_qty - remaining_qty, 0.0)
+
+        if total_qty > 0:
+            raw_progress_pct = (approved_qty / total_qty) * 100
+            progress_pct = 100 if approved_qty >= total_qty else min(99, int(raw_progress_pct))
+        else:
+            progress_pct = 0
+
+        is_approved = total_qty > 0 and approved_qty >= total_qty
+        if is_approved:
+            continue
+
+        bucket.pop('_remaining_signatures', None)
         records.append({
-            'item': record['item'],
-            'produc': record['produc'],
-            'subgrupo': record.get('subgrupo', ''),
-            'row_key': row_key,
-            'oc_numero': record['oc_numero'],
-            'observaciones': _format_quality_value(tracked.get('observacion')),
-            'canti_real': _format_quality_value(record['total_qty']),
-            'fecha_ing': record['fecha_ing'],
-            'approved_qty': _format_quality_value(record['approved_qty']),
-            'total_qty': _format_quality_value(record['total_qty']),
-            'progress_pct': record['progress_pct'],
-            'is_approved': record['is_approved'],
-            'encargado': _format_quality_value(assigned_handler.get('name')),
-            'encargado_updated_at': _format_quality_value(assigned_handler.get('updated_at')),
-            'encargado_updated_by': _format_quality_value(assigned_handler.get('updated_by'))
+            'item': bucket['item'],
+            'produc': bucket['produc'],
+            'subgrupo': bucket.get('subgrupo', ''),
+            'row_key': bucket['row_key'],
+            'oc_numero': bucket['oc_numero'],
+            'observaciones': bucket.get('observaciones', ''),
+            'canti_real': _format_quality_value(total_qty),
+            'fecha_ing': bucket['fecha_ing'],
+            'approved_qty': _format_quality_value(approved_qty),
+            'total_qty': _format_quality_value(total_qty),
+            'progress_pct': progress_pct,
+            'is_approved': is_approved,
+            'is_ar7_item': bucket.get('is_ar7_item', False),
+            'encargado': bucket.get('encargado', ''),
+            'encargado_updated_at': bucket.get('encargado_updated_at', ''),
+            'encargado_updated_by': bucket.get('encargado_updated_by', '')
         })
+
+    records.sort(key=lambda entry: (
+        _quality_parse_date(entry.get('fecha_ing')) or date.min,
+        entry.get('produc', ''),
+        entry.get('oc_numero', '')
+    ), reverse=True)
     return records
 
 

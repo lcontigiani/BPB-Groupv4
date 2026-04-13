@@ -5524,10 +5524,12 @@ function bindIsoTrackingBPSuggestions() {
             const div = document.createElement('div');
             div.className = 'suggestion-item';
             div.textContent = text;
-            div.onclick = () => {
+            div.addEventListener('mousedown', (e) => {
+                e.preventDefault();
                 input.value = text;
                 suggestions.style.display = 'none';
-            };
+                if (typeof handleIsoTrackingSelect === 'function') handleIsoTrackingSelect();
+            });
             suggestions.appendChild(div);
         });
         suggestions.style.display = 'block';
@@ -6346,6 +6348,11 @@ function refreshQualityCsvCache(force = false) {
     return qualityCacheRefreshPromise;
 }
 
+function getQualityAr7ProductStyle(record) {
+    if (!record?.is_ar7_item) return '';
+    return 'display:inline-block; max-width:100%; padding:0.16rem 0.55rem; border-radius:999px; border:1px solid #ff8a8a; color:#ff8a8a; background:rgba(255, 138, 138, 0.12); font-weight:600;';
+}
+
 function showQualityControlHome() {
 
     if (!canAccessQualityControl()) {
@@ -7088,7 +7095,9 @@ function renderQualityPendingTable() {
             const category = getQualityPendingCategoryById(getQualityPendingAssignedCategoryId(record));
             return category ? qualityHexToRgba(category.color, 0.16) : 'transparent';
         })()};">
-            <td style="text-align:left; white-space:normal; word-break:break-word; line-height:1.35;">${record.produc || '-'}</td>
+            <td style="text-align:left; white-space:normal; word-break:break-word; line-height:1.35;">
+                <span style="${getQualityAr7ProductStyle(record)}">${escapeQualityHtml(record.produc || '-')}</span>
+            </td>
             <td class="text-center" style="max-width: 180px; white-space: normal; word-break: break-word; line-height: 1.35;">${record.subgrupo || '-'}</td>
             <td class="text-center">${record.oc_numero || '-'}</td>
             <td class="text-center">${record.fecha_ing || '-'}</td>
@@ -7153,6 +7162,7 @@ async function loadQualityPendingRecords() {
     if (tbody) tbody.innerHTML = '<tr><td colspan="7" class="text-center" style="padding: 2rem; color: #888;">Cargando registros pendientes...</td></tr>';
 
     try {
+        await refreshQualityCsvCache(true);
         const response = await fetch('/api/quality/pending');
         const data = await response.json();
 
@@ -13870,7 +13880,7 @@ function getCotizacionCategoryBadgeHTML(value) {
 function normalizeCotizacionSourceSummary(summary) {
     if (!summary || typeof summary !== 'object') return null;
 
-    const keys = ['materia_prima', 'complementarios', 'transformacion', 'desperdicios', 'externo', 'importacion', 'extra', 'comadm', 'produccion', 'venta', 'total'];
+    const keys = ['materia_prima', 'complementarios', 'transformacion', 'desperdicios', 'externo', 'importacion', 'flete_traslados', 'extra', 'comadm', 'produccion', 'venta', 'total'];
     const normalized = {};
     let hasValue = false;
 
@@ -13896,6 +13906,7 @@ function getCotizacionRowSourceSummary(row) {
         desperdicios: Number(summary.desperdicios || 0) * multiplier,
         externo: Number(summary.externo || 0) * multiplier,
         importacion: Number(summary.importacion || 0) * multiplier,
+        flete_traslados: Number(summary.flete_traslados || 0) * multiplier,
         extra: Number(summary.extra || 0) * multiplier,
         comadm: Number(summary.comadm || 0) * multiplier
     };
@@ -13923,6 +13934,7 @@ function applyCotizacionSummaryContribution(bucket, row) {
         bucket.desperdicios += Number(sourceSummary.desperdicios || 0);
         bucket.externo += Number(sourceSummary.externo || 0);
         bucket.importacion += Number(sourceSummary.importacion || 0);
+        bucket.flete_traslados += Number(sourceSummary.flete_traslados || 0);
         bucket.extra += Number(sourceSummary.extra || 0);
         bucket.comadm += Number(sourceSummary.comadm || 0);
         return;
@@ -13958,6 +13970,7 @@ function getCotizacionRowBarSegments(row) {
         desperdicios: Number(sourceSummary.desperdicios || 0),
         externo: Number(sourceSummary.externo || 0),
         importacion: Number(sourceSummary.importacion || 0),
+        flete_traslados: Number(sourceSummary.flete_traslados || 0),
         extra: Number(sourceSummary.extra || 0),
         comadm: Number(sourceSummary.comadm || 0)
     };
@@ -22721,6 +22734,57 @@ function buildCotizacionFleteProveedorFieldHTML(outsourcedCompany, selectedProvi
     });
 }
 
+function getCotizacionFleteLookupDisplayName(record) {
+    const type = String(record?.type || 'record').trim().toLowerCase();
+    if (type === 'piece') {
+        return String(record?.piece_name || '').trim() || String(record?.save_name || '').trim();
+    }
+    return String(record?.save_name || '').trim();
+}
+
+function getCotizacionFleteSelectedPieceMultiplier(row, availableItems = null) {
+    if (!(row instanceof HTMLTableRowElement)) return 1;
+    const rawPieceValue = String(row.querySelector('.cot-pieza')?.value || '').trim();
+    const recordName = String(row.dataset.logisticsFleteRecordName || '').trim();
+    if (!rawPieceValue) return 1;
+
+    const items = Array.isArray(availableItems)
+        ? availableItems
+        : (() => {
+            try {
+                const parsed = JSON.parse(String(row.dataset.logisticsFleteItems || '[]'));
+                return Array.isArray(parsed) ? parsed : [];
+            } catch (_) {
+                return [];
+            }
+        })();
+
+    if (recordName && rawPieceValue.toLowerCase() === recordName.toLowerCase()) {
+        const pieceCount = items
+            .map((item) => String(item?.name || '').trim())
+            .filter(Boolean)
+            .length;
+        return pieceCount > 0 ? pieceCount : 1;
+    }
+
+    const match = items.find((item) => String(item?.name || '').trim().toLowerCase() === rawPieceValue.toLowerCase());
+    if (match) {
+        return 1;
+    }
+
+    return 1;
+}
+
+function setCotizacionFleteAutofillState(row, enabled) {
+    if (!(row instanceof HTMLTableRowElement) || !isCotizacionFleteRow(row)) return;
+    row.dataset.fleteAutofill = enabled ? '1' : '0';
+}
+
+function isCotizacionFleteAutofillEnabled(row) {
+    if (!(row instanceof HTMLTableRowElement) || !isCotizacionFleteRow(row)) return false;
+    return String(row.dataset.fleteAutofill || '').trim() === '1';
+}
+
 function ensureCotizacionFleteLogisticsLookupMenu() {
     let menu = document.getElementById('cotizacion-flete-logistics-lookup-menu');
     if (menu instanceof HTMLElement) return menu;
@@ -22785,12 +22849,16 @@ function renderCotizacionFleteLogisticsLookupMenu(anchor, records) {
         return;
     }
     menu.innerHTML = records.map((rec, i) => {
-        const name = String(rec?.save_name || '').trim() || '(sin nombre)';
+        const lookupName = getCotizacionFleteLookupDisplayName(rec) || '(sin nombre)';
         const folder = String(rec?.folder || '').trim();
         const versions = rec?.version_count != null ? `v${rec.version_count}` : '';
+        const type = String(rec?.type || 'record').trim().toLowerCase();
+        const sublabel = type === 'piece'
+            ? `${String(rec?.save_name || '').trim()}${rec?.piece_qty ? ` | x${rec.piece_qty}` : ''}`
+            : folder;
         return `<button type="button" class="cotizacion-complementarios-lookup-item" data-index="${i}">
-            <span class="cotizacion-complementarios-lookup-main">${escapeCotizacionHTML(name)}</span>
-            <span class="cotizacion-complementarios-lookup-sub">${escapeCotizacionHTML(folder)}</span>
+            <span class="cotizacion-complementarios-lookup-main">${escapeCotizacionHTML(lookupName)}</span>
+            <span class="cotizacion-complementarios-lookup-sub">${escapeCotizacionHTML(sublabel)}</span>
             <span class="cotizacion-complementarios-lookup-price">${escapeCotizacionHTML(versions)}</span>
         </button>`;
     }).join('');
@@ -22839,18 +22907,22 @@ async function applyFleteLogisticsRecordSelection(row, record) {
 
     const recordId = String(record.id || '').trim();
     const recordName = String(record.save_name || '').trim();
+    const lookupValue = getCotizacionFleteLookupDisplayName(record);
 
     // Set pieza value
     const piezaInput = row.querySelector('.cot-flete-pieza-lookup');
-    if (piezaInput instanceof HTMLInputElement) piezaInput.value = recordName;
+    if (piezaInput instanceof HTMLInputElement) piezaInput.value = lookupValue;
 
     // Store record ID
     row.dataset.logisticsFleteRecordId = recordId;
+    row.dataset.logisticsFleteRecordName = recordName;
     delete row.dataset.logisticsFleteVersionId;
     delete row.dataset.logisticsFleteOwnUsd;
     delete row.dataset.logisticsFleteOutsourcedUsd;
     delete row.dataset.logisticsFleteOutsourcedCompany;
     delete row.dataset.logisticsFleteQty;
+    delete row.dataset.logisticsFleteItems;
+    setCotizacionFleteAutofillState(row, true);
 
     // Rebuild description select (placeholder) and reset proveedor while loading
     const descCell = row.querySelector('.cot-flete-version-wrap')?.closest('td')
@@ -22901,6 +22973,8 @@ async function applyFleteLogisticsRecordSelection(row, record) {
         if (provCell) {
             provCell.innerHTML = buildCotizacionFleteProveedorFieldHTML(latestMeta.outsourced_company || '', '');
         }
+
+        await loadFleteVersionData(row, recordId, latestVersionId, { applyAutofill: true });
     } catch (e) {
         console.error('Flete lookup history error', e);
     }
@@ -22910,7 +22984,7 @@ async function applyFleteLogisticsRecordSelection(row, record) {
     updateCotizacionSummary();
 }
 
-async function loadFleteVersionData(row, recordId, versionId) {
+async function loadFleteVersionData(row, recordId, versionId, options = {}) {
     try {
         const url = `/api/logistics/version?id=${encodeURIComponent(recordId)}&version_id=${encodeURIComponent(versionId)}`;
         const res = await fetch(url);
@@ -22931,6 +23005,10 @@ async function loadFleteVersionData(row, recordId, versionId) {
         row.dataset.logisticsFleteOutsourcedUsd = String(outsourcedUsd);
         row.dataset.logisticsFleteOutsourcedCompany = outsourcedCompany;
         row.dataset.logisticsFleteQty = String(totalQty);
+        row.dataset.logisticsFleteItems = JSON.stringify(items.map((item) => ({
+            name: String(item?.name || '').trim(),
+            qty: Number(item?.qty || 0)
+        })).filter((item) => item.name));
 
         // Rebuild proveedor select
         const currentProv = row.querySelector('.cot-proveedor')?.value || '';
@@ -22940,8 +23018,10 @@ async function loadFleteVersionData(row, recordId, versionId) {
             provCell.innerHTML = buildCotizacionFleteProveedorFieldHTML(outsourcedCompany, currentProv);
         }
 
-        // Apply currently selected provider cost
-        applyFleteProviderCost(row);
+        // Apply currently selected provider cost only when this row is still in auto-fill mode.
+        if (options.applyAutofill || isCotizacionFleteAutofillEnabled(row)) {
+            applyFleteProviderCost(row);
+        }
     } catch (e) {
         console.error('Flete version data error', e);
     }
@@ -22954,10 +23034,17 @@ function applyFleteProviderCost(row) {
     const selectedProv = String(provSelect?.value || '').trim();
     if (!selectedProv) return;
 
+    const obsInput = row.querySelector('.cot-obs');
+    if (obsInput instanceof HTMLTextAreaElement && !String(obsInput.value || '').trim()) {
+        obsInput.value = 'Costo de Ida';
+        autoResizeCotizacionTextarea(obsInput);
+    }
+
     const ownUsd = Number(row.dataset.logisticsFleteOwnUsd || 0);
     const outsourcedUsd = Number(row.dataset.logisticsFleteOutsourcedUsd || 0);
     const outsourcedCompany = String(row.dataset.logisticsFleteOutsourcedCompany || 'Terciarizado').trim();
     const totalQty = Number(row.dataset.logisticsFleteQty || 0);
+    const pieceMultiplier = getCotizacionFleteSelectedPieceMultiplier(row);
 
     const cost = selectedProv === 'BPB' ? ownUsd : outsourcedUsd;
 
@@ -22985,9 +23072,11 @@ function applyFleteProviderCost(row) {
     if (costInput instanceof HTMLInputElement) {
         if (cost > 0 && totalQty > 0) {
             const defaultRefs = getCotizacionDefaultCostFormulaRefs(row);
-            const unitCost = cost / totalQty;
+            const unitCost = (cost / totalQty) * pieceMultiplier;
             if (defaultRefs?.formula?.startsWith('=')) {
-                costInput.dataset.formula = defaultRefs.formula;
+                costInput.dataset.formula = pieceMultiplier > 1
+                    ? `${defaultRefs.formula}*${formatCotizacionFormulaValue(pieceMultiplier)}`
+                    : defaultRefs.formula;
                 costInput.dataset.preciseValue = String(unitCost);
                 evaluateCotizacionFormulaInput(costInput, { fromStored: true, silent: true });
             } else {
@@ -23032,7 +23121,7 @@ async function handleCotizacionFleteVersionChange(row) {
     // cot-descripcion is the hidden input inside the single-select wrapper
     const versionId = String(row.querySelector('.cot-descripcion')?.value || '').trim();
     if (!recordId || !versionId) return;
-    await loadFleteVersionData(row, recordId, versionId);
+    await loadFleteVersionData(row, recordId, versionId, { applyAutofill: isCotizacionFleteAutofillEnabled(row) });
     recalculateCotizacionFormulaCells();
     clearCotizacionApprovalSignature(false);
     updateCotizacionSummary();
@@ -24501,6 +24590,9 @@ function createCotizacionRow(data = {}) {
     if (String(data.logistics_flete_record_id || '').trim()) {
         tr.dataset.logisticsFleteRecordId = String(data.logistics_flete_record_id).trim();
     }
+    if (String(data.logistics_flete_record_name || '').trim()) {
+        tr.dataset.logisticsFleteRecordName = String(data.logistics_flete_record_name).trim();
+    }
     if (String(data.logistics_flete_version_id || '').trim()) {
         tr.dataset.logisticsFleteVersionId = String(data.logistics_flete_version_id).trim();
     }
@@ -24586,6 +24678,16 @@ function createCotizacionRow(data = {}) {
         costInput.dataset.preciseValue = String(Number(data.costo_unitario));
     }
 
+    if (isFleteRow) {
+        const hasStoredFormula = rateFormula.startsWith('=') || qtyFormula.startsWith('=') || costFormula.startsWith('=');
+        const hasStoredValue = [data.rate, data.cantidad, data.costo_unitario]
+            .some((value) => {
+                const numeric = Number(value);
+                return Number.isFinite(numeric) && numeric !== 0;
+            });
+        setCotizacionFleteAutofillState(tr, !(hasStoredFormula || hasStoredValue));
+    }
+
     if (!data.skip_auto_rate) {
         syncCotizacionRateFromSubconceptRow(tr, true);
     }
@@ -24617,7 +24719,14 @@ function collectCotizacionRowData(row, options = {}) {
         subCategoria: row.querySelector('.cot-subconcepto')?.value || '',
         subconcepto: row.querySelector('.cot-subconcepto')?.value || '',
         pieza: row.querySelector('.cot-pieza')?.value || '',
-        descripcion: row.querySelector('.cot-descripcion')?.value || '',
+        descripcion: (() => {
+            if (isCotizacionFleteRow(row)) {
+                const trigger = row.querySelector('.cot-flete-version-wrap .cot-single-select-trigger');
+                const text = String(trigger?.textContent || '').trim();
+                return text && !/^Seleccionar/i.test(text) ? text : '';
+            }
+            return row.querySelector('.cot-descripcion')?.value || '';
+        })(),
         proveedor: row.querySelector('.cot-proveedor')?.value || '',
         provider_mix: (() => {
             try {
@@ -24638,6 +24747,7 @@ function collectCotizacionRowData(row, options = {}) {
         source_record_id: String(row.dataset.sourceRecordId || '').trim(),
         source_version_id: String(row.dataset.sourceVersionId || '').trim(),
         logistics_flete_record_id: String(row.dataset.logisticsFleteRecordId || '').trim(),
+        logistics_flete_record_name: String(row.dataset.logisticsFleteRecordName || '').trim(),
         logistics_flete_version_id: String(row.dataset.logisticsFleteVersionId || '').trim(),
         logistics_flete_own_usd: Number(row.dataset.logisticsFleteOwnUsd || 0),
         logistics_flete_outsourced_usd: Number(row.dataset.logisticsFleteOutsourcedUsd || 0),
@@ -25039,6 +25149,11 @@ function handleCotizacionEditorInput(event) {
     }
 
     if (target instanceof HTMLInputElement && target.classList.contains('cot-formula-input')) {
+        const formulaRow = target.closest('.cotizacion-item-row');
+        if (formulaRow instanceof HTMLTableRowElement && isCotizacionFleteRow(formulaRow)) {
+            setCotizacionFleteAutofillState(formulaRow, false);
+        }
+
         if (target.classList.contains('cot-rate') || target.classList.contains('cot-cost')) {
             const sanitized = sanitizeCotizacionNumericInputValue(target.value);
             if (sanitized !== target.value) {
@@ -25151,6 +25266,11 @@ function ensureCotizacionBindings() {
             }
 
             if (target.classList.contains('cot-proveedor') && isCotizacionFleteRow(row)) {
+                if (!isCotizacionFleteAutofillEnabled(row)) {
+                    clearCotizacionApprovalSignature(false);
+                    updateCotizacionSummary();
+                    return;
+                }
                 applyFleteProviderCost(row);
                 return;
             }
@@ -28352,7 +28472,9 @@ async function printCotizacion() {
             const pieceRaw = String(row.pieza || '-');
             const piece = formatCotizacionPieceDisplayValue(pieceRaw, '\n');
             const pieceHtml = esc(piece || '-').replace(/\n/g, '<br>');
-            const description = String(row.descripcion || '');
+            const description = category === 'flete_traslados'
+                ? ''
+                : String(row.descripcion || '');
             const provider = String(row.proveedor || row.provider || '');
             const rate = formatCotizacionCurrency(Number(row.rate || 0));
             const quantity = formatNumber(row.cantidad, 4);
@@ -29640,6 +29762,14 @@ function restoreCotizacionRecordInEditor(rec) {
         refreshCotizacionRecordOnlyUI();
         updateCotizacionSummary();
         refreshCotizacionDollarRate(false).catch(() => { });
+        getCotizacionRows().forEach((row) => {
+            if (!(row instanceof HTMLTableRowElement) || !isCotizacionFleteRow(row)) return;
+            const recordId = String(row.dataset.logisticsFleteRecordId || '').trim();
+            const versionId = String(row.dataset.logisticsFleteVersionId || '').trim();
+            if (recordId && versionId) {
+                loadFleteVersionData(row, recordId, versionId, { applyAutofill: false }).catch(() => { });
+            }
+        });
     });
     const versionSuffix = Number.isFinite(Number(rec.version_number)) ? ` (v${parseInt(rec.version_number, 10)})` : '';
     showNotification(`Cotizacion "${rec.save_name || 'Sin titulo'}"${versionSuffix} restaurada.`, 'success');

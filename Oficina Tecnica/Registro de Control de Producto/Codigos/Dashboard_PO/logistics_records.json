@@ -5,733 +5,11 @@
     ],
     "groups": [
         {
-            "id": "78e1ca09-4017-4400-9ac4-9a848f1240e7",
-            "folder": "Sin Carpeta",
-            "created_at": "2026-04-10T19:40:10.312Z",
-            "updated_at": "2026-04-10T19:40:10.312Z",
-            "latest_version": 1,
-            "save_name": "TSG-CCW-C060000",
-            "save_description": "",
-            "author": "Lorenzo Contigiani",
-            "versions": [
-                {
-                    "version_id": "0f94827a-bd69-48f1-b587-1ee151a2f166",
-                    "version_number": 1,
-                    "timestamp": "2026-04-10T19:40:10.312Z",
-                    "timestamp_display": "10/04/2026, 16:40:10",
-                    "save_name": "TSG-CCW-C060000",
-                    "save_description": "",
-                    "author": "Lorenzo Contigiani",
-                    "container": {
-                        "type": "none",
-                        "l": 5900,
-                        "w": 2350,
-                        "h": 2390,
-                        "weight": 28000
-                    },
-                    "load": {
-                        "type": "loose",
-                        "tray_inner_l": 0,
-                        "tray_inner_w": 0,
-                        "tray_inner_h": 0,
-                        "tray_outer_l": 0,
-                        "tray_outer_w": 0,
-                        "tray_outer_h": 0,
-                        "tray_weight": 0,
-                        "tray_max_weight": 25
-                    },
-                    "pallet": {
-                        "type": "collars",
-                        "boards": 4,
-                        "l": 1200,
-                        "w": 800,
-                        "h": 939,
-                        "weight": 50,
-                        "max_weight": 1200,
-                        "limit_height": false,
-                        "max_height": 1800
-                    },
-                    "optimization": {
-                        "maximize": false,
-                        "mixed_trays": true,
-                        "tray_kanban": false,
-                        "mixed_pallets": true,
-                        "stack_load": true,
-                        "stack_trays": true,
-                        "stack_collars": true,
-                        "force_orientation": false,
-                        "orientation_face": "LxA",
-                        "mixed_containers": true,
-                        "sort_items": true,
-                        "visual_only": false
-                    },
-                    "safety_factors": {
-                        "dims": 5,
-                        "weight": 5
-                    },
-                    "freight": {
-                        "origin": {
-                            "id": "14042170",
-                            "label": "Villa María, Córdoba",
-                            "lat": -32.4135041930881,
-                            "lon": -63.248329032642,
-                            "name": "Villa María",
-                            "province": "Córdoba"
-                        },
-                        "destination": {
-                            "id": "14182060",
-                            "label": "Bell Ville, Córdoba",
-                            "lat": -32.6303142822017,
-                            "lon": -62.6887933841481,
-                            "name": "Bell Ville",
-                            "province": "Córdoba"
-                        },
-                        "unique_load": true,
-                        "outsourced_company": "Lancioni",
-                        "own_adjustment_ars": 0,
-                        "own_total_ars": 103327.17,
-                        "outsourced_cost_ars": 348750,
-                        "outsourced_adjustment_ars": 0,
-                        "outsourced_total_ars": 348750,
-                        "own_adjustment_usd": 0,
-                        "own_total_usd": 74.07,
-                        "outsourced_cost_usd": 250,
-                        "outsourced_adjustment_usd": 0,
-                        "outsourced_total_usd": 250,
-                        "dollar_rate": {
-                            "effective_date": "2026-04-10",
-                            "mode": "latest_available",
-                            "requested_date": "2026-04-10",
-                            "source": "dolarapi-oficial",
-                            "value": 1395
-                        },
-                        "last_estimate": {
-                            "actual_weight_kg": 955.2,
-                            "consolidated_volume_m3": 0.508278,
-                            "cost_model": {
-                                "cost_per_km_ars": 1466.9464,
-                                "distance_km": 70.4,
-                                "driver_trip_ars": 70000,
-                                "extras_trip_ars": 2500,
-                                "fuel_cost_ars": 15827.17,
-                                "fuel_liters": 10.566,
-                                "maintenance_insurance_trip_ars": 10000,
-                                "methodology_note": "Costo propio por viaje con combustible, chofer, peaje, mantenimiento/seguro y extras.",
-                                "toll_ars": 5000,
-                                "toll_label": "Ciudades de Córdoba",
-                                "total_trip_ars": 103327.17
-                            },
-                            "destination": {
-                                "id": "14182060",
-                                "label": "Bell Ville, Córdoba",
-                                "lat": -32.6303142822017,
-                                "lon": -62.6887933841481,
-                                "name": "Bell Ville",
-                                "province": "Córdoba"
-                            },
-                            "distance_km": 70.4,
-                            "distance_source": "Haversine ajustada",
-                            "dollar_rate": {
-                                "effective_date": "2026-04-10",
-                                "mode": "latest_available",
-                                "requested_date": "2026-04-10",
-                                "source": "dolarapi-oficial",
-                                "value": 1395
-                            },
-                            "dominant_basis": "weight",
-                            "estimated_cost_ars": 103327.17,
-                            "estimated_cost_usd": 74.07,
-                            "freight_basis": {
-                                "package_count": 0,
-                                "shipment_bbox_dims_mm": null,
-                                "shipment_bbox_volume_m3": 0,
-                                "source": "raw_items_form"
-                            },
-                            "load_fraction": 1,
-                            "note": "Base: carga única | Fracción: 100.0%",
-                            "origin": {
-                                "id": "14042170",
-                                "label": "Villa María, Córdoba",
-                                "lat": -32.4135041930881,
-                                "lon": -63.248329032642,
-                                "name": "Villa María",
-                                "province": "Córdoba"
-                            },
-                            "own_trip_cost_ars": 103327.17,
-                            "own_trip_cost_usd": 74.07,
-                            "reference_cost_per_km_ars": 1466.9464,
-                            "reference_cost_per_km_usd": 1.0516,
-                            "reference_payload_kg": 1350,
-                            "reference_volume_m3": 1.18,
-                            "source_label": "",
-                            "unique_load": true,
-                            "volume_fraction": 0.430744,
-                            "weight_fraction": 0.707556,
-                            "outsourced_company": "Lancioni",
-                            "own_adjustment_ars": 0,
-                            "own_total_ars": 103327.17,
-                            "outsourced_cost_ars": 348750,
-                            "outsourced_adjustment_ars": 0,
-                            "outsourced_total_ars": 348750,
-                            "own_adjustment_usd": 0,
-                            "own_total_usd": 74.07,
-                            "outsourced_cost_usd": 250,
-                            "outsourced_adjustment_usd": 0,
-                            "outsourced_total_usd": 250
-                        }
-                    },
-                    "items": [
-                        {
-                            "name": "TSG-CCW-0060002",
-                            "l": 111,
-                            "w": 111,
-                            "h": 51,
-                            "weight": 0.997,
-                            "qty": 600,
-                            "rel_qty": 0
-                        },
-                        {
-                            "name": "TSG-CCW-006D003",
-                            "l": 22,
-                            "w": 22,
-                            "h": 55.3,
-                            "weight": 0.126,
-                            "qty": 1200,
-                            "rel_qty": 0
-                        },
-                        {
-                            "name": "TSG-CCW-006D004",
-                            "l": 24,
-                            "w": 24,
-                            "h": 16.5,
-                            "weight": 0.03,
-                            "qty": 1200,
-                            "rel_qty": 0
-                        },
-                        {
-                            "name": "TSG-CCW-0060007",
-                            "l": 65,
-                            "w": 65,
-                            "h": 15.6,
-                            "weight": 0.14,
-                            "qty": 1200,
-                            "rel_qty": 0
-                        },
-                        {
-                            "name": "TSG-CCW-0060008",
-                            "l": 30,
-                            "w": 30,
-                            "h": 8,
-                            "weight": 0.0015,
-                            "qty": 1200,
-                            "rel_qty": 0
-                        }
-                    ],
-                    "largest_unit_label": "Pallet",
-                    "history_label": "v1 - 10/04/2026, 16:40:10 - Lorenzo Contigiani - Pallet"
-                }
-            ]
-        },
-        {
-            "id": "dd78e82f-b849-44d5-982b-c59c67601342",
-            "folder": "Sin Carpeta",
-            "created_at": "2026-04-10T19:23:00.742Z",
-            "updated_at": "2026-04-10T19:33:09.069Z",
-            "latest_version": 3,
-            "save_name": "TSG-BR0-0000600",
-            "save_description": "",
-            "author": "Agustin Alberto",
-            "versions": [
-                {
-                    "version_id": "7f601c91-1667-44a4-8984-67f93f5509f6",
-                    "version_number": 1,
-                    "timestamp": "2026-04-10T19:23:00.742Z",
-                    "timestamp_display": "10/04/2026, 16:23:00",
-                    "save_name": "TSG-BR0-0000600",
-                    "save_description": "",
-                    "author": "Agustin Alberto",
-                    "container": {
-                        "type": "none",
-                        "l": 5900,
-                        "w": 2350,
-                        "h": 2390,
-                        "weight": 28000
-                    },
-                    "load": {
-                        "type": "loose",
-                        "tray_inner_l": 0,
-                        "tray_inner_w": 0,
-                        "tray_inner_h": 0,
-                        "tray_outer_l": 0,
-                        "tray_outer_w": 0,
-                        "tray_outer_h": 0,
-                        "tray_weight": 0,
-                        "tray_max_weight": 25
-                    },
-                    "pallet": {
-                        "type": "collars",
-                        "boards": 2,
-                        "l": 1200,
-                        "w": 800,
-                        "h": 549,
-                        "weight": 50,
-                        "max_weight": 1200,
-                        "limit_height": false,
-                        "max_height": 1800
-                    },
-                    "optimization": {
-                        "maximize": false,
-                        "mixed_trays": true,
-                        "tray_kanban": false,
-                        "mixed_pallets": true,
-                        "stack_load": true,
-                        "stack_trays": true,
-                        "stack_collars": true,
-                        "force_orientation": false,
-                        "orientation_face": "LxA",
-                        "mixed_containers": true,
-                        "sort_items": true,
-                        "visual_only": false
-                    },
-                    "safety_factors": {
-                        "dims": 5,
-                        "weight": 5
-                    },
-                    "freight": {
-                        "origin": null,
-                        "destination": null,
-                        "unique_load": true,
-                        "outsourced_company": "Andreani",
-                        "own_adjustment_ars": 0,
-                        "own_total_ars": 0,
-                        "outsourced_cost_ars": 0,
-                        "outsourced_adjustment_ars": 0,
-                        "outsourced_total_ars": 0,
-                        "own_adjustment_usd": 20,
-                        "own_total_usd": 20,
-                        "outsourced_cost_usd": 210,
-                        "outsourced_adjustment_usd": 0,
-                        "outsourced_total_usd": 210,
-                        "dollar_rate": null,
-                        "last_estimate": null
-                    },
-                    "items": [
-                        {
-                            "name": "TSG-BR0-0000601",
-                            "l": 127,
-                            "w": 127,
-                            "h": 49.28,
-                            "weight": 1.5,
-                            "qty": 200,
-                            "rel_qty": 0
-                        },
-                        {
-                            "name": "TSG-BR0-0000602",
-                            "l": 19.5,
-                            "w": 19.5,
-                            "h": 49,
-                            "weight": 0.04,
-                            "qty": 200,
-                            "rel_qty": 0
-                        }
-                    ],
-                    "largest_unit_label": "Pallet",
-                    "history_label": "v1 - 10/04/2026, 16:23:00 - Agustin Alberto - Pallet"
-                },
-                {
-                    "version_id": "937cc22f-ec47-4b87-9d27-41d279cbb804",
-                    "version_number": 2,
-                    "timestamp": "2026-04-10T19:24:50.676Z",
-                    "timestamp_display": "10/04/2026, 16:24:50",
-                    "save_name": "TSG-BR0-0000600",
-                    "save_description": "",
-                    "author": "Agustin Alberto",
-                    "container": {
-                        "type": "none",
-                        "l": 5900,
-                        "w": 2350,
-                        "h": 2390,
-                        "weight": 28000
-                    },
-                    "load": {
-                        "type": "loose",
-                        "tray_inner_l": 0,
-                        "tray_inner_w": 0,
-                        "tray_inner_h": 0,
-                        "tray_outer_l": 0,
-                        "tray_outer_w": 0,
-                        "tray_outer_h": 0,
-                        "tray_weight": 0,
-                        "tray_max_weight": 25
-                    },
-                    "pallet": {
-                        "type": "collars",
-                        "boards": 2,
-                        "l": 1200,
-                        "w": 800,
-                        "h": 549,
-                        "weight": 50,
-                        "max_weight": 1200,
-                        "limit_height": false,
-                        "max_height": 1800
-                    },
-                    "optimization": {
-                        "maximize": false,
-                        "mixed_trays": true,
-                        "tray_kanban": false,
-                        "mixed_pallets": true,
-                        "stack_load": true,
-                        "stack_trays": true,
-                        "stack_collars": true,
-                        "force_orientation": false,
-                        "orientation_face": "LxA",
-                        "mixed_containers": true,
-                        "sort_items": true,
-                        "visual_only": false
-                    },
-                    "safety_factors": {
-                        "dims": 5,
-                        "weight": 5
-                    },
-                    "freight": {
-                        "origin": {
-                            "id": "14042170",
-                            "label": "Villa María, Córdoba",
-                            "lat": -32.4135041930881,
-                            "lon": -63.248329032642,
-                            "name": "Villa María",
-                            "province": "Córdoba"
-                        },
-                        "destination": {
-                            "id": "14182060",
-                            "label": "Bell Ville, Córdoba",
-                            "lat": -32.6303142822017,
-                            "lon": -62.6887933841481,
-                            "name": "Bell Ville",
-                            "province": "Córdoba"
-                        },
-                        "unique_load": true,
-                        "outsourced_company": "Andreani",
-                        "own_adjustment_ars": 27900,
-                        "own_total_ars": 131227.17,
-                        "outsourced_cost_ars": 292950,
-                        "outsourced_adjustment_ars": 0,
-                        "outsourced_total_ars": 292950,
-                        "own_adjustment_usd": 20,
-                        "own_total_usd": 94.07,
-                        "outsourced_cost_usd": 210,
-                        "outsourced_adjustment_usd": 0,
-                        "outsourced_total_usd": 210,
-                        "dollar_rate": {
-                            "effective_date": "2026-04-10",
-                            "mode": "latest_available",
-                            "requested_date": "2026-04-10",
-                            "source": "dolarapi-oficial",
-                            "value": 1395
-                        },
-                        "last_estimate": {
-                            "actual_weight_kg": 373.4,
-                            "consolidated_volume_m3": 0.52704,
-                            "cost_model": {
-                                "cost_per_km_ars": 1466.9464,
-                                "distance_km": 70.4,
-                                "driver_trip_ars": 70000,
-                                "extras_trip_ars": 2500,
-                                "fuel_cost_ars": 15827.17,
-                                "fuel_liters": 10.566,
-                                "maintenance_insurance_trip_ars": 10000,
-                                "methodology_note": "Costo propio por viaje con combustible, chofer, peaje, mantenimiento/seguro y extras.",
-                                "toll_ars": 5000,
-                                "toll_label": "Ciudades de Córdoba",
-                                "total_trip_ars": 103327.17
-                            },
-                            "destination": {
-                                "id": "14182060",
-                                "label": "Bell Ville, Córdoba",
-                                "lat": -32.6303142822017,
-                                "lon": -62.6887933841481,
-                                "name": "Bell Ville",
-                                "province": "Córdoba"
-                            },
-                            "distance_km": 70.4,
-                            "distance_source": "Haversine ajustada",
-                            "dollar_rate": {
-                                "effective_date": "2026-04-10",
-                                "mode": "latest_available",
-                                "requested_date": "2026-04-10",
-                                "source": "dolarapi-oficial",
-                                "value": 1395
-                            },
-                            "dominant_basis": "volume",
-                            "estimated_cost_ars": 103327.17,
-                            "estimated_cost_usd": 74.07,
-                            "freight_basis": {
-                                "package_count": 1,
-                                "shipment_bbox_dims_mm": {
-                                    "d": 800,
-                                    "h": 549,
-                                    "w": 1200
-                                },
-                                "shipment_bbox_volume_m3": 0.52704,
-                                "source": "post_packing_top_level_units"
-                            },
-                            "load_fraction": 1,
-                            "note": "Base: carga única | Fracción: 100.0%",
-                            "origin": {
-                                "id": "14042170",
-                                "label": "Villa María, Córdoba",
-                                "lat": -32.4135041930881,
-                                "lon": -63.248329032642,
-                                "name": "Villa María",
-                                "province": "Córdoba"
-                            },
-                            "own_trip_cost_ars": 103327.17,
-                            "own_trip_cost_usd": 74.07,
-                            "reference_cost_per_km_ars": 1466.9464,
-                            "reference_cost_per_km_usd": 1.0516,
-                            "reference_payload_kg": 1350,
-                            "reference_volume_m3": 1.18,
-                            "source_label": "",
-                            "unique_load": true,
-                            "volume_fraction": 0.446644,
-                            "weight_fraction": 0.276593,
-                            "outsourced_company": "Andreani",
-                            "own_adjustment_ars": 27900,
-                            "own_total_ars": 131227.17,
-                            "outsourced_cost_ars": 292950,
-                            "outsourced_adjustment_ars": 0,
-                            "outsourced_total_ars": 292950,
-                            "own_adjustment_usd": 20,
-                            "own_total_usd": 94.07,
-                            "outsourced_cost_usd": 210,
-                            "outsourced_adjustment_usd": 0,
-                            "outsourced_total_usd": 210
-                        }
-                    },
-                    "items": [
-                        {
-                            "name": "TSG-BR0-0000601",
-                            "l": 127,
-                            "w": 127,
-                            "h": 49.28,
-                            "weight": 1.5,
-                            "qty": 200,
-                            "rel_qty": 0
-                        },
-                        {
-                            "name": "TSG-BR0-0000602",
-                            "l": 19.5,
-                            "w": 19.5,
-                            "h": 49,
-                            "weight": 0.04,
-                            "qty": 200,
-                            "rel_qty": 0
-                        }
-                    ],
-                    "largest_unit_label": "Pallet",
-                    "history_label": "v2 - 10/04/2026, 16:24:50 - Agustin Alberto - Pallet"
-                },
-                {
-                    "version_id": "cadebbd8-28b1-47a8-9df7-e6ac84338b24",
-                    "version_number": 3,
-                    "timestamp": "2026-04-10T19:33:09.069Z",
-                    "timestamp_display": "10/04/2026, 16:33:09",
-                    "save_name": "TSG-BR0-0000600",
-                    "save_description": "",
-                    "author": "Agustin Alberto",
-                    "container": {
-                        "type": "none",
-                        "l": 5900,
-                        "w": 2350,
-                        "h": 2390,
-                        "weight": 28000
-                    },
-                    "load": {
-                        "type": "loose",
-                        "tray_inner_l": 0,
-                        "tray_inner_w": 0,
-                        "tray_inner_h": 0,
-                        "tray_outer_l": 0,
-                        "tray_outer_w": 0,
-                        "tray_outer_h": 0,
-                        "tray_weight": 0,
-                        "tray_max_weight": 25
-                    },
-                    "pallet": {
-                        "type": "collars",
-                        "boards": 2,
-                        "l": 1200,
-                        "w": 800,
-                        "h": 549,
-                        "weight": 50,
-                        "max_weight": 1200,
-                        "limit_height": false,
-                        "max_height": 1800
-                    },
-                    "optimization": {
-                        "maximize": false,
-                        "mixed_trays": true,
-                        "tray_kanban": false,
-                        "mixed_pallets": true,
-                        "stack_load": true,
-                        "stack_trays": true,
-                        "stack_collars": true,
-                        "force_orientation": false,
-                        "orientation_face": "LxA",
-                        "mixed_containers": true,
-                        "sort_items": true,
-                        "visual_only": false
-                    },
-                    "safety_factors": {
-                        "dims": 5,
-                        "weight": 5
-                    },
-                    "freight": {
-                        "origin": {
-                            "id": "14042170",
-                            "label": "Villa María, Córdoba",
-                            "lat": -32.4135041930881,
-                            "lon": -63.248329032642,
-                            "name": "Villa María",
-                            "province": "Córdoba"
-                        },
-                        "destination": {
-                            "id": "14182060",
-                            "label": "Bell Ville, Córdoba",
-                            "lat": -32.6303142822017,
-                            "lon": -62.6887933841481,
-                            "name": "Bell Ville",
-                            "province": "Córdoba"
-                        },
-                        "unique_load": true,
-                        "outsourced_company": "Andreani",
-                        "own_adjustment_ars": 27900,
-                        "own_total_ars": 131227.17,
-                        "outsourced_cost_ars": 279000,
-                        "outsourced_adjustment_ars": 0,
-                        "outsourced_total_ars": 279000,
-                        "own_adjustment_usd": 20,
-                        "own_total_usd": 94.07,
-                        "outsourced_cost_usd": 200,
-                        "outsourced_adjustment_usd": 0,
-                        "outsourced_total_usd": 200,
-                        "dollar_rate": {
-                            "effective_date": "2026-04-10",
-                            "mode": "latest_available",
-                            "requested_date": "2026-04-10",
-                            "source": "dolarapi-oficial",
-                            "value": 1395
-                        },
-                        "last_estimate": {
-                            "actual_weight_kg": 373.4,
-                            "consolidated_volume_m3": 0.52704,
-                            "cost_model": {
-                                "cost_per_km_ars": 1466.9464,
-                                "distance_km": 70.4,
-                                "driver_trip_ars": 70000,
-                                "extras_trip_ars": 2500,
-                                "fuel_cost_ars": 15827.17,
-                                "fuel_liters": 10.566,
-                                "maintenance_insurance_trip_ars": 10000,
-                                "methodology_note": "Costo propio por viaje con combustible, chofer, peaje, mantenimiento/seguro y extras.",
-                                "toll_ars": 5000,
-                                "toll_label": "Ciudades de Córdoba",
-                                "total_trip_ars": 103327.17
-                            },
-                            "destination": {
-                                "id": "14182060",
-                                "label": "Bell Ville, Córdoba",
-                                "lat": -32.6303142822017,
-                                "lon": -62.6887933841481,
-                                "name": "Bell Ville",
-                                "province": "Córdoba"
-                            },
-                            "distance_km": 70.4,
-                            "distance_source": "Haversine ajustada",
-                            "dollar_rate": {
-                                "effective_date": "2026-04-10",
-                                "mode": "latest_available",
-                                "requested_date": "2026-04-10",
-                                "source": "dolarapi-oficial",
-                                "value": 1395
-                            },
-                            "dominant_basis": "volume",
-                            "estimated_cost_ars": 103327.17,
-                            "estimated_cost_usd": 74.07,
-                            "freight_basis": {
-                                "package_count": 1,
-                                "shipment_bbox_dims_mm": {
-                                    "d": 800,
-                                    "h": 549,
-                                    "w": 1200
-                                },
-                                "shipment_bbox_volume_m3": 0.52704,
-                                "source": "post_packing_top_level_units"
-                            },
-                            "load_fraction": 1,
-                            "note": "Base: carga única | Fracción: 100.0%",
-                            "origin": {
-                                "id": "14042170",
-                                "label": "Villa María, Córdoba",
-                                "lat": -32.4135041930881,
-                                "lon": -63.248329032642,
-                                "name": "Villa María",
-                                "province": "Córdoba"
-                            },
-                            "outsourced_adjustment_ars": 0,
-                            "outsourced_adjustment_usd": 0,
-                            "outsourced_company": "Andreani",
-                            "outsourced_cost_ars": 279000,
-                            "outsourced_cost_usd": 200,
-                            "outsourced_total_ars": 279000,
-                            "outsourced_total_usd": 200,
-                            "own_adjustment_ars": 27900,
-                            "own_adjustment_usd": 20,
-                            "own_total_ars": 131227.17,
-                            "own_total_usd": 94.07,
-                            "own_trip_cost_ars": 103327.17,
-                            "own_trip_cost_usd": 74.07,
-                            "reference_cost_per_km_ars": 1466.9464,
-                            "reference_cost_per_km_usd": 1.0516,
-                            "reference_payload_kg": 1350,
-                            "reference_volume_m3": 1.18,
-                            "source_label": "",
-                            "unique_load": true,
-                            "volume_fraction": 0.446644,
-                            "weight_fraction": 0.276593
-                        }
-                    },
-                    "items": [
-                        {
-                            "name": "TSG-BR0-0000601",
-                            "l": 127,
-                            "w": 127,
-                            "h": 49.28,
-                            "weight": 1.5,
-                            "qty": 200,
-                            "rel_qty": 0
-                        },
-                        {
-                            "name": "TSG-BR0-0000602",
-                            "l": 19.5,
-                            "w": 19.5,
-                            "h": 49,
-                            "weight": 0.04,
-                            "qty": 200,
-                            "rel_qty": 0
-                        }
-                    ],
-                    "largest_unit_label": "Pallet",
-                    "history_label": "v3 - 10/04/2026, 16:33:09 - Agustin Alberto - Pallet"
-                }
-            ]
-        },
-        {
             "id": "53b65e92-5811-432b-938f-c74416405b0d",
             "folder": "Sin Carpeta",
             "created_at": "2026-04-10T18:17:41.293Z",
-            "updated_at": "2026-04-10T19:17:59.453Z",
-            "latest_version": 3,
+            "updated_at": "2026-04-13T17:26:39.762Z",
+            "latest_version": 5,
             "save_name": "TSG-BR0-0001350",
             "save_description": "",
             "author": "Agustin Alberto",
@@ -1368,6 +646,1451 @@
                     ],
                     "largest_unit_label": "Pallet",
                     "history_label": "v3 - 10/04/2026, 16:17:59 - Agustin Alberto - Pallet"
+                },
+                {
+                    "version_id": "9ccdba02-04b6-486e-be97-0efe8830d24a",
+                    "version_number": 4,
+                    "timestamp": "2026-04-13T14:55:56.094Z",
+                    "timestamp_display": "13/04/2026, 11:55:56",
+                    "save_name": "TSG-BR0-0001350",
+                    "save_description": "",
+                    "author": "Agustin Alberto",
+                    "container": {
+                        "type": "none",
+                        "l": 5900,
+                        "w": 2350,
+                        "h": 2390,
+                        "weight": 28000
+                    },
+                    "load": {
+                        "type": "loose",
+                        "tray_inner_l": 0,
+                        "tray_inner_w": 0,
+                        "tray_inner_h": 0,
+                        "tray_outer_l": 0,
+                        "tray_outer_w": 0,
+                        "tray_outer_h": 0,
+                        "tray_weight": 0,
+                        "tray_max_weight": 25
+                    },
+                    "pallet": {
+                        "type": "collars",
+                        "boards": 3,
+                        "l": 1200,
+                        "w": 800,
+                        "h": 744,
+                        "weight": 50,
+                        "max_weight": 1200,
+                        "limit_height": false,
+                        "max_height": 1800
+                    },
+                    "optimization": {
+                        "maximize": false,
+                        "mixed_trays": true,
+                        "tray_kanban": false,
+                        "mixed_pallets": true,
+                        "stack_load": true,
+                        "stack_trays": true,
+                        "stack_collars": true,
+                        "force_orientation": false,
+                        "orientation_face": "LxH",
+                        "mixed_containers": true,
+                        "sort_items": true,
+                        "visual_only": false
+                    },
+                    "safety_factors": {
+                        "dims": 5,
+                        "weight": 5
+                    },
+                    "freight": {
+                        "origin": {
+                            "id": "14042170",
+                            "label": "Villa María, Córdoba",
+                            "lat": -32.4135041930881,
+                            "lon": -63.248329032642,
+                            "name": "Villa María",
+                            "province": "Córdoba"
+                        },
+                        "destination": {
+                            "id": "1401401003",
+                            "label": "Córdoba, Córdoba",
+                            "lat": -31.4150461523809,
+                            "lon": -64.1791140755104,
+                            "name": "Córdoba",
+                            "province": "Córdoba"
+                        },
+                        "unique_load": true,
+                        "outsourced_company": "Andreani",
+                        "own_adjustment_ars": 27900,
+                        "own_total_ars": 164211.1,
+                        "outsourced_cost_ars": 292950,
+                        "outsourced_adjustment_ars": 58590,
+                        "outsourced_total_ars": 351540,
+                        "own_adjustment_usd": 20,
+                        "own_total_usd": 117.71,
+                        "outsourced_cost_usd": 210,
+                        "outsourced_adjustment_usd": 42,
+                        "outsourced_total_usd": 252,
+                        "dollar_rate": {
+                            "effective_date": "2026-04-10",
+                            "mode": "latest_available",
+                            "requested_date": "2026-04-10",
+                            "source": "dolarapi-oficial",
+                            "value": 1395
+                        },
+                        "last_estimate": {
+                            "actual_weight_kg": 954.05,
+                            "consolidated_volume_m3": 0.71424,
+                            "cost_model": {
+                                "cost_per_km_ars": 789.1842,
+                                "distance_km": 172.7,
+                                "driver_trip_ars": 70000,
+                                "extras_trip_ars": 2500,
+                                "fuel_cost_ars": 38811.1,
+                                "fuel_liters": 25.909,
+                                "maintenance_insurance_trip_ars": 10000,
+                                "methodology_note": "Costo propio por viaje con combustible, chofer, peaje, mantenimiento/seguro y extras.",
+                                "toll_ars": 15000,
+                                "toll_label": "Córdoba",
+                                "total_trip_ars": 136311.1
+                            },
+                            "destination": {
+                                "id": "1401401003",
+                                "label": "Córdoba, Córdoba",
+                                "lat": -31.4150461523809,
+                                "lon": -64.1791140755104,
+                                "name": "Córdoba",
+                                "province": "Córdoba"
+                            },
+                            "distance_km": 172.7,
+                            "distance_source": "Haversine ajustada",
+                            "dollar_rate": {
+                                "effective_date": "2026-04-10",
+                                "mode": "latest_available",
+                                "requested_date": "2026-04-10",
+                                "source": "dolarapi-oficial",
+                                "value": 1395
+                            },
+                            "dominant_basis": "weight",
+                            "estimated_cost_ars": 136311.1,
+                            "estimated_cost_usd": 97.71,
+                            "freight_basis": {
+                                "package_count": 1,
+                                "shipment_bbox_dims_mm": {
+                                    "d": 800,
+                                    "h": 744,
+                                    "w": 1200
+                                },
+                                "shipment_bbox_volume_m3": 0.71424,
+                                "source": "post_packing_top_level_units"
+                            },
+                            "load_fraction": 1,
+                            "note": "Base: carga única | Fracción: 100.0%",
+                            "origin": {
+                                "id": "14042170",
+                                "label": "Villa María, Córdoba",
+                                "lat": -32.4135041930881,
+                                "lon": -63.248329032642,
+                                "name": "Villa María",
+                                "province": "Córdoba"
+                            },
+                            "outsourced_adjustment_ars": 58590,
+                            "outsourced_adjustment_usd": 42,
+                            "outsourced_company": "Andreani",
+                            "outsourced_cost_ars": 292950,
+                            "outsourced_cost_usd": 210,
+                            "outsourced_total_ars": 351540,
+                            "outsourced_total_usd": 252,
+                            "own_adjustment_ars": 27900,
+                            "own_adjustment_usd": 20,
+                            "own_total_ars": 164211.1,
+                            "own_total_usd": 117.71,
+                            "own_trip_cost_ars": 136311.1,
+                            "own_trip_cost_usd": 97.71,
+                            "reference_cost_per_km_ars": 789.1842,
+                            "reference_cost_per_km_usd": 0.5657,
+                            "reference_payload_kg": 1350,
+                            "reference_volume_m3": 1.18,
+                            "source_label": "",
+                            "unique_load": true,
+                            "volume_fraction": 0.605288,
+                            "weight_fraction": 0.706704
+                        }
+                    },
+                    "items": [
+                        {
+                            "name": "TSG-BR0-0000101",
+                            "l": 205,
+                            "w": 155,
+                            "h": 12.7,
+                            "weight": 3,
+                            "qty": 100,
+                            "rel_qty": 0
+                        },
+                        {
+                            "name": "TSG-BR0-0000102",
+                            "l": 253,
+                            "w": 137,
+                            "h": 12.7,
+                            "weight": 1.4,
+                            "qty": 100,
+                            "rel_qty": 0
+                        },
+                        {
+                            "name": "TSG-BR0-0000103",
+                            "l": 253,
+                            "w": 137,
+                            "h": 12.7,
+                            "weight": 1.4,
+                            "qty": 100,
+                            "rel_qty": 0
+                        },
+                        {
+                            "name": "TSG-BR0-0000104",
+                            "l": 73,
+                            "w": 45,
+                            "h": 6.35,
+                            "weight": 0.05,
+                            "qty": 200,
+                            "rel_qty": 0
+                        },
+                        {
+                            "name": "TSG-BR0-0000105",
+                            "l": 50,
+                            "w": 15,
+                            "h": 15,
+                            "weight": 0.01,
+                            "qty": 100,
+                            "rel_qty": 0
+                        },
+                        {
+                            "name": "TSG-BR0-0000202",
+                            "l": 240,
+                            "w": 140,
+                            "h": 12.7,
+                            "weight": 0.9,
+                            "qty": 100,
+                            "rel_qty": 0
+                        },
+                        {
+                            "name": "TSG-BR0-0000203",
+                            "l": 240,
+                            "w": 140,
+                            "h": 12.7,
+                            "weight": 0.9,
+                            "qty": 100,
+                            "rel_qty": 0
+                        },
+                        {
+                            "name": "TSG-BR0-0000204",
+                            "l": 210,
+                            "w": 125,
+                            "h": 6.35,
+                            "weight": 0.3,
+                            "qty": 100,
+                            "rel_qty": 0
+                        },
+                        {
+                            "name": "TSG-BR0-0000400",
+                            "l": 161,
+                            "w": 68,
+                            "h": 6.35,
+                            "weight": 0.3,
+                            "qty": 100,
+                            "rel_qty": 0
+                        },
+                        {
+                            "name": "TSG-BR0-0000500",
+                            "l": 161,
+                            "w": 68,
+                            "h": 6.35,
+                            "weight": 0.3,
+                            "qty": 100,
+                            "rel_qty": 0
+                        }
+                    ],
+                    "largest_unit_label": "Pallet",
+                    "history_label": "v4 - 13/04/2026, 11:55:56 - Agustin Alberto - Pallet"
+                },
+                {
+                    "version_id": "67edb775-0fc4-4a68-a274-0c98a4b196cb",
+                    "version_number": 5,
+                    "timestamp": "2026-04-13T17:26:39.762Z",
+                    "timestamp_display": "13/04/2026, 14:26:39",
+                    "save_name": "TSG-BR0-0001350",
+                    "save_description": "",
+                    "author": "Agustin Alberto",
+                    "container": {
+                        "type": "none",
+                        "l": 5900,
+                        "w": 2350,
+                        "h": 2390,
+                        "weight": 28000
+                    },
+                    "load": {
+                        "type": "loose",
+                        "tray_inner_l": 0,
+                        "tray_inner_w": 0,
+                        "tray_inner_h": 0,
+                        "tray_outer_l": 0,
+                        "tray_outer_w": 0,
+                        "tray_outer_h": 0,
+                        "tray_weight": 0,
+                        "tray_max_weight": 25
+                    },
+                    "pallet": {
+                        "type": "collars",
+                        "boards": 3,
+                        "l": 1200,
+                        "w": 800,
+                        "h": 744,
+                        "weight": 50,
+                        "max_weight": 1200,
+                        "limit_height": false,
+                        "max_height": 1800
+                    },
+                    "optimization": {
+                        "maximize": false,
+                        "mixed_trays": true,
+                        "tray_kanban": false,
+                        "mixed_pallets": true,
+                        "stack_load": true,
+                        "stack_trays": true,
+                        "stack_collars": true,
+                        "force_orientation": false,
+                        "orientation_face": "LxH",
+                        "mixed_containers": true,
+                        "sort_items": true,
+                        "visual_only": false
+                    },
+                    "safety_factors": {
+                        "dims": 5,
+                        "weight": 5
+                    },
+                    "freight": {
+                        "origin": {
+                            "id": "14042170",
+                            "label": "Villa María, Córdoba",
+                            "lat": -32.4135041930881,
+                            "lon": -63.248329032642,
+                            "name": "Villa María",
+                            "province": "Córdoba"
+                        },
+                        "destination": {
+                            "id": "1401401003",
+                            "label": "Córdoba, Córdoba",
+                            "lat": -31.4150461523809,
+                            "lon": -64.1791140755104,
+                            "name": "Córdoba",
+                            "province": "Córdoba"
+                        },
+                        "unique_load": true,
+                        "outsourced_company": "Andreani",
+                        "own_adjustment_ars": 27900,
+                        "own_total_ars": 164211.1,
+                        "outsourced_cost_ars": 292950,
+                        "outsourced_adjustment_ars": 58590,
+                        "outsourced_total_ars": 351540,
+                        "own_adjustment_usd": 20,
+                        "own_total_usd": 117.71,
+                        "outsourced_cost_usd": 210,
+                        "outsourced_adjustment_usd": 42,
+                        "outsourced_total_usd": 252,
+                        "dollar_rate": {
+                            "effective_date": "2026-04-10",
+                            "mode": "latest_available",
+                            "requested_date": "2026-04-10",
+                            "source": "dolarapi-oficial",
+                            "value": 1395
+                        },
+                        "last_estimate": {
+                            "actual_weight_kg": 954.05,
+                            "consolidated_volume_m3": 0.71424,
+                            "cost_model": {
+                                "cost_per_km_ars": 789.1842,
+                                "distance_km": 172.7,
+                                "driver_trip_ars": 70000,
+                                "extras_trip_ars": 2500,
+                                "fuel_cost_ars": 38811.1,
+                                "fuel_liters": 25.909,
+                                "maintenance_insurance_trip_ars": 10000,
+                                "methodology_note": "Costo propio por viaje con combustible, chofer, peaje, mantenimiento/seguro y extras.",
+                                "toll_ars": 15000,
+                                "toll_label": "Córdoba",
+                                "total_trip_ars": 136311.1
+                            },
+                            "destination": {
+                                "id": "1401401003",
+                                "label": "Córdoba, Córdoba",
+                                "lat": -31.4150461523809,
+                                "lon": -64.1791140755104,
+                                "name": "Córdoba",
+                                "province": "Córdoba"
+                            },
+                            "distance_km": 172.7,
+                            "distance_source": "Haversine ajustada",
+                            "dollar_rate": {
+                                "effective_date": "2026-04-10",
+                                "mode": "latest_available",
+                                "requested_date": "2026-04-10",
+                                "source": "dolarapi-oficial",
+                                "value": 1395
+                            },
+                            "dominant_basis": "weight",
+                            "estimated_cost_ars": 136311.1,
+                            "estimated_cost_usd": 97.71,
+                            "freight_basis": {
+                                "package_count": 1,
+                                "shipment_bbox_dims_mm": {
+                                    "d": 800,
+                                    "h": 744,
+                                    "w": 1200
+                                },
+                                "shipment_bbox_volume_m3": 0.71424,
+                                "source": "post_packing_top_level_units"
+                            },
+                            "load_fraction": 1,
+                            "note": "Base: carga única | Fracción: 100.0%",
+                            "origin": {
+                                "id": "14042170",
+                                "label": "Villa María, Córdoba",
+                                "lat": -32.4135041930881,
+                                "lon": -63.248329032642,
+                                "name": "Villa María",
+                                "province": "Córdoba"
+                            },
+                            "outsourced_adjustment_ars": 58590,
+                            "outsourced_adjustment_usd": 42,
+                            "outsourced_company": "Andreani",
+                            "outsourced_cost_ars": 292950,
+                            "outsourced_cost_usd": 210,
+                            "outsourced_total_ars": 351540,
+                            "outsourced_total_usd": 252,
+                            "own_adjustment_ars": 27900,
+                            "own_adjustment_usd": 20,
+                            "own_total_ars": 164211.1,
+                            "own_total_usd": 117.71,
+                            "own_trip_cost_ars": 136311.1,
+                            "own_trip_cost_usd": 97.71,
+                            "reference_cost_per_km_ars": 789.1842,
+                            "reference_cost_per_km_usd": 0.5657,
+                            "reference_payload_kg": 1350,
+                            "reference_volume_m3": 1.18,
+                            "source_label": "",
+                            "unique_load": true,
+                            "volume_fraction": 0.605288,
+                            "weight_fraction": 0.706704
+                        }
+                    },
+                    "items": [
+                        {
+                            "name": "TSG-BR0-0000101",
+                            "l": 205,
+                            "w": 155,
+                            "h": 12.7,
+                            "weight": 3,
+                            "qty": 100,
+                            "rel_qty": 0
+                        },
+                        {
+                            "name": "TSG-BR0-0000102",
+                            "l": 253,
+                            "w": 137,
+                            "h": 12.7,
+                            "weight": 1.4,
+                            "qty": 100,
+                            "rel_qty": 0
+                        },
+                        {
+                            "name": "TSG-BR0-0000103",
+                            "l": 253,
+                            "w": 137,
+                            "h": 12.7,
+                            "weight": 1.4,
+                            "qty": 100,
+                            "rel_qty": 0
+                        },
+                        {
+                            "name": "TSG-BR0-0000104",
+                            "l": 73,
+                            "w": 45,
+                            "h": 6.35,
+                            "weight": 0.05,
+                            "qty": 100,
+                            "rel_qty": 0
+                        },
+                        {
+                            "name": "TSG-BR0-0000105",
+                            "l": 50,
+                            "w": 15,
+                            "h": 15,
+                            "weight": 0.01,
+                            "qty": 100,
+                            "rel_qty": 0
+                        },
+                        {
+                            "name": "TSG-BR0-0000202",
+                            "l": 240,
+                            "w": 140,
+                            "h": 12.7,
+                            "weight": 0.9,
+                            "qty": 100,
+                            "rel_qty": 0
+                        },
+                        {
+                            "name": "TSG-BR0-0000203",
+                            "l": 240,
+                            "w": 140,
+                            "h": 12.7,
+                            "weight": 0.9,
+                            "qty": 100,
+                            "rel_qty": 0
+                        },
+                        {
+                            "name": "TSG-BR0-0000204",
+                            "l": 210,
+                            "w": 125,
+                            "h": 6.35,
+                            "weight": 0.3,
+                            "qty": 100,
+                            "rel_qty": 0
+                        },
+                        {
+                            "name": "TSG-BR0-0000400",
+                            "l": 161,
+                            "w": 68,
+                            "h": 6.35,
+                            "weight": 0.3,
+                            "qty": 100,
+                            "rel_qty": 0
+                        },
+                        {
+                            "name": "TSG-BR0-0000500",
+                            "l": 161,
+                            "w": 68,
+                            "h": 6.35,
+                            "weight": 0.3,
+                            "qty": 100,
+                            "rel_qty": 0
+                        }
+                    ],
+                    "largest_unit_label": "Pallet",
+                    "history_label": "v5 - 13/04/2026, 14:26:39 - Agustin Alberto - Pallet"
+                }
+            ]
+        },
+        {
+            "id": "dd78e82f-b849-44d5-982b-c59c67601342",
+            "folder": "Sin Carpeta",
+            "created_at": "2026-04-10T19:23:00.742Z",
+            "updated_at": "2026-04-13T14:55:31.858Z",
+            "latest_version": 4,
+            "save_name": "TSG-BR0-0000600",
+            "save_description": "",
+            "author": "Agustin Alberto",
+            "versions": [
+                {
+                    "version_id": "7f601c91-1667-44a4-8984-67f93f5509f6",
+                    "version_number": 1,
+                    "timestamp": "2026-04-10T19:23:00.742Z",
+                    "timestamp_display": "10/04/2026, 16:23:00",
+                    "save_name": "TSG-BR0-0000600",
+                    "save_description": "",
+                    "author": "Agustin Alberto",
+                    "container": {
+                        "type": "none",
+                        "l": 5900,
+                        "w": 2350,
+                        "h": 2390,
+                        "weight": 28000
+                    },
+                    "load": {
+                        "type": "loose",
+                        "tray_inner_l": 0,
+                        "tray_inner_w": 0,
+                        "tray_inner_h": 0,
+                        "tray_outer_l": 0,
+                        "tray_outer_w": 0,
+                        "tray_outer_h": 0,
+                        "tray_weight": 0,
+                        "tray_max_weight": 25
+                    },
+                    "pallet": {
+                        "type": "collars",
+                        "boards": 2,
+                        "l": 1200,
+                        "w": 800,
+                        "h": 549,
+                        "weight": 50,
+                        "max_weight": 1200,
+                        "limit_height": false,
+                        "max_height": 1800
+                    },
+                    "optimization": {
+                        "maximize": false,
+                        "mixed_trays": true,
+                        "tray_kanban": false,
+                        "mixed_pallets": true,
+                        "stack_load": true,
+                        "stack_trays": true,
+                        "stack_collars": true,
+                        "force_orientation": false,
+                        "orientation_face": "LxA",
+                        "mixed_containers": true,
+                        "sort_items": true,
+                        "visual_only": false
+                    },
+                    "safety_factors": {
+                        "dims": 5,
+                        "weight": 5
+                    },
+                    "freight": {
+                        "origin": null,
+                        "destination": null,
+                        "unique_load": true,
+                        "outsourced_company": "Andreani",
+                        "own_adjustment_ars": 0,
+                        "own_total_ars": 0,
+                        "outsourced_cost_ars": 0,
+                        "outsourced_adjustment_ars": 0,
+                        "outsourced_total_ars": 0,
+                        "own_adjustment_usd": 20,
+                        "own_total_usd": 20,
+                        "outsourced_cost_usd": 210,
+                        "outsourced_adjustment_usd": 0,
+                        "outsourced_total_usd": 210,
+                        "dollar_rate": null,
+                        "last_estimate": null
+                    },
+                    "items": [
+                        {
+                            "name": "TSG-BR0-0000601",
+                            "l": 127,
+                            "w": 127,
+                            "h": 49.28,
+                            "weight": 1.5,
+                            "qty": 200,
+                            "rel_qty": 0
+                        },
+                        {
+                            "name": "TSG-BR0-0000602",
+                            "l": 19.5,
+                            "w": 19.5,
+                            "h": 49,
+                            "weight": 0.04,
+                            "qty": 200,
+                            "rel_qty": 0
+                        }
+                    ],
+                    "largest_unit_label": "Pallet",
+                    "history_label": "v1 - 10/04/2026, 16:23:00 - Agustin Alberto - Pallet"
+                },
+                {
+                    "version_id": "937cc22f-ec47-4b87-9d27-41d279cbb804",
+                    "version_number": 2,
+                    "timestamp": "2026-04-10T19:24:50.676Z",
+                    "timestamp_display": "10/04/2026, 16:24:50",
+                    "save_name": "TSG-BR0-0000600",
+                    "save_description": "",
+                    "author": "Agustin Alberto",
+                    "container": {
+                        "type": "none",
+                        "l": 5900,
+                        "w": 2350,
+                        "h": 2390,
+                        "weight": 28000
+                    },
+                    "load": {
+                        "type": "loose",
+                        "tray_inner_l": 0,
+                        "tray_inner_w": 0,
+                        "tray_inner_h": 0,
+                        "tray_outer_l": 0,
+                        "tray_outer_w": 0,
+                        "tray_outer_h": 0,
+                        "tray_weight": 0,
+                        "tray_max_weight": 25
+                    },
+                    "pallet": {
+                        "type": "collars",
+                        "boards": 2,
+                        "l": 1200,
+                        "w": 800,
+                        "h": 549,
+                        "weight": 50,
+                        "max_weight": 1200,
+                        "limit_height": false,
+                        "max_height": 1800
+                    },
+                    "optimization": {
+                        "maximize": false,
+                        "mixed_trays": true,
+                        "tray_kanban": false,
+                        "mixed_pallets": true,
+                        "stack_load": true,
+                        "stack_trays": true,
+                        "stack_collars": true,
+                        "force_orientation": false,
+                        "orientation_face": "LxA",
+                        "mixed_containers": true,
+                        "sort_items": true,
+                        "visual_only": false
+                    },
+                    "safety_factors": {
+                        "dims": 5,
+                        "weight": 5
+                    },
+                    "freight": {
+                        "origin": {
+                            "id": "14042170",
+                            "label": "Villa María, Córdoba",
+                            "lat": -32.4135041930881,
+                            "lon": -63.248329032642,
+                            "name": "Villa María",
+                            "province": "Córdoba"
+                        },
+                        "destination": {
+                            "id": "14182060",
+                            "label": "Bell Ville, Córdoba",
+                            "lat": -32.6303142822017,
+                            "lon": -62.6887933841481,
+                            "name": "Bell Ville",
+                            "province": "Córdoba"
+                        },
+                        "unique_load": true,
+                        "outsourced_company": "Andreani",
+                        "own_adjustment_ars": 27900,
+                        "own_total_ars": 131227.17,
+                        "outsourced_cost_ars": 292950,
+                        "outsourced_adjustment_ars": 0,
+                        "outsourced_total_ars": 292950,
+                        "own_adjustment_usd": 20,
+                        "own_total_usd": 94.07,
+                        "outsourced_cost_usd": 210,
+                        "outsourced_adjustment_usd": 0,
+                        "outsourced_total_usd": 210,
+                        "dollar_rate": {
+                            "effective_date": "2026-04-10",
+                            "mode": "latest_available",
+                            "requested_date": "2026-04-10",
+                            "source": "dolarapi-oficial",
+                            "value": 1395
+                        },
+                        "last_estimate": {
+                            "actual_weight_kg": 373.4,
+                            "consolidated_volume_m3": 0.52704,
+                            "cost_model": {
+                                "cost_per_km_ars": 1466.9464,
+                                "distance_km": 70.4,
+                                "driver_trip_ars": 70000,
+                                "extras_trip_ars": 2500,
+                                "fuel_cost_ars": 15827.17,
+                                "fuel_liters": 10.566,
+                                "maintenance_insurance_trip_ars": 10000,
+                                "methodology_note": "Costo propio por viaje con combustible, chofer, peaje, mantenimiento/seguro y extras.",
+                                "toll_ars": 5000,
+                                "toll_label": "Ciudades de Córdoba",
+                                "total_trip_ars": 103327.17
+                            },
+                            "destination": {
+                                "id": "14182060",
+                                "label": "Bell Ville, Córdoba",
+                                "lat": -32.6303142822017,
+                                "lon": -62.6887933841481,
+                                "name": "Bell Ville",
+                                "province": "Córdoba"
+                            },
+                            "distance_km": 70.4,
+                            "distance_source": "Haversine ajustada",
+                            "dollar_rate": {
+                                "effective_date": "2026-04-10",
+                                "mode": "latest_available",
+                                "requested_date": "2026-04-10",
+                                "source": "dolarapi-oficial",
+                                "value": 1395
+                            },
+                            "dominant_basis": "volume",
+                            "estimated_cost_ars": 103327.17,
+                            "estimated_cost_usd": 74.07,
+                            "freight_basis": {
+                                "package_count": 1,
+                                "shipment_bbox_dims_mm": {
+                                    "d": 800,
+                                    "h": 549,
+                                    "w": 1200
+                                },
+                                "shipment_bbox_volume_m3": 0.52704,
+                                "source": "post_packing_top_level_units"
+                            },
+                            "load_fraction": 1,
+                            "note": "Base: carga única | Fracción: 100.0%",
+                            "origin": {
+                                "id": "14042170",
+                                "label": "Villa María, Córdoba",
+                                "lat": -32.4135041930881,
+                                "lon": -63.248329032642,
+                                "name": "Villa María",
+                                "province": "Córdoba"
+                            },
+                            "own_trip_cost_ars": 103327.17,
+                            "own_trip_cost_usd": 74.07,
+                            "reference_cost_per_km_ars": 1466.9464,
+                            "reference_cost_per_km_usd": 1.0516,
+                            "reference_payload_kg": 1350,
+                            "reference_volume_m3": 1.18,
+                            "source_label": "",
+                            "unique_load": true,
+                            "volume_fraction": 0.446644,
+                            "weight_fraction": 0.276593,
+                            "outsourced_company": "Andreani",
+                            "own_adjustment_ars": 27900,
+                            "own_total_ars": 131227.17,
+                            "outsourced_cost_ars": 292950,
+                            "outsourced_adjustment_ars": 0,
+                            "outsourced_total_ars": 292950,
+                            "own_adjustment_usd": 20,
+                            "own_total_usd": 94.07,
+                            "outsourced_cost_usd": 210,
+                            "outsourced_adjustment_usd": 0,
+                            "outsourced_total_usd": 210
+                        }
+                    },
+                    "items": [
+                        {
+                            "name": "TSG-BR0-0000601",
+                            "l": 127,
+                            "w": 127,
+                            "h": 49.28,
+                            "weight": 1.5,
+                            "qty": 200,
+                            "rel_qty": 0
+                        },
+                        {
+                            "name": "TSG-BR0-0000602",
+                            "l": 19.5,
+                            "w": 19.5,
+                            "h": 49,
+                            "weight": 0.04,
+                            "qty": 200,
+                            "rel_qty": 0
+                        }
+                    ],
+                    "largest_unit_label": "Pallet",
+                    "history_label": "v2 - 10/04/2026, 16:24:50 - Agustin Alberto - Pallet"
+                },
+                {
+                    "version_id": "cadebbd8-28b1-47a8-9df7-e6ac84338b24",
+                    "version_number": 3,
+                    "timestamp": "2026-04-10T19:33:09.069Z",
+                    "timestamp_display": "10/04/2026, 16:33:09",
+                    "save_name": "TSG-BR0-0000600",
+                    "save_description": "",
+                    "author": "Agustin Alberto",
+                    "container": {
+                        "type": "none",
+                        "l": 5900,
+                        "w": 2350,
+                        "h": 2390,
+                        "weight": 28000
+                    },
+                    "load": {
+                        "type": "loose",
+                        "tray_inner_l": 0,
+                        "tray_inner_w": 0,
+                        "tray_inner_h": 0,
+                        "tray_outer_l": 0,
+                        "tray_outer_w": 0,
+                        "tray_outer_h": 0,
+                        "tray_weight": 0,
+                        "tray_max_weight": 25
+                    },
+                    "pallet": {
+                        "type": "collars",
+                        "boards": 2,
+                        "l": 1200,
+                        "w": 800,
+                        "h": 549,
+                        "weight": 50,
+                        "max_weight": 1200,
+                        "limit_height": false,
+                        "max_height": 1800
+                    },
+                    "optimization": {
+                        "maximize": false,
+                        "mixed_trays": true,
+                        "tray_kanban": false,
+                        "mixed_pallets": true,
+                        "stack_load": true,
+                        "stack_trays": true,
+                        "stack_collars": true,
+                        "force_orientation": false,
+                        "orientation_face": "LxA",
+                        "mixed_containers": true,
+                        "sort_items": true,
+                        "visual_only": false
+                    },
+                    "safety_factors": {
+                        "dims": 5,
+                        "weight": 5
+                    },
+                    "freight": {
+                        "origin": {
+                            "id": "14042170",
+                            "label": "Villa María, Córdoba",
+                            "lat": -32.4135041930881,
+                            "lon": -63.248329032642,
+                            "name": "Villa María",
+                            "province": "Córdoba"
+                        },
+                        "destination": {
+                            "id": "14182060",
+                            "label": "Bell Ville, Córdoba",
+                            "lat": -32.6303142822017,
+                            "lon": -62.6887933841481,
+                            "name": "Bell Ville",
+                            "province": "Córdoba"
+                        },
+                        "unique_load": true,
+                        "outsourced_company": "Andreani",
+                        "own_adjustment_ars": 27900,
+                        "own_total_ars": 131227.17,
+                        "outsourced_cost_ars": 279000,
+                        "outsourced_adjustment_ars": 0,
+                        "outsourced_total_ars": 279000,
+                        "own_adjustment_usd": 20,
+                        "own_total_usd": 94.07,
+                        "outsourced_cost_usd": 200,
+                        "outsourced_adjustment_usd": 0,
+                        "outsourced_total_usd": 200,
+                        "dollar_rate": {
+                            "effective_date": "2026-04-10",
+                            "mode": "latest_available",
+                            "requested_date": "2026-04-10",
+                            "source": "dolarapi-oficial",
+                            "value": 1395
+                        },
+                        "last_estimate": {
+                            "actual_weight_kg": 373.4,
+                            "consolidated_volume_m3": 0.52704,
+                            "cost_model": {
+                                "cost_per_km_ars": 1466.9464,
+                                "distance_km": 70.4,
+                                "driver_trip_ars": 70000,
+                                "extras_trip_ars": 2500,
+                                "fuel_cost_ars": 15827.17,
+                                "fuel_liters": 10.566,
+                                "maintenance_insurance_trip_ars": 10000,
+                                "methodology_note": "Costo propio por viaje con combustible, chofer, peaje, mantenimiento/seguro y extras.",
+                                "toll_ars": 5000,
+                                "toll_label": "Ciudades de Córdoba",
+                                "total_trip_ars": 103327.17
+                            },
+                            "destination": {
+                                "id": "14182060",
+                                "label": "Bell Ville, Córdoba",
+                                "lat": -32.6303142822017,
+                                "lon": -62.6887933841481,
+                                "name": "Bell Ville",
+                                "province": "Córdoba"
+                            },
+                            "distance_km": 70.4,
+                            "distance_source": "Haversine ajustada",
+                            "dollar_rate": {
+                                "effective_date": "2026-04-10",
+                                "mode": "latest_available",
+                                "requested_date": "2026-04-10",
+                                "source": "dolarapi-oficial",
+                                "value": 1395
+                            },
+                            "dominant_basis": "volume",
+                            "estimated_cost_ars": 103327.17,
+                            "estimated_cost_usd": 74.07,
+                            "freight_basis": {
+                                "package_count": 1,
+                                "shipment_bbox_dims_mm": {
+                                    "d": 800,
+                                    "h": 549,
+                                    "w": 1200
+                                },
+                                "shipment_bbox_volume_m3": 0.52704,
+                                "source": "post_packing_top_level_units"
+                            },
+                            "load_fraction": 1,
+                            "note": "Base: carga única | Fracción: 100.0%",
+                            "origin": {
+                                "id": "14042170",
+                                "label": "Villa María, Córdoba",
+                                "lat": -32.4135041930881,
+                                "lon": -63.248329032642,
+                                "name": "Villa María",
+                                "province": "Córdoba"
+                            },
+                            "outsourced_adjustment_ars": 0,
+                            "outsourced_adjustment_usd": 0,
+                            "outsourced_company": "Andreani",
+                            "outsourced_cost_ars": 279000,
+                            "outsourced_cost_usd": 200,
+                            "outsourced_total_ars": 279000,
+                            "outsourced_total_usd": 200,
+                            "own_adjustment_ars": 27900,
+                            "own_adjustment_usd": 20,
+                            "own_total_ars": 131227.17,
+                            "own_total_usd": 94.07,
+                            "own_trip_cost_ars": 103327.17,
+                            "own_trip_cost_usd": 74.07,
+                            "reference_cost_per_km_ars": 1466.9464,
+                            "reference_cost_per_km_usd": 1.0516,
+                            "reference_payload_kg": 1350,
+                            "reference_volume_m3": 1.18,
+                            "source_label": "",
+                            "unique_load": true,
+                            "volume_fraction": 0.446644,
+                            "weight_fraction": 0.276593
+                        }
+                    },
+                    "items": [
+                        {
+                            "name": "TSG-BR0-0000601",
+                            "l": 127,
+                            "w": 127,
+                            "h": 49.28,
+                            "weight": 1.5,
+                            "qty": 200,
+                            "rel_qty": 0
+                        },
+                        {
+                            "name": "TSG-BR0-0000602",
+                            "l": 19.5,
+                            "w": 19.5,
+                            "h": 49,
+                            "weight": 0.04,
+                            "qty": 200,
+                            "rel_qty": 0
+                        }
+                    ],
+                    "largest_unit_label": "Pallet",
+                    "history_label": "v3 - 10/04/2026, 16:33:09 - Agustin Alberto - Pallet"
+                },
+                {
+                    "version_id": "365e9c81-9120-480b-a7a2-71cf93fb89c2",
+                    "version_number": 4,
+                    "timestamp": "2026-04-13T14:55:31.858Z",
+                    "timestamp_display": "13/04/2026, 11:55:31",
+                    "save_name": "TSG-BR0-0000600",
+                    "save_description": "",
+                    "author": "Agustin Alberto",
+                    "container": {
+                        "type": "none",
+                        "l": 5900,
+                        "w": 2350,
+                        "h": 2390,
+                        "weight": 28000
+                    },
+                    "load": {
+                        "type": "loose",
+                        "tray_inner_l": 0,
+                        "tray_inner_w": 0,
+                        "tray_inner_h": 0,
+                        "tray_outer_l": 0,
+                        "tray_outer_w": 0,
+                        "tray_outer_h": 0,
+                        "tray_weight": 0,
+                        "tray_max_weight": 25
+                    },
+                    "pallet": {
+                        "type": "collars",
+                        "boards": 2,
+                        "l": 1200,
+                        "w": 800,
+                        "h": 549,
+                        "weight": 50,
+                        "max_weight": 1200,
+                        "limit_height": false,
+                        "max_height": 1800
+                    },
+                    "optimization": {
+                        "maximize": false,
+                        "mixed_trays": true,
+                        "tray_kanban": false,
+                        "mixed_pallets": true,
+                        "stack_load": true,
+                        "stack_trays": true,
+                        "stack_collars": true,
+                        "force_orientation": false,
+                        "orientation_face": "LxA",
+                        "mixed_containers": true,
+                        "sort_items": true,
+                        "visual_only": false
+                    },
+                    "safety_factors": {
+                        "dims": 5,
+                        "weight": 5
+                    },
+                    "freight": {
+                        "origin": {
+                            "id": "14042170",
+                            "label": "Villa María, Córdoba",
+                            "lat": -32.4135041930881,
+                            "lon": -63.248329032642,
+                            "name": "Villa María",
+                            "province": "Córdoba"
+                        },
+                        "destination": {
+                            "id": "14182060",
+                            "label": "Bell Ville, Córdoba",
+                            "lat": -32.6303142822017,
+                            "lon": -62.6887933841481,
+                            "name": "Bell Ville",
+                            "province": "Córdoba"
+                        },
+                        "unique_load": true,
+                        "outsourced_company": "Andreani",
+                        "own_adjustment_ars": 27900,
+                        "own_total_ars": 131227.17,
+                        "outsourced_cost_ars": 279000,
+                        "outsourced_adjustment_ars": 55800,
+                        "outsourced_total_ars": 334800,
+                        "own_adjustment_usd": 20,
+                        "own_total_usd": 94.07,
+                        "outsourced_cost_usd": 200,
+                        "outsourced_adjustment_usd": 40,
+                        "outsourced_total_usd": 240,
+                        "dollar_rate": {
+                            "effective_date": "2026-04-10",
+                            "mode": "latest_available",
+                            "requested_date": "2026-04-10",
+                            "source": "dolarapi-oficial",
+                            "value": 1395
+                        },
+                        "last_estimate": {
+                            "actual_weight_kg": 373.4,
+                            "consolidated_volume_m3": 0.52704,
+                            "cost_model": {
+                                "cost_per_km_ars": 1466.9464,
+                                "distance_km": 70.4,
+                                "driver_trip_ars": 70000,
+                                "extras_trip_ars": 2500,
+                                "fuel_cost_ars": 15827.17,
+                                "fuel_liters": 10.566,
+                                "maintenance_insurance_trip_ars": 10000,
+                                "methodology_note": "Costo propio por viaje con combustible, chofer, peaje, mantenimiento/seguro y extras.",
+                                "toll_ars": 5000,
+                                "toll_label": "Ciudades de Córdoba",
+                                "total_trip_ars": 103327.17
+                            },
+                            "destination": {
+                                "id": "14182060",
+                                "label": "Bell Ville, Córdoba",
+                                "lat": -32.6303142822017,
+                                "lon": -62.6887933841481,
+                                "name": "Bell Ville",
+                                "province": "Córdoba"
+                            },
+                            "distance_km": 70.4,
+                            "distance_source": "Haversine ajustada",
+                            "dollar_rate": {
+                                "effective_date": "2026-04-10",
+                                "mode": "latest_available",
+                                "requested_date": "2026-04-10",
+                                "source": "dolarapi-oficial",
+                                "value": 1395
+                            },
+                            "dominant_basis": "volume",
+                            "estimated_cost_ars": 103327.17,
+                            "estimated_cost_usd": 74.07,
+                            "freight_basis": {
+                                "package_count": 1,
+                                "shipment_bbox_dims_mm": {
+                                    "d": 800,
+                                    "h": 549,
+                                    "w": 1200
+                                },
+                                "shipment_bbox_volume_m3": 0.52704,
+                                "source": "post_packing_top_level_units"
+                            },
+                            "load_fraction": 1,
+                            "note": "Base: carga única | Fracción: 100.0%",
+                            "origin": {
+                                "id": "14042170",
+                                "label": "Villa María, Córdoba",
+                                "lat": -32.4135041930881,
+                                "lon": -63.248329032642,
+                                "name": "Villa María",
+                                "province": "Córdoba"
+                            },
+                            "outsourced_adjustment_ars": 55800,
+                            "outsourced_adjustment_usd": 40,
+                            "outsourced_company": "Andreani",
+                            "outsourced_cost_ars": 279000,
+                            "outsourced_cost_usd": 200,
+                            "outsourced_total_ars": 334800,
+                            "outsourced_total_usd": 240,
+                            "own_adjustment_ars": 27900,
+                            "own_adjustment_usd": 20,
+                            "own_total_ars": 131227.17,
+                            "own_total_usd": 94.07,
+                            "own_trip_cost_ars": 103327.17,
+                            "own_trip_cost_usd": 74.07,
+                            "reference_cost_per_km_ars": 1466.9464,
+                            "reference_cost_per_km_usd": 1.0516,
+                            "reference_payload_kg": 1350,
+                            "reference_volume_m3": 1.18,
+                            "source_label": "",
+                            "unique_load": true,
+                            "volume_fraction": 0.446644,
+                            "weight_fraction": 0.276593
+                        }
+                    },
+                    "items": [
+                        {
+                            "name": "TSG-BR0-0000601",
+                            "l": 127,
+                            "w": 127,
+                            "h": 49.28,
+                            "weight": 1.5,
+                            "qty": 200,
+                            "rel_qty": 0
+                        },
+                        {
+                            "name": "TSG-BR0-0000602",
+                            "l": 19.5,
+                            "w": 19.5,
+                            "h": 49,
+                            "weight": 0.04,
+                            "qty": 200,
+                            "rel_qty": 0
+                        }
+                    ],
+                    "largest_unit_label": "Pallet",
+                    "history_label": "v4 - 13/04/2026, 11:55:31 - Agustin Alberto - Pallet"
+                }
+            ]
+        },
+        {
+            "id": "78e1ca09-4017-4400-9ac4-9a848f1240e7",
+            "folder": "Sin Carpeta",
+            "created_at": "2026-04-10T19:40:10.312Z",
+            "updated_at": "2026-04-10T19:40:10.312Z",
+            "latest_version": 1,
+            "save_name": "TSG-CCW-C060000",
+            "save_description": "",
+            "author": "Lorenzo Contigiani",
+            "versions": [
+                {
+                    "version_id": "0f94827a-bd69-48f1-b587-1ee151a2f166",
+                    "version_number": 1,
+                    "timestamp": "2026-04-10T19:40:10.312Z",
+                    "timestamp_display": "10/04/2026, 16:40:10",
+                    "save_name": "TSG-CCW-C060000",
+                    "save_description": "",
+                    "author": "Lorenzo Contigiani",
+                    "container": {
+                        "type": "none",
+                        "l": 5900,
+                        "w": 2350,
+                        "h": 2390,
+                        "weight": 28000
+                    },
+                    "load": {
+                        "type": "loose",
+                        "tray_inner_l": 0,
+                        "tray_inner_w": 0,
+                        "tray_inner_h": 0,
+                        "tray_outer_l": 0,
+                        "tray_outer_w": 0,
+                        "tray_outer_h": 0,
+                        "tray_weight": 0,
+                        "tray_max_weight": 25
+                    },
+                    "pallet": {
+                        "type": "collars",
+                        "boards": 4,
+                        "l": 1200,
+                        "w": 800,
+                        "h": 939,
+                        "weight": 50,
+                        "max_weight": 1200,
+                        "limit_height": false,
+                        "max_height": 1800
+                    },
+                    "optimization": {
+                        "maximize": false,
+                        "mixed_trays": true,
+                        "tray_kanban": false,
+                        "mixed_pallets": true,
+                        "stack_load": true,
+                        "stack_trays": true,
+                        "stack_collars": true,
+                        "force_orientation": false,
+                        "orientation_face": "LxA",
+                        "mixed_containers": true,
+                        "sort_items": true,
+                        "visual_only": false
+                    },
+                    "safety_factors": {
+                        "dims": 5,
+                        "weight": 5
+                    },
+                    "freight": {
+                        "origin": {
+                            "id": "14042170",
+                            "label": "Villa María, Córdoba",
+                            "lat": -32.4135041930881,
+                            "lon": -63.248329032642,
+                            "name": "Villa María",
+                            "province": "Córdoba"
+                        },
+                        "destination": {
+                            "id": "14182060",
+                            "label": "Bell Ville, Córdoba",
+                            "lat": -32.6303142822017,
+                            "lon": -62.6887933841481,
+                            "name": "Bell Ville",
+                            "province": "Córdoba"
+                        },
+                        "unique_load": true,
+                        "outsourced_company": "Lancioni",
+                        "own_adjustment_ars": 0,
+                        "own_total_ars": 103327.17,
+                        "outsourced_cost_ars": 348750,
+                        "outsourced_adjustment_ars": 0,
+                        "outsourced_total_ars": 348750,
+                        "own_adjustment_usd": 0,
+                        "own_total_usd": 74.07,
+                        "outsourced_cost_usd": 250,
+                        "outsourced_adjustment_usd": 0,
+                        "outsourced_total_usd": 250,
+                        "dollar_rate": {
+                            "effective_date": "2026-04-10",
+                            "mode": "latest_available",
+                            "requested_date": "2026-04-10",
+                            "source": "dolarapi-oficial",
+                            "value": 1395
+                        },
+                        "last_estimate": {
+                            "actual_weight_kg": 955.2,
+                            "consolidated_volume_m3": 0.508278,
+                            "cost_model": {
+                                "cost_per_km_ars": 1466.9464,
+                                "distance_km": 70.4,
+                                "driver_trip_ars": 70000,
+                                "extras_trip_ars": 2500,
+                                "fuel_cost_ars": 15827.17,
+                                "fuel_liters": 10.566,
+                                "maintenance_insurance_trip_ars": 10000,
+                                "methodology_note": "Costo propio por viaje con combustible, chofer, peaje, mantenimiento/seguro y extras.",
+                                "toll_ars": 5000,
+                                "toll_label": "Ciudades de Córdoba",
+                                "total_trip_ars": 103327.17
+                            },
+                            "destination": {
+                                "id": "14182060",
+                                "label": "Bell Ville, Córdoba",
+                                "lat": -32.6303142822017,
+                                "lon": -62.6887933841481,
+                                "name": "Bell Ville",
+                                "province": "Córdoba"
+                            },
+                            "distance_km": 70.4,
+                            "distance_source": "Haversine ajustada",
+                            "dollar_rate": {
+                                "effective_date": "2026-04-10",
+                                "mode": "latest_available",
+                                "requested_date": "2026-04-10",
+                                "source": "dolarapi-oficial",
+                                "value": 1395
+                            },
+                            "dominant_basis": "weight",
+                            "estimated_cost_ars": 103327.17,
+                            "estimated_cost_usd": 74.07,
+                            "freight_basis": {
+                                "package_count": 0,
+                                "shipment_bbox_dims_mm": null,
+                                "shipment_bbox_volume_m3": 0,
+                                "source": "raw_items_form"
+                            },
+                            "load_fraction": 1,
+                            "note": "Base: carga única | Fracción: 100.0%",
+                            "origin": {
+                                "id": "14042170",
+                                "label": "Villa María, Córdoba",
+                                "lat": -32.4135041930881,
+                                "lon": -63.248329032642,
+                                "name": "Villa María",
+                                "province": "Córdoba"
+                            },
+                            "own_trip_cost_ars": 103327.17,
+                            "own_trip_cost_usd": 74.07,
+                            "reference_cost_per_km_ars": 1466.9464,
+                            "reference_cost_per_km_usd": 1.0516,
+                            "reference_payload_kg": 1350,
+                            "reference_volume_m3": 1.18,
+                            "source_label": "",
+                            "unique_load": true,
+                            "volume_fraction": 0.430744,
+                            "weight_fraction": 0.707556,
+                            "outsourced_company": "Lancioni",
+                            "own_adjustment_ars": 0,
+                            "own_total_ars": 103327.17,
+                            "outsourced_cost_ars": 348750,
+                            "outsourced_adjustment_ars": 0,
+                            "outsourced_total_ars": 348750,
+                            "own_adjustment_usd": 0,
+                            "own_total_usd": 74.07,
+                            "outsourced_cost_usd": 250,
+                            "outsourced_adjustment_usd": 0,
+                            "outsourced_total_usd": 250
+                        }
+                    },
+                    "items": [
+                        {
+                            "name": "TSG-CCW-0060002",
+                            "l": 111,
+                            "w": 111,
+                            "h": 51,
+                            "weight": 0.997,
+                            "qty": 600,
+                            "rel_qty": 0
+                        },
+                        {
+                            "name": "TSG-CCW-006D003",
+                            "l": 22,
+                            "w": 22,
+                            "h": 55.3,
+                            "weight": 0.126,
+                            "qty": 1200,
+                            "rel_qty": 0
+                        },
+                        {
+                            "name": "TSG-CCW-006D004",
+                            "l": 24,
+                            "w": 24,
+                            "h": 16.5,
+                            "weight": 0.03,
+                            "qty": 1200,
+                            "rel_qty": 0
+                        },
+                        {
+                            "name": "TSG-CCW-0060007",
+                            "l": 65,
+                            "w": 65,
+                            "h": 15.6,
+                            "weight": 0.14,
+                            "qty": 1200,
+                            "rel_qty": 0
+                        },
+                        {
+                            "name": "TSG-CCW-0060008",
+                            "l": 30,
+                            "w": 30,
+                            "h": 8,
+                            "weight": 0.0015,
+                            "qty": 1200,
+                            "rel_qty": 0
+                        }
+                    ],
+                    "largest_unit_label": "Pallet",
+                    "history_label": "v1 - 10/04/2026, 16:40:10 - Lorenzo Contigiani - Pallet"
                 }
             ]
         },

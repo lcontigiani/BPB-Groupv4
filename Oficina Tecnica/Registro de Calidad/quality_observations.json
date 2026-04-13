@@ -2503,7 +2503,87 @@
       "observacion": "",
       "updated_at": "",
       "updated_by": ""
+    },
+    "6088ic04000078c||b&p-033-ca555r-c5e-m": {
+      "item": "6088IC04000078C",
+      "produc": "B&P-033-CA555R-C5E-M",
+      "subgrupo": "Cadenas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "6088ic04000078c||b&p-033-ca555r-qx48p": {
+      "item": "6088IC04000078C",
+      "produc": "B&P-033-CA555R-QX48P",
+      "subgrupo": "Cadenas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "6088ic06000073w||b&p-048-ag-1235-b": {
+      "item": "6088IC06000073W",
+      "produc": "B&P-048-AG-1235-B",
+      "subgrupo": "Rodamientos Esp.Agricolas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "6088ic06000072v||b&p-048-bb203-krr2fd": {
+      "item": "6088IC06000072V",
+      "produc": "B&P-048-BB203-KRR2FD",
+      "subgrupo": "Rodamientos Esp.Agricolas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "6088ic06000072v||b&p-048-j91-c": {
+      "item": "6088IC06000072V",
+      "produc": "B&P-048-J91-C",
+      "subgrupo": "Rodamientos Esp.Agricolas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "6088ic06000072v||bpb-041-fhrl-6006-19": {
+      "item": "6088IC06000072V",
+      "produc": "BPB-041-FHRL-6006-19",
+      "subgrupo": "Rod. Rigidos de Bolas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "6088ic06000075b||bpb-056-ds2565c25chs": {
+      "item": "6088IC06000075B",
+      "produc": "BPB-056-DS2565C25CHS",
+      "subgrupo": "CRUCETAS Y ENGRANAJES",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "6088ic06000075b||bpb-056-eng-2565-chs": {
+      "item": "6088IC06000075B",
+      "produc": "BPB-056-ENG-2565-CHS",
+      "subgrupo": "CRUCETAS Y ENGRANAJES",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "6088ic06000057b||b&p-047-ft-206": {
+      "item": "6088IC06000057B",
+      "produc": "B&P-047-FT-206",
+      "subgrupo": "AUTOCENTRANTES",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "5088ic06000120y||b&p-047-fb-209": {
+      "item": "5088IC06000120Y",
+      "produc": "B&P-047-FB-209",
+      "subgrupo": "AUTOCENTRANTES",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
     }
   },
-  "updated_at": "2026-03-20T13:02:21"
+  "updated_at": "2026-04-13T08:04:53"
 }

@@ -17,12 +17,14 @@ Python 3.14.0
 [DIAGNOSTICO] ErrorLevel tras instalacion: 0
 Iniciando aplicacion...
 
-WARNING:waitress.queue:Task queue depth is 1
-WARNING:waitress.queue:Task queue depth is 1
-WARNING:waitress.queue:Task queue depth is 2
-WARNING:waitress.queue:Task queue depth is 1
-WARNING:waitress.queue:Task queue depth is 1
-WARNING:waitress.queue:Task queue depth is 1
+C:\Users\lcontigiani\AppData\Local\Programs\Python\Python314\Lib\site-packages\openpyxl\worksheet\header_footer.py:48: UserWarning: Cannot parse header or footer so it will be ignored
+  warn("""Cannot parse header or footer so it will be ignored""")
+C:\Users\lcontigiani\AppData\Local\Programs\Python\Python314\Lib\site-packages\openpyxl\worksheet\header_footer.py:48: UserWarning: Cannot parse header or footer so it will be ignored
+  warn("""Cannot parse header or footer so it will be ignored""")
+C:\Users\lcontigiani\AppData\Local\Programs\Python\Python314\Lib\site-packages\openpyxl\worksheet\header_footer.py:48: UserWarning: Cannot parse header or footer so it will be ignored
+  warn("""Cannot parse header or footer so it will be ignored""")
+C:\Users\lcontigiani\AppData\Local\Programs\Python\Python314\Lib\site-packages\openpyxl\worksheet\header_footer.py:48: UserWarning: Cannot parse header or footer so it will be ignored
+  warn("""Cannot parse header or footer so it will be ignored""")
 WARNING:waitress.queue:Task queue depth is 1
 DEBUG: Using resolved BASE_DIR: C:\Users\lcontigiani\Desktop\Servidor\BPB-Groupv4\Oficina Tecnica\Registro de Control de Producto
 Production path found: C:\Users\lcontigiani\Desktop\Servidor\BPB-Groupv4\Oficina Tecnica\Registro de Control de Producto\P2 - Purchase Order\En Progreso
@@ -32,364 +34,6 @@ Using Data Directory: C:\Users\lcontigiani\Desktop\Servidor\BPB-Groupv4\Oficina 
  Workers (Threads): 5
  URL: http://0.0.0.0:8080
 ----------------------------------------------------------------
-DEBUG: >>> ENTERING calculate_logistics <<<
-DEBUG: _do_pack_internal called. Items: 1
-DEBUG: Preparing raw items. Requested: [('35721-8GB030', 250)], MaxCap: inf
-DEBUG: Generating units for 35721-8GB030: qty=250
-DEBUG: Raw items prepared: 250
-DEBUG: Tray mode enabled. Raw items entering tray stage: 250
-DEBUG: Tray stage done. Trays built: 1, Unfitted after trays: 0
-DEBUG: Final packing on virtual floor. Top-level units: 1
-DEBUG: Running virtual-floor solver with 1 top-level units
-DEBUG: Starting KPI Logic. Packed Top Level Count: 1
-DEBUG: Cont Max W: 999999.0, Total Loaded W: 15.742500000000001
-DEBUG: Item Tray_1 IsPallet: False
-DEBUG: Final Grouped Pallets Count: 1
-DEBUG: Grouped Data: [{"type": "tray", "name": "Bandejas", "dims": "400x120x300", "weight_per_tray": 15.74, "load_weight_per_tray": 14.96, "count": 1, "items": [{"name": "35721-8GB030", "dims": "27x27x17.9", "weight": 0.057, "qty_per_tray": 250, "qty_per_pallet": 250, "total_qty": 250}]}]
-DEBUG: >>> ENTERING calculate_logistics <<<
-DEBUG: _do_pack_internal called. Items: 1
-DEBUG: Preparing raw items. Requested: [('TSG-BR0-001', 1)], MaxCap: inf
-DEBUG: Generating units for TSG-BR0-001: qty=1
-DEBUG: Raw items prepared: 1
-DEBUG: Pallet stage starting. Units entering palletizing: 1
-DEBUG: Pallet stage done. Pallets built: 1, Unfitted after pallets: 0
-DEBUG: Final packing on virtual floor. Top-level units: 1
-DEBUG: Running virtual-floor solver with 1 top-level units
-DEBUG: Starting KPI Logic. Packed Top Level Count: 1
-DEBUG: Cont Max W: 999999.0, Total Loaded W: 65.75
-DEBUG: Item Pallet_1 IsPallet: True
-DEBUG: Final Grouped Pallets Count: 1
-DEBUG: Grouped Data: [{"type": "pallet", "name": "Pallet 1 (1200x800)", "dims": "1200x800x744", "weight_per_pallet": 65.75, "load_weight_per_pallet": 15.75, "count": 1, "items": [{"name": "TSG-BR0-001", "dims": "100x150x5", "weight": 15.0, "qty_per_pallet": 1, "total_qty": 1}], "trays": []}]
-DEBUG: >>> ENTERING calculate_logistics <<<
-DEBUG: _do_pack_internal called. Items: 1
-DEBUG: Preparing raw items. Requested: [('TSG-BR0-001', 100)], MaxCap: inf
-DEBUG: Generating units for TSG-BR0-001: qty=100
-DEBUG: Raw items prepared: 100
-DEBUG: Pallet stage starting. Units entering palletizing: 100
-DEBUG: Pallet stage done. Pallets built: 2, Unfitted after pallets: 0
-DEBUG: Final packing on virtual floor. Top-level units: 2
-DEBUG: Running virtual-floor solver with 2 top-level units
-DEBUG: Starting KPI Logic. Packed Top Level Count: 2
-DEBUG: Cont Max W: 999999.0, Total Loaded W: 1675.0
-DEBUG: Item Pallet_1 IsPallet: True
-DEBUG: Item Pallet_2 IsPallet: True
-DEBUG: Final Grouped Pallets Count: 2
-DEBUG: Grouped Data: [{"type": "pallet", "name": "Pallet 1 (1200x800)", "dims": "1200x800x744", "weight_per_pallet": 1199.75, "load_weight_per_pallet": 1149.75, "count": 1, "items": [{"name": "TSG-BR0-001", "dims": "100x150x5", "weight": 15.0, "qty_per_pallet": 73, "total_qty": 73}], "trays": []}, {"type": "pallet", "name": "Pallet 2 (1200x800)", "dims": "1200x800x744", "weight_per_pallet": 475.25, "load_weight_per_pallet": 425.25, "count": 1, "items": [{"name": "TSG-BR0-001", "dims": "100x150x5", "weight": 15.0, "qty_per_pallet": 27, "total_qty": 27}], "trays": []}]
-DEBUG: >>> ENTERING calculate_logistics <<<
-DEBUG: _do_pack_internal called. Items: 1
-DEBUG: Preparing raw items. Requested: [('TSG-BR0-001', 100)], MaxCap: inf
-DEBUG: Generating units for TSG-BR0-001: qty=100
-DEBUG: Raw items prepared: 100
-DEBUG: Pallet stage starting. Units entering palletizing: 100
-DEBUG: Pallet stage done. Pallets built: 2, Unfitted after pallets: 0
-DEBUG: Final packing on virtual floor. Top-level units: 2
-DEBUG: Running virtual-floor solver with 2 top-level units
-DEBUG: Starting KPI Logic. Packed Top Level Count: 2
-DEBUG: Cont Max W: 999999.0, Total Loaded W: 1675.0
-DEBUG: Item Pallet_1 IsPallet: True
-DEBUG: Item Pallet_2 IsPallet: True
-DEBUG: Final Grouped Pallets Count: 2
-DEBUG: Grouped Data: [{"type": "pallet", "name": "Pallet 1 (1200x800)", "dims": "1200x800x744", "weight_per_pallet": 1199.75, "load_weight_per_pallet": 1149.75, "count": 1, "items": [{"name": "TSG-BR0-001", "dims": "100x150x5", "weight": 15.0, "qty_per_pallet": 73, "total_qty": 73}], "trays": []}, {"type": "pallet", "name": "Pallet 2 (1200x800)", "dims": "1200x800x744", "weight_per_pallet": 475.25, "load_weight_per_pallet": 425.25, "count": 1, "items": [{"name": "TSG-BR0-001", "dims": "100x150x5", "weight": 15.0, "qty_per_pallet": 27, "total_qty": 27}], "trays": []}]
-DEBUG: >>> ENTERING calculate_logistics <<<
-DEBUG: _do_pack_internal called. Items: 1
-DEBUG: Preparing raw items. Requested: [('TSG-BR0-001', 60)], MaxCap: inf
-DEBUG: Generating units for TSG-BR0-001: qty=60
-DEBUG: Raw items prepared: 60
-DEBUG: Pallet stage starting. Units entering palletizing: 60
-DEBUG: Pallet stage done. Pallets built: 1, Unfitted after pallets: 0
-DEBUG: Final packing on virtual floor. Top-level units: 1
-DEBUG: Running virtual-floor solver with 1 top-level units
-DEBUG: Starting KPI Logic. Packed Top Level Count: 1
-DEBUG: Cont Max W: 999999.0, Total Loaded W: 995.0
-DEBUG: Item Pallet_1 IsPallet: True
-DEBUG: Final Grouped Pallets Count: 1
-DEBUG: Grouped Data: [{"type": "pallet", "name": "Pallet 1 (1200x800)", "dims": "1200x800x744", "weight_per_pallet": 995.0, "load_weight_per_pallet": 945.0, "count": 1, "items": [{"name": "TSG-BR0-001", "dims": "100x150x5", "weight": 15.0, "qty_per_pallet": 60, "total_qty": 60}], "trays": []}]
-DEBUG: >>> ENTERING calculate_logistics <<<
-DEBUG: _do_pack_internal called. Items: 1
-DEBUG: Preparing raw items. Requested: [('TSG-BR0-001', 60)], MaxCap: inf
-DEBUG: Generating units for TSG-BR0-001: qty=60
-DEBUG: Raw items prepared: 60
-DEBUG: Pallet stage starting. Units entering palletizing: 60
-DEBUG: Pallet stage done. Pallets built: 1, Unfitted after pallets: 0
-DEBUG: Final packing on virtual floor. Top-level units: 1
-DEBUG: Running virtual-floor solver with 1 top-level units
-DEBUG: Starting KPI Logic. Packed Top Level Count: 1
-DEBUG: Cont Max W: 999999.0, Total Loaded W: 995.0
-DEBUG: Item Pallet_1 IsPallet: True
-DEBUG: Final Grouped Pallets Count: 1
-DEBUG: Grouped Data: [{"type": "pallet", "name": "Pallet 1 (1200x800)", "dims": "1200x800x744", "weight_per_pallet": 995.0, "load_weight_per_pallet": 945.0, "count": 1, "items": [{"name": "TSG-BR0-001", "dims": "100x150x5", "weight": 15.0, "qty_per_pallet": 60, "total_qty": 60}], "trays": []}]
-DEBUG: >>> ENTERING calculate_logistics <<<
-DEBUG: _do_pack_internal called. Items: 1
-DEBUG: Preparing raw items. Requested: [('TSG-BR0-001', 60)], MaxCap: inf
-DEBUG: Generating units for TSG-BR0-001: qty=60
-DEBUG: Raw items prepared: 60
-DEBUG: Pallet stage starting. Units entering palletizing: 60
-DEBUG: Pallet stage done. Pallets built: 1, Unfitted after pallets: 0
-DEBUG: Final packing on virtual floor. Top-level units: 1
-DEBUG: Running virtual-floor solver with 1 top-level units
-DEBUG: Starting KPI Logic. Packed Top Level Count: 1
-DEBUG: Cont Max W: 999999.0, Total Loaded W: 995.0
-DEBUG: Item Pallet_1 IsPallet: True
-DEBUG: Final Grouped Pallets Count: 1
-DEBUG: Grouped Data: [{"type": "pallet", "name": "Pallet 1 (1200x800)", "dims": "1200x800x744", "weight_per_pallet": 995.0, "load_weight_per_pallet": 945.0, "count": 1, "items": [{"name": "TSG-BR0-001", "dims": "100x150x5", "weight": 15.0, "qty_per_pallet": 60, "total_qty": 60}], "trays": []}]
-DEBUG: >>> ENTERING calculate_logistics <<<
-DEBUG: _do_pack_internal called. Items: 1
-DEBUG: Preparing raw items. Requested: [('TSG-BR0-001', 100)], MaxCap: inf
-DEBUG: Generating units for TSG-BR0-001: qty=100
-DEBUG: Raw items prepared: 100
-DEBUG: Pallet stage starting. Units entering palletizing: 100
-DEBUG: Pallet stage done. Pallets built: 1, Unfitted after pallets: 0
-DEBUG: Final packing on virtual floor. Top-level units: 1
-DEBUG: Running virtual-floor solver with 1 top-level units
-DEBUG: Starting KPI Logic. Packed Top Level Count: 1
-DEBUG: Cont Max W: 999999.0, Total Loaded W: 365.0
-DEBUG: Item Pallet_1 IsPallet: True
-DEBUG: Final Grouped Pallets Count: 1
-DEBUG: Grouped Data: [{"type": "pallet", "name": "Pallet 1 (1200x800)", "dims": "1200x800x939", "weight_per_pallet": 365.0, "load_weight_per_pallet": 315.0, "count": 1, "items": [{"name": "TSG-BR0-001", "dims": "205x155x12.7", "weight": 3.0, "qty_per_pallet": 100, "total_qty": 100}], "trays": []}]
-DEBUG: >>> ENTERING calculate_logistics <<<
-DEBUG: _do_pack_internal called. Items: 2
-DEBUG: Preparing raw items. Requested: [('TSG-BR0-0000101', 100), ('TSG-BR0-0000102', 100)], MaxCap: inf
-DEBUG: Generating units for TSG-BR0-0000101: qty=100
-DEBUG: Generating units for TSG-BR0-0000102: qty=100
-DEBUG: Raw items prepared: 200
-DEBUG: Pallet stage starting. Units entering palletizing: 200
-DEBUG: Pallet stage done. Pallets built: 1, Unfitted after pallets: 0
-DEBUG: Final packing on virtual floor. Top-level units: 1
-DEBUG: Running virtual-floor solver with 1 top-level units
-DEBUG: Starting KPI Logic. Packed Top Level Count: 1
-DEBUG: Cont Max W: 999999.0, Total Loaded W: 512.0
-DEBUG: Item Pallet_1 IsPallet: True
-DEBUG: Final Grouped Pallets Count: 1
-DEBUG: Grouped Data: [{"type": "pallet", "name": "Pallet 1 (1200x800)", "dims": "1200x800x939", "weight_per_pallet": 512.0, "load_weight_per_pallet": 462.0, "count": 1, "items": [{"name": "TSG-BR0-0000102", "dims": "253x137x12.7", "weight": 1.4, "qty_per_pallet": 100, "total_qty": 100}, {"name": "TSG-BR0-0000101", "dims": "205x155x12.7", "weight": 3.0, "qty_per_pallet": 100, "total_qty": 100}], "trays": []}]
-DEBUG: >>> ENTERING calculate_logistics <<<
-DEBUG: _do_pack_internal called. Items: 2
-DEBUG: Preparing raw items. Requested: [('TSG-BR0-0000101', 100), ('TSG-BR0-0000102', 200)], MaxCap: inf
-DEBUG: Generating units for TSG-BR0-0000101: qty=100
-DEBUG: Generating units for TSG-BR0-0000102: qty=200
-DEBUG: Raw items prepared: 300
-DEBUG: Pallet stage starting. Units entering palletizing: 300
-DEBUG: Pallet stage done. Pallets built: 1, Unfitted after pallets: 0
-DEBUG: Final packing on virtual floor. Top-level units: 1
-DEBUG: Running virtual-floor solver with 1 top-level units
-DEBUG: Starting KPI Logic. Packed Top Level Count: 1
-DEBUG: Cont Max W: 999999.0, Total Loaded W: 659.0
-DEBUG: Item Pallet_1 IsPallet: True
-DEBUG: Final Grouped Pallets Count: 1
-DEBUG: Grouped Data: [{"type": "pallet", "name": "Pallet 1 (1200x800)", "dims": "1200x800x939", "weight_per_pallet": 659.0, "load_weight_per_pallet": 609.0, "count": 1, "items": [{"name": "TSG-BR0-0000102", "dims": "253x137x12.7", "weight": 1.4, "qty_per_pallet": 200, "total_qty": 200}, {"name": "TSG-BR0-0000101", "dims": "205x155x12.7", "weight": 3.0, "qty_per_pallet": 100, "total_qty": 100}], "trays": []}]
-DEBUG: >>> ENTERING calculate_logistics <<<
-DEBUG: _do_pack_internal called. Items: 3
-DEBUG: Preparing raw items. Requested: [('TSG-BR0-0000101', 100), ('TSG-BR0-0000102', 100), ('TSG-BR0-0000103', 100)], MaxCap: inf
-DEBUG: Generating units for TSG-BR0-0000101: qty=100
-DEBUG: Generating units for TSG-BR0-0000102: qty=100
-DEBUG: Generating units for TSG-BR0-0000103: qty=100
-DEBUG: Raw items prepared: 300
-DEBUG: Pallet stage starting. Units entering palletizing: 300
-DEBUG: Pallet stage done. Pallets built: 1, Unfitted after pallets: 0
-DEBUG: Final packing on virtual floor. Top-level units: 1
-DEBUG: Running virtual-floor solver with 1 top-level units
-DEBUG: Starting KPI Logic. Packed Top Level Count: 1
-DEBUG: Cont Max W: 999999.0, Total Loaded W: 659.0
-DEBUG: Item Pallet_1 IsPallet: True
-DEBUG: Final Grouped Pallets Count: 1
-DEBUG: Grouped Data: [{"type": "pallet", "name": "Pallet 1 (1200x800)", "dims": "1200x800x939", "weight_per_pallet": 659.0, "load_weight_per_pallet": 609.0, "count": 1, "items": [{"name": "TSG-BR0-0000102", "dims": "253x137x12.7", "weight": 1.4, "qty_per_pallet": 100, "total_qty": 100}, {"name": "TSG-BR0-0000103", "dims": "253x137x12.7", "weight": 1.4, "qty_per_pallet": 100, "total_qty": 100}, {"name": "TSG-BR0-0000101", "dims": "205x155x12.7", "weight": 3.0, "qty_per_pallet": 100, "total_qty": 100}], "trays": []}]
-DEBUG: >>> ENTERING calculate_logistics <<<
-DEBUG: _do_pack_internal called. Items: 2
-DEBUG: Preparing raw items. Requested: [('TSG-BR0-0000101', 100), ('TSG-BR0-0000102', 100)], MaxCap: inf
-DEBUG: Generating units for TSG-BR0-0000101: qty=100
-DEBUG: Generating units for TSG-BR0-0000102: qty=100
-DEBUG: Raw items prepared: 200
-DEBUG: Pallet stage starting. Units entering palletizing: 200
-DEBUG: Pallet stage done. Pallets built: 1, Unfitted after pallets: 0
-DEBUG: Final packing on virtual floor. Top-level units: 1
-DEBUG: Running virtual-floor solver with 1 top-level units
-DEBUG: Starting KPI Logic. Packed Top Level Count: 1
-DEBUG: Cont Max W: 999999.0, Total Loaded W: 512.0
-DEBUG: Item Pallet_1 IsPallet: True
-DEBUG: Final Grouped Pallets Count: 1
-DEBUG: Grouped Data: [{"type": "pallet", "name": "Pallet 1 (1200x800)", "dims": "1200x800x939", "weight_per_pallet": 512.0, "load_weight_per_pallet": 462.0, "count": 1, "items": [{"name": "TSG-BR0-0000102", "dims": "253x137x12.7", "weight": 1.4, "qty_per_pallet": 100, "total_qty": 100}, {"name": "TSG-BR0-0000101", "dims": "205x155x12.7", "weight": 3.0, "qty_per_pallet": 100, "total_qty": 100}], "trays": []}]
-DEBUG: >>> ENTERING calculate_logistics <<<
-DEBUG: _do_pack_internal called. Items: 3
-DEBUG: Preparing raw items. Requested: [('TSG-BR0-0000101', 100), ('TSG-BR0-0000102', 100), ('TSG-BR0-0000103', 100)], MaxCap: inf
-DEBUG: Generating units for TSG-BR0-0000101: qty=100
-DEBUG: Generating units for TSG-BR0-0000102: qty=100
-DEBUG: Generating units for TSG-BR0-0000103: qty=100
-DEBUG: Raw items prepared: 300
-DEBUG: Pallet stage starting. Units entering palletizing: 300
-DEBUG: Pallet stage done. Pallets built: 1, Unfitted after pallets: 0
-DEBUG: Final packing on virtual floor. Top-level units: 1
-DEBUG: Running virtual-floor solver with 1 top-level units
-DEBUG: Starting KPI Logic. Packed Top Level Count: 1
-DEBUG: Cont Max W: 999999.0, Total Loaded W: 659.0
-DEBUG: Item Pallet_1 IsPallet: True
-DEBUG: Final Grouped Pallets Count: 1
-DEBUG: Grouped Data: [{"type": "pallet", "name": "Pallet 1 (1200x800)", "dims": "1200x800x939", "weight_per_pallet": 659.0, "load_weight_per_pallet": 609.0, "count": 1, "items": [{"name": "TSG-BR0-0000102", "dims": "253x137x12.7", "weight": 1.4, "qty_per_pallet": 100, "total_qty": 100}, {"name": "TSG-BR0-0000103", "dims": "253x137x12.7", "weight": 1.4, "qty_per_pallet": 100, "total_qty": 100}, {"name": "TSG-BR0-0000101", "dims": "205x155x12.7", "weight": 3.0, "qty_per_pallet": 100, "total_qty": 100}], "trays": []}]
-DEBUG: >>> ENTERING calculate_logistics <<<
-DEBUG: _do_pack_internal called. Items: 1
-DEBUG: Preparing raw items. Requested: [('001', 1)], MaxCap: inf
-DEBUG: Generating units for 001: qty=1
-DEBUG: Raw items prepared: 1
-DEBUG: Pallet stage starting. Units entering palletizing: 1
-DEBUG: Pallet stage done. Pallets built: 1, Unfitted after pallets: 0
-DEBUG: Final packing on virtual floor. Top-level units: 1
-DEBUG: Running virtual-floor solver with 1 top-level units
-DEBUG: Starting KPI Logic. Packed Top Level Count: 1
-DEBUG: Cont Max W: 999999.0, Total Loaded W: 52.1
-DEBUG: Item Pallet_1 IsPallet: True
-DEBUG: Final Grouped Pallets Count: 1
-DEBUG: Grouped Data: [{"type": "pallet", "name": "Pallet 1 (1200x800)", "dims": "1200x800x939", "weight_per_pallet": 52.1, "load_weight_per_pallet": 2.1, "count": 1, "items": [{"name": "001", "dims": "40x100x40", "weight": 2.0, "qty_per_pallet": 1, "total_qty": 1}], "trays": []}]
-DEBUG: >>> ENTERING calculate_logistics <<<
-DEBUG: Maximization requested for 1 items.
-DEBUG: [MAX] Upper bound estimated for 001: 576
-DEBUG: [MAX] Quantity 1 fits for 001. Next probe: 2
-DEBUG: [MAX] Quantity 2 fits for 001. Next probe: 4
-DEBUG: [MAX] Quantity 4 fits for 001. Next probe: 8
-DEBUG: [MAX] Quantity 8 fits for 001. Next probe: 16
-DEBUG: [MAX] Quantity 16 fits for 001. Next probe: 32
-DEBUG: [MAX] Quantity 32 fits for 001. Next probe: 64
-DEBUG: [MAX] Quantity 64 fits for 001. Next probe: 128
-DEBUG: [MAX] Quantity 128 fits for 001. Next probe: 256
-DEBUG: [MAX] Quantity 256 fits for 001. Next probe: 512
-DEBUG: [MAX] Quantity 512 fits for 001. Next probe: 576
-DEBUG: [MAX] Binary search for 001. Range=(513,575) Mid=544
-DEBUG: [MAX] Mid 544 fits for 001
-DEBUG: [MAX] Binary search for 001. Range=(545,575) Mid=560
-DEBUG: [MAX] Mid 560 does NOT fit for 001
-DEBUG: [MAX] Binary search for 001. Range=(545,559) Mid=552
-DEBUG: [MAX] Mid 552 does NOT fit for 001
-DEBUG: [MAX] Binary search for 001. Range=(545,551) Mid=548
-DEBUG: [MAX] Mid 548 does NOT fit for 001
-DEBUG: [MAX] Binary search for 001. Range=(545,547) Mid=546
-DEBUG: [MAX] Mid 546 fits for 001
-DEBUG: [MAX] Binary search for 001. Range=(547,547) Mid=547
-DEBUG: >>> ENTERING calculate_logistics <<<
-DEBUG: _do_pack_internal called. Items: 4
-DEBUG: Preparing raw items. Requested: [('TSG-BR0-0000101', 100), ('TSG-BR0-0000102', 100), ('TSG-BR0-0000103', 100), ('TSG-BR0-0000104', 200)], MaxCap: inf
-DEBUG: Generating units for TSG-BR0-0000101: qty=100
-DEBUG: [MAX] Mid 547 fits for 001
-DEBUG: Generating units for TSG-BR0-0000102: qty=100
-DEBUG: [MAX] Best quantity found for 001: 547
-DEBUG: _do_pack_internal called. Items: 1
-DEBUG: Generating units for TSG-BR0-0000103: qty=100
-DEBUG: Preparing raw items. Requested: [('001', 547)], MaxCap: 22700
-DEBUG: Generating units for TSG-BR0-0000104: qty=200
-DEBUG: Generating units for 001: qty=547
-DEBUG: Raw items prepared: 500
-DEBUG: Raw items prepared: 547
-DEBUG: Pallet stage starting. Units entering palletizing: 500
-DEBUG: Pallet stage starting. Units entering palletizing: 547
-DEBUG: Pallet stage done. Pallets built: 1, Unfitted after pallets: 0
-DEBUG: Final packing on virtual floor. Top-level units: 1
-DEBUG: Running virtual-floor solver with 1 top-level units
-DEBUG: Starting KPI Logic. Packed Top Level Count: 1
-DEBUG: Cont Max W: 999999.0, Total Loaded W: 1198.7
-DEBUG: Item Pallet_1 IsPallet: True
-DEBUG: Final Grouped Pallets Count: 1
-DEBUG: Grouped Data: [{"type": "pallet", "name": "Pallet 1 (1200x800)", "dims": "1200x800x939", "weight_per_pallet": 1198.7, "load_weight_per_pallet": 1148.7, "count": 1, "items": [{"name": "001", "dims": "40x100x40", "weight": 2.0, "qty_per_pallet": 547, "total_qty": 547}], "trays": []}]
-DEBUG: Pallet stage done. Pallets built: 1, Unfitted after pallets: 0
-DEBUG: Final packing on virtual floor. Top-level units: 1
-DEBUG: Running virtual-floor solver with 1 top-level units
-DEBUG: Starting KPI Logic. Packed Top Level Count: 1
-DEBUG: Cont Max W: 999999.0, Total Loaded W: 669.5
-DEBUG: Item Pallet_1 IsPallet: True
-DEBUG: Final Grouped Pallets Count: 1
-DEBUG: Grouped Data: [{"type": "pallet", "name": "Pallet 1 (1200x800)", "dims": "1200x800x939", "weight_per_pallet": 669.5, "load_weight_per_pallet": 619.5, "count": 1, "items": [{"name": "TSG-BR0-0000102", "dims": "253x137x12.7", "weight": 1.4, "qty_per_pallet": 100, "total_qty": 100}, {"name": "TSG-BR0-0000103", "dims": "253x137x12.7", "weight": 1.4, "qty_per_pallet": 100, "total_qty": 100}, {"name": "TSG-BR0-0000101", "dims": "205x155x12.7", "weight": 3.0, "qty_per_pallet": 100, "total_qty": 100}, {"name": "TSG-BR0-0000104", "dims": "73x45x6.35", "weight": 0.05, "qty_per_pallet": 200, "total_qty": 200}], "trays": []}]
-DEBUG: >>> ENTERING calculate_logistics <<<
-DEBUG: Maximization requested for 1 items.
-DEBUG: [MAX] Upper bound estimated for 001: 1151
-DEBUG: [MAX] Quantity 1 fits for 001. Next probe: 2
-DEBUG: [MAX] Quantity 2 fits for 001. Next probe: 4
-DEBUG: [MAX] Quantity 4 fits for 001. Next probe: 8
-DEBUG: [MAX] Quantity 8 fits for 001. Next probe: 16
-DEBUG: [MAX] Quantity 16 fits for 001. Next probe: 32
-DEBUG: [MAX] Quantity 32 fits for 001. Next probe: 64
-DEBUG: [MAX] Quantity 64 fits for 001. Next probe: 128
-DEBUG: [MAX] Quantity 128 fits for 001. Next probe: 256
-DEBUG: [MAX] Quantity 256 fits for 001. Next probe: 512
-DEBUG: [MAX] Quantity 512 fits for 001. Next probe: 1024
-DEBUG: [MAX] Quantity 1024 fits for 001. Next probe: 1151
-DEBUG: [MAX] Binary search for 001. Range=(1025,1150) Mid=1087
-DEBUG: [MAX] Mid 1087 fits for 001
-DEBUG: [MAX] Binary search for 001. Range=(1088,1150) Mid=1119
-DEBUG: [MAX] Mid 1119 does NOT fit for 001
-DEBUG: [MAX] Binary search for 001. Range=(1088,1118) Mid=1103
-DEBUG: [MAX] Mid 1103 does NOT fit for 001
-DEBUG: [MAX] Binary search for 001. Range=(1088,1102) Mid=1095
-DEBUG: [MAX] Mid 1095 fits for 001
-DEBUG: [MAX] Binary search for 001. Range=(1096,1102) Mid=1099
-DEBUG: [MAX] Mid 1099 does NOT fit for 001
-DEBUG: [MAX] Binary search for 001. Range=(1096,1098) Mid=1097
-DEBUG: [MAX] Mid 1097 does NOT fit for 001
-DEBUG: [MAX] Binary search for 001. Range=(1096,1096) Mid=1096
-DEBUG: [MAX] Mid 1096 does NOT fit for 001
-DEBUG: [MAX] Best quantity found for 001: 1095
-DEBUG: _do_pack_internal called. Items: 1
-DEBUG: Preparing raw items. Requested: [('001', 1095)], MaxCap: 22700
-DEBUG: Generating units for 001: qty=1095
-DEBUG: Raw items prepared: 1095
-DEBUG: Pallet stage starting. Units entering palletizing: 1095
-DEBUG: Pallet stage done. Pallets built: 1, Unfitted after pallets: 0
-DEBUG: Final packing on virtual floor. Top-level units: 1
-DEBUG: Running virtual-floor solver with 1 top-level units
-DEBUG: Starting KPI Logic. Packed Top Level Count: 1
-DEBUG: Cont Max W: 999999.0, Total Loaded W: 1199.75
-DEBUG: Item Pallet_1 IsPallet: True
-DEBUG: Final Grouped Pallets Count: 1
-DEBUG: Grouped Data: [{"type": "pallet", "name": "Pallet 1 (1200x800)", "dims": "1200x800x939", "weight_per_pallet": 1199.75, "load_weight_per_pallet": 1149.75, "count": 1, "items": [{"name": "001", "dims": "40x100x40", "weight": 1.0, "qty_per_pallet": 1095, "total_qty": 1095}], "trays": []}]
-DEBUG: >>> ENTERING calculate_logistics <<<
-DEBUG: _do_pack_internal called. Items: 4
-DEBUG: Preparing raw items. Requested: [('TSG-BR0-0000101', 100), ('TSG-BR0-0000102', 100), ('TSG-BR0-0000103', 100), ('TSG-BR0-0000104', 200)], MaxCap: inf
-DEBUG: Generating units for TSG-BR0-0000101: qty=100
-DEBUG: Generating units for TSG-BR0-0000102: qty=100
-DEBUG: Generating units for TSG-BR0-0000103: qty=100
-DEBUG: Generating units for TSG-BR0-0000104: qty=200
-DEBUG: Raw items prepared: 500
-DEBUG: Pallet stage starting. Units entering palletizing: 500
-DEBUG: Pallet stage done. Pallets built: 1, Unfitted after pallets: 0
-DEBUG: Final packing on virtual floor. Top-level units: 1
-DEBUG: Running virtual-floor solver with 1 top-level units
-DEBUG: Starting KPI Logic. Packed Top Level Count: 1
-DEBUG: Cont Max W: 999999.0, Total Loaded W: 669.5
-DEBUG: Item Pallet_1 IsPallet: True
-DEBUG: Final Grouped Pallets Count: 1
-DEBUG: Grouped Data: [{"type": "pallet", "name": "Pallet 1 (1200x800)", "dims": "1200x800x744", "weight_per_pallet": 669.5, "load_weight_per_pallet": 619.5, "count": 1, "items": [{"name": "TSG-BR0-0000102", "dims": "253x137x12.7", "weight": 1.4, "qty_per_pallet": 100, "total_qty": 100}, {"name": "TSG-BR0-0000103", "dims": "253x137x12.7", "weight": 1.4, "qty_per_pallet": 100, "total_qty": 100}, {"name": "TSG-BR0-0000101", "dims": "205x155x12.7", "weight": 3.0, "qty_per_pallet": 100, "total_qty": 100}, {"name": "TSG-BR0-0000104", "dims": "73x45x6.35", "weight": 0.05, "qty_per_pallet": 200, "total_qty": 200}], "trays": []}]
-WARNING:waitress.queue:Task queue depth is 1
-WARNING:waitress.queue:Task queue depth is 2
-DEBUG: >>> ENTERING calculate_logistics <<<
-DEBUG: _do_pack_internal called. Items: 2
-DEBUG: Preparing raw items. Requested: [('001', 340), ('002', 250)], MaxCap: inf
-DEBUG: Generating units for 001: qty=340
-DEBUG: Generating units for 002: qty=250
-DEBUG: Raw items prepared: 590
-DEBUG: Pallet stage starting. Units entering palletizing: 590
-DEBUG: Pallet stage done. Pallets built: 1, Unfitted after pallets: 0
-DEBUG: Final packing on virtual floor. Top-level units: 1
-DEBUG: Running virtual-floor solver with 1 top-level units
-DEBUG: Starting KPI Logic. Packed Top Level Count: 1
-DEBUG: Cont Max W: 999999.0, Total Loaded W: 669.5
-DEBUG: Item Pallet_1 IsPallet: True
-DEBUG: Final Grouped Pallets Count: 1
-DEBUG: Grouped Data: [{"type": "pallet", "name": "Pallet 1 (1200x800)", "dims": "1200x800x939", "weight_per_pallet": 669.5, "load_weight_per_pallet": 619.5, "count": 1, "items": [{"name": "001", "dims": "40x100x40", "weight": 1.0, "qty_per_pallet": 340, "total_qty": 340}, {"name": "002", "dims": "20x30x50", "weight": 1.0, "qty_per_pallet": 250, "total_qty": 250}], "trays": []}]
-DEBUG: >>> ENTERING calculate_logistics <<<
-DEBUG: _do_pack_internal called. Items: 8
-DEBUG: Preparing raw items. Requested: [('TSG-BR0-0000101', 100), ('TSG-BR0-0000102', 100), ('TSG-BR0-0000103', 100), ('TSG-BR0-0000104', 200), ('TSG-BR0-0000105', 100), ('TSG-BR0-0000202', 100), ('TSG-BR0-0000203', 100), ('TSG-BR0-0000204', 1)], MaxCap: inf
-DEBUG: Generating units for TSG-BR0-0000101: qty=100
-DEBUG: Generating units for TSG-BR0-0000102: qty=100
-DEBUG: Generating units for TSG-BR0-0000103: qty=100
-DEBUG: Generating units for TSG-BR0-0000104: qty=200
-DEBUG: Generating units for TSG-BR0-0000105: qty=100
-DEBUG: Generating units for TSG-BR0-0000202: qty=100
-DEBUG: Generating units for TSG-BR0-0000203: qty=100
-DEBUG: Generating units for TSG-BR0-0000204: qty=1
-DEBUG: Raw items prepared: 801
-DEBUG: Pallet stage starting. Units entering palletizing: 801
-DEBUG: Pallet stage done. Pallets built: 1, Unfitted after pallets: 0
-DEBUG: Final packing on virtual floor. Top-level units: 1
-DEBUG: Running virtual-floor solver with 1 top-level units
-DEBUG: Starting KPI Logic. Packed Top Level Count: 1
-DEBUG: Cont Max W: 999999.0, Total Loaded W: 859.865
-DEBUG: Item Pallet_1 IsPallet: True
-DEBUG: Final Grouped Pallets Count: 1
-DEBUG: Grouped Data: [{"type": "pallet", "name": "Pallet 1 (1200x800)", "dims": "1200x800x744", "weight_per_pallet": 859.87, "load_weight_per_pallet": 809.87, "count": 1, "items": [{"name": "TSG-BR0-0000102", "dims": "253x137x12.7", "weight": 1.4, "qty_per_pallet": 100, "total_qty": 100}, {"name": "TSG-BR0-0000103", "dims": "253x137x12.7", "weight": 1.4, "qty_per_pallet": 100, "total_qty": 100}, {"name": "TSG-BR0-0000202", "dims": "240x140x12.7", "weight": 0.9, "qty_per_pallet": 100, "total_qty": 100}, {"name": "TSG-BR0-0000203", "dims": "240x140x12.7", "weight": 0.9, "qty_per_pallet": 100, "total_qty": 100}, {"name": "TSG-BR0-0000101", "dims": "205x155x12.7", "weight": 3.0, "qty_per_pallet": 100, "total_qty": 100}, {"name": "TSG-BR0-0000204", "dims": "210x125x6.35", "weight": 0.3, "qty_per_pallet": 1, "total_qty": 1}, {"name": "TSG-BR0-0000104", "dims": "73x45x6.35", "weight": 0.05, "qty_per_pallet": 200, "total_qty": 200}, {"name": "TSG-BR0-0000105", "dims": "50x15x15", "weight": 0.01, "qty_per_pallet": 100, "total_qty": 100}], "trays": []}]
 DEBUG: >>> ENTERING calculate_logistics <<<
 DEBUG: _do_pack_internal called. Items: 10
 DEBUG: Preparing raw items. Requested: [('TSG-BR0-0000101', 100), ('TSG-BR0-0000102', 100), ('TSG-BR0-0000103', 100), ('TSG-BR0-0000104', 200), ('TSG-BR0-0000105', 100), ('TSG-BR0-0000202', 100), ('TSG-BR0-0000203', 100), ('TSG-BR0-0000204', 100), ('TSG-BR0-0000400', 100), ('TSG-BR0-0000500', 100)], MaxCap: inf
@@ -405,6 +49,12 @@ DEBUG: Generating units for TSG-BR0-0000400: qty=100
 DEBUG: Generating units for TSG-BR0-0000500: qty=100
 DEBUG: Raw items prepared: 1100
 DEBUG: Pallet stage starting. Units entering palletizing: 1100
+WARNING:waitress.queue:Task queue depth is 1
+WARNING:waitress.queue:Task queue depth is 1
+WARNING:waitress.queue:Task queue depth is 1
+WARNING:waitress.queue:Task queue depth is 1
+WARNING:waitress.queue:Task queue depth is 2
+WARNING:waitress.queue:Task queue depth is 1
 DEBUG: Pallet stage done. Pallets built: 1, Unfitted after pallets: 0
 DEBUG: Final packing on virtual floor. Top-level units: 1
 DEBUG: Running virtual-floor solver with 1 top-level units
@@ -413,92 +63,26 @@ DEBUG: Cont Max W: 999999.0, Total Loaded W: 954.0500000000001
 DEBUG: Item Pallet_1 IsPallet: True
 DEBUG: Final Grouped Pallets Count: 1
 DEBUG: Grouped Data: [{"type": "pallet", "name": "Pallet 1 (1200x800)", "dims": "1200x800x744", "weight_per_pallet": 954.05, "load_weight_per_pallet": 904.05, "count": 1, "items": [{"name": "TSG-BR0-0000102", "dims": "253x137x12.7", "weight": 1.4, "qty_per_pallet": 100, "total_qty": 100}, {"name": "TSG-BR0-0000103", "dims": "253x137x12.7", "weight": 1.4, "qty_per_pallet": 100, "total_qty": 100}, {"name": "TSG-BR0-0000202", "dims": "240x140x12.7", "weight": 0.9, "qty_per_pallet": 100, "total_qty": 100}, {"name": "TSG-BR0-0000203", "dims": "240x140x12.7", "weight": 0.9, "qty_per_pallet": 100, "total_qty": 100}, {"name": "TSG-BR0-0000101", "dims": "205x155x12.7", "weight": 3.0, "qty_per_pallet": 100, "total_qty": 100}, {"name": "TSG-BR0-0000204", "dims": "210x125x6.35", "weight": 0.3, "qty_per_pallet": 100, "total_qty": 100}, {"name": "TSG-BR0-0000400", "dims": "161x68x6.35", "weight": 0.3, "qty_per_pallet": 100, "total_qty": 100}, {"name": "TSG-BR0-0000500", "dims": "161x68x6.35", "weight": 0.3, "qty_per_pallet": 100, "total_qty": 100}, {"name": "TSG-BR0-0000104", "dims": "73x45x6.35", "weight": 0.05, "qty_per_pallet": 200, "total_qty": 200}, {"name": "TSG-BR0-0000105", "dims": "50x15x15", "weight": 0.01, "qty_per_pallet": 100, "total_qty": 100}], "trays": []}]
-WARNING:waitress.queue:Task queue depth is 1
 DEBUG: >>> ENTERING calculate_logistics <<<
-DEBUG: _do_pack_internal called. Items: 1
-DEBUG: Preparing raw items. Requested: [('TSG-CCW-0060002', 1200)], MaxCap: inf
-DEBUG: Generating units for TSG-CCW-0060002: qty=1200
-DEBUG: Raw items prepared: 1200
-DEBUG: Pallet stage starting. Units entering palletizing: 1200
-DEBUG: Pallet stage done. Pallets built: 2, Unfitted after pallets: 0
-DEBUG: Final packing on virtual floor. Top-level units: 2
-DEBUG: Running virtual-floor solver with 2 top-level units
-DEBUG: Starting KPI Logic. Packed Top Level Count: 2
-DEBUG: Cont Max W: 999999.0, Total Loaded W: 1356.22
-DEBUG: Item Pallet_1 IsPallet: True
-DEBUG: Item Pallet_2 IsPallet: True
-DEBUG: Final Grouped Pallets Count: 2
-DEBUG: Grouped Data: [{"type": "pallet", "name": "Pallet 1 (1200x800)", "dims": "1200x800x939", "weight_per_pallet": 973.32, "load_weight_per_pallet": 923.32, "count": 1, "items": [{"name": "TSG-CCW-0060002", "dims": "111x111x51", "weight": 0.997, "qty_per_pallet": 882, "total_qty": 882}], "trays": []}, {"type": "pallet", "name": "Pallet 2 (1200x800)", "dims": "1200x800x939", "weight_per_pallet": 382.9, "load_weight_per_pallet": 332.9, "count": 1, "items": [{"name": "TSG-CCW-0060002", "dims": "111x111x51", "weight": 0.997, "qty_per_pallet": 318, "total_qty": 318}], "trays": []}]
-DEBUG: >>> ENTERING calculate_logistics <<<
-DEBUG: _do_pack_internal called. Items: 2
-DEBUG: Preparing raw items. Requested: [('TSG-BR0-0000601', 200), ('TSG-BR0-0000602', 200)], MaxCap: inf
-DEBUG: Generating units for TSG-BR0-0000601: qty=200
-DEBUG: Generating units for TSG-BR0-0000602: qty=200
-DEBUG: Raw items prepared: 400
-DEBUG: Pallet stage starting. Units entering palletizing: 400
+DEBUG: _do_pack_internal called. Items: 10
+DEBUG: Preparing raw items. Requested: [('TSG-BR0-0000101', 100), ('TSG-BR0-0000102', 100), ('TSG-BR0-0000103', 100), ('TSG-BR0-0000104', 100), ('TSG-BR0-0000105', 100), ('TSG-BR0-0000202', 100), ('TSG-BR0-0000203', 100), ('TSG-BR0-0000204', 100), ('TSG-BR0-0000400', 100), ('TSG-BR0-0000500', 100)], MaxCap: inf
+DEBUG: Generating units for TSG-BR0-0000101: qty=100
+DEBUG: Generating units for TSG-BR0-0000102: qty=100
+DEBUG: Generating units for TSG-BR0-0000103: qty=100
+DEBUG: Generating units for TSG-BR0-0000104: qty=100
+DEBUG: Generating units for TSG-BR0-0000105: qty=100
+DEBUG: Generating units for TSG-BR0-0000202: qty=100
+DEBUG: Generating units for TSG-BR0-0000203: qty=100
+DEBUG: Generating units for TSG-BR0-0000204: qty=100
+DEBUG: Generating units for TSG-BR0-0000400: qty=100
+DEBUG: Generating units for TSG-BR0-0000500: qty=100
+DEBUG: Raw items prepared: 1000
+DEBUG: Pallet stage starting. Units entering palletizing: 1000
 DEBUG: Pallet stage done. Pallets built: 1, Unfitted after pallets: 0
 DEBUG: Final packing on virtual floor. Top-level units: 1
 DEBUG: Running virtual-floor solver with 1 top-level units
 DEBUG: Starting KPI Logic. Packed Top Level Count: 1
-DEBUG: Cont Max W: 999999.0, Total Loaded W: 373.40000000000003
+DEBUG: Cont Max W: 999999.0, Total Loaded W: 948.8000000000001
 DEBUG: Item Pallet_1 IsPallet: True
 DEBUG: Final Grouped Pallets Count: 1
-DEBUG: Grouped Data: [{"type": "pallet", "name": "Pallet 1 (1200x800)", "dims": "1200x800x939", "weight_per_pallet": 373.4, "load_weight_per_pallet": 323.4, "count": 1, "items": [{"name": "TSG-BR0-0000601", "dims": "127x127x49.28", "weight": 1.5, "qty_per_pallet": 200, "total_qty": 200}, {"name": "TSG-BR0-0000602", "dims": "19.5x19.5x49", "weight": 0.04, "qty_per_pallet": 200, "total_qty": 200}], "trays": []}]
-DEBUG: >>> ENTERING calculate_logistics <<<
-DEBUG: _do_pack_internal called. Items: 2
-DEBUG: Preparing raw items. Requested: [('TSG-BR0-0000601', 200), ('TSG-BR0-0000602', 200)], MaxCap: inf
-DEBUG: Generating units for TSG-BR0-0000601: qty=200
-DEBUG: Generating units for TSG-BR0-0000602: qty=200
-DEBUG: Raw items prepared: 400
-DEBUG: Pallet stage starting. Units entering palletizing: 400
-DEBUG: Pallet stage done. Pallets built: 1, Unfitted after pallets: 0
-DEBUG: Final packing on virtual floor. Top-level units: 1
-DEBUG: Running virtual-floor solver with 1 top-level units
-DEBUG: Starting KPI Logic. Packed Top Level Count: 1
-DEBUG: Cont Max W: 999999.0, Total Loaded W: 373.40000000000003
-DEBUG: Item Pallet_1 IsPallet: True
-DEBUG: Final Grouped Pallets Count: 1
-DEBUG: Grouped Data: [{"type": "pallet", "name": "Pallet 1 (1200x800)", "dims": "1200x800x549", "weight_per_pallet": 373.4, "load_weight_per_pallet": 323.4, "count": 1, "items": [{"name": "TSG-BR0-0000601", "dims": "127x127x49.28", "weight": 1.5, "qty_per_pallet": 200, "total_qty": 200}, {"name": "TSG-BR0-0000602", "dims": "19.5x19.5x49", "weight": 0.04, "qty_per_pallet": 200, "total_qty": 200}], "trays": []}]
-DEBUG: >>> ENTERING calculate_logistics <<<
-DEBUG: _do_pack_internal called. Items: 2
-DEBUG: Preparing raw items. Requested: [('TSG-BR0-0000601', 200), ('TSG-BR0-0000602', 200)], MaxCap: inf
-DEBUG: Generating units for TSG-BR0-0000601: qty=200
-DEBUG: Generating units for TSG-BR0-0000602: qty=200
-DEBUG: Raw items prepared: 400
-DEBUG: Pallet stage starting. Units entering palletizing: 400
-DEBUG: Pallet stage done. Pallets built: 1, Unfitted after pallets: 0
-DEBUG: Final packing on virtual floor. Top-level units: 1
-DEBUG: Running virtual-floor solver with 1 top-level units
-DEBUG: Starting KPI Logic. Packed Top Level Count: 1
-DEBUG: Cont Max W: 999999.0, Total Loaded W: 373.40000000000003
-DEBUG: Item Pallet_1 IsPallet: True
-DEBUG: Final Grouped Pallets Count: 1
-DEBUG: Grouped Data: [{"type": "pallet", "name": "Pallet 1 (1200x800)", "dims": "1200x800x549", "weight_per_pallet": 373.4, "load_weight_per_pallet": 323.4, "count": 1, "items": [{"name": "TSG-BR0-0000601", "dims": "127x127x49.28", "weight": 1.5, "qty_per_pallet": 200, "total_qty": 200}, {"name": "TSG-BR0-0000602", "dims": "19.5x19.5x49", "weight": 0.04, "qty_per_pallet": 200, "total_qty": 200}], "trays": []}]
-DEBUG: >>> ENTERING calculate_logistics <<<
-DEBUG: _do_pack_internal called. Items: 2
-DEBUG: Preparing raw items. Requested: [('TSG-BR0-0000601', 200), ('TSG-BR0-0000602', 200)], MaxCap: inf
-DEBUG: Generating units for TSG-BR0-0000601: qty=200
-DEBUG: Generating units for TSG-BR0-0000602: qty=200
-DEBUG: Raw items prepared: 400
-DEBUG: Pallet stage starting. Units entering palletizing: 400
-DEBUG: Pallet stage done. Pallets built: 1, Unfitted after pallets: 0
-DEBUG: Final packing on virtual floor. Top-level units: 1
-DEBUG: Running virtual-floor solver with 1 top-level units
-DEBUG: Starting KPI Logic. Packed Top Level Count: 1
-DEBUG: Cont Max W: 999999.0, Total Loaded W: 373.40000000000003
-DEBUG: Item Pallet_1 IsPallet: True
-DEBUG: Final Grouped Pallets Count: 1
-DEBUG: Grouped Data: [{"type": "pallet", "name": "Pallet 1 (1200x800)", "dims": "1200x800x549", "weight_per_pallet": 373.4, "load_weight_per_pallet": 323.4, "count": 1, "items": [{"name": "TSG-BR0-0000601", "dims": "127x127x49.28", "weight": 1.5, "qty_per_pallet": 200, "total_qty": 200}, {"name": "TSG-BR0-0000602", "dims": "19.5x19.5x49", "weight": 0.04, "qty_per_pallet": 200, "total_qty": 200}], "trays": []}]
-DEBUG: >>> ENTERING calculate_logistics <<<
-DEBUG: _do_pack_internal called. Items: 5
-DEBUG: Preparing raw items. Requested: [('TSG-CCW-0060002', 600), ('TSG-CCW-006D003', 1200), ('TSG-CCW-006D004', 1200), ('TSG-CCW-0060007', 1200), ('TSG-CCW-0060008', 1200)], MaxCap: inf
-DEBUG: Generating units for TSG-CCW-0060002: qty=600
-DEBUG: Generating units for TSG-CCW-006D003: qty=1200
-DEBUG: Generating units for TSG-CCW-006D004: qty=1200
-DEBUG: Generating units for TSG-CCW-0060007: qty=1200
-DEBUG: Generating units for TSG-CCW-0060008: qty=1200
-DEBUG: Raw items prepared: 5400
-DEBUG: Pallet stage starting. Units entering palletizing: 5400
-WARNING:waitress.queue:Task queue depth is 1
-WARNING:waitress.queue:Task queue depth is 1
-WARNING:waitress.queue:Task queue depth is 1
+DEBUG: Grouped Data: [{"type": "pallet", "name": "Pallet 1 (1200x800)", "dims": "1200x800x744", "weight_per_pallet": 948.8, "load_weight_per_pallet": 898.8, "count": 1, "items": [{"name": "TSG-BR0-0000102", "dims": "253x137x12.7", "weight": 1.4, "qty_per_pallet": 100, "total_qty": 100}, {"name": "TSG-BR0-0000103", "dims": "253x137x12.7", "weight": 1.4, "qty_per_pallet": 100, "total_qty": 100}, {"name": "TSG-BR0-0000202", "dims": "240x140x12.7", "weight": 0.9, "qty_per_pallet": 100, "total_qty": 100}, {"name": "TSG-BR0-0000203", "dims": "240x140x12.7", "weight": 0.9, "qty_per_pallet": 100, "total_qty": 100}, {"name": "TSG-BR0-0000101", "dims": "205x155x12.7", "weight": 3.0, "qty_per_pallet": 100, "total_qty": 100}, {"name": "TSG-BR0-0000204", "dims": "210x125x6.35", "weight": 0.3, "qty_per_pallet": 100, "total_qty": 100}, {"name": "TSG-BR0-0000400", "dims": "161x68x6.35", "weight": 0.3, "qty_per_pallet": 100, "total_qty": 100}, {"name": "TSG-BR0-0000500", "dims": "161x68x6.35", "weight": 0.3, "qty_per_pallet": 100, "total_qty": 100}, {"name": "TSG-BR0-0000104", "dims": "73x45x6.35", "weight": 0.05, "qty_per_pallet": 100, "total_qty": 100}, {"name": "TSG-BR0-0000105", "dims": "50x15x15", "weight": 0.01, "qty_per_pallet": 100, "total_qty": 100}], "trays": []}]
