@@ -1,0 +1,18 @@
+# Carpeta raw/ — Fuentes Originales
+
+Aquí van los archivos originales de la empresa: contratos, reportes, exportaciones de Bitrix24, presentaciones, etc.
+
+## Estructura
+
+- contratos/       → Contratos con clientes y proveedores
+- reportes/        → Reportes financieros y comerciales
+- presentaciones/  → Decks y presentaciones
+- datos/           → CSVs y JSONs exportados de sistemas
+- emails-importantes/ → Emails guardados para referencia
+- actas-reunion/   → Actas de reuniones
+- documentacion-legal/ → Documentos legales originales
+
+## Regla
+
+Los archivos en raw/ son INMUTABLES. Nunca se modifican.
+Claude los lee para generar o actualizar páginas en wiki/.
