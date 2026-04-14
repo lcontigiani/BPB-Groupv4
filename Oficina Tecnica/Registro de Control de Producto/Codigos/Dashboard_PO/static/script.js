@@ -6322,6 +6322,164 @@ function showActivitySubHome() {
 
 let qualityCacheRefreshPromise = null;
 let qualityCacheLastRefreshAt = 0;
+let qualitySyncStatusPromise = null;
+let qualitySyncPollTimer = null;
+let qualityManualSyncInFlight = false;
+
+function setQualitySyncStatusText(text, tone = 'muted') {
+    const colorMap = {
+        muted: 'var(--text-secondary)',
+        running: '#f1c40f',
+        success: '#2ecc71',
+        error: '#ff8a8a'
+    };
+    ['quality-pending-sync-label', 'quality-history-sync-label'].forEach((id) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.textContent = text || '';
+        el.style.display = text ? 'inline-block' : 'none';
+        el.style.color = colorMap[tone] || colorMap.muted;
+    });
+}
+
+function formatQualitySyncDate(value) {
+    const parsed = parseQualityFilterDate(value);
+    if (!parsed) return '';
+    return parsed.toLocaleDateString('es-AR');
+}
+
+async function fetchQualitySyncStatus(force = false) {
+    if (!force && qualitySyncStatusPromise) return qualitySyncStatusPromise;
+    qualitySyncStatusPromise = fetch('/api/quality/sync/status')
+        .then((response) => response.json().catch(() => ({})))
+        .finally(() => {
+            window.setTimeout(() => {
+                qualitySyncStatusPromise = null;
+            }, 500);
+        });
+    return qualitySyncStatusPromise;
+}
+
+function renderQualitySyncStatus(status) {
+    const buttons = [
+        document.getElementById('quality-pending-sync-button'),
+        document.getElementById('quality-history-sync-button')
+    ].filter(Boolean);
+    if (!status?.enabled) {
+        buttons.forEach((button) => {
+            button.disabled = false;
+            button.style.display = 'inline-flex';
+            button.classList.remove('pulsing-btn');
+            button.style.borderColor = '';
+            button.style.color = '';
+            button.style.background = '';
+            button.title = '';
+        });
+        setQualitySyncStatusText('', 'muted');
+        return;
+    }
+    if (status.status === 'running') {
+        buttons.forEach((button) => {
+            button.disabled = true;
+            button.style.display = 'inline-flex';
+            button.classList.add('pulsing-btn');
+            button.style.borderColor = 'var(--bpb-blue)';
+            button.style.color = 'var(--bpb-blue)';
+            button.style.background = 'rgba(207, 22, 37, 0.1)';
+            button.title = 'Actualizando...';
+        });
+        setQualitySyncStatusText('', 'running');
+        return;
+    }
+    buttons.forEach((button) => {
+        button.disabled = false;
+        button.style.display = 'inline-flex';
+        button.classList.remove('pulsing-btn');
+        button.style.borderColor = '';
+        button.style.color = '';
+        button.style.background = '';
+        button.title = '';
+    });
+    if (status.status === 'failed') {
+        setQualitySyncStatusText('', 'error');
+        return;
+    }
+    if (status.finished_at) {
+        setQualitySyncStatusText('', 'success');
+        return;
+    }
+    setQualitySyncStatusText('', 'muted');
+}
+
+async function waitForQualitySyncCompletion(timeoutMs = 180000) {
+    const startedAt = Date.now();
+    while ((Date.now() - startedAt) < timeoutMs) {
+        const payload = await fetchQualitySyncStatus(true);
+        const status = payload?.data || {};
+        renderQualitySyncStatus(status);
+        if (status.status !== 'running') {
+            if (status.status === 'failed') {
+                throw new Error(status.error || 'La sincronizacion de Calidad fallo.');
+            }
+            return status;
+        }
+        await new Promise((resolve) => window.setTimeout(resolve, 2500));
+    }
+    throw new Error('La sincronizacion de Calidad excedio el tiempo esperado.');
+}
+
+async function ensureQualitySync(force = false) {
+    const payload = await fetchQualitySyncStatus(true);
+    const status = payload?.data || {};
+    renderQualitySyncStatus(status);
+
+    if (!status.enabled) {
+        if (force) {
+            await refreshQualityCsvCache(true);
+        }
+        return status;
+    }
+
+    if (status.status === 'running') {
+        return waitForQualitySyncCompletion();
+    }
+
+    if (force || status.should_sync) {
+        const response = await fetch('/api/quality/sync', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || data.status !== 'success') {
+            throw new Error(data.message || 'No se pudo iniciar la sincronizacion de Calidad.');
+        }
+        renderQualitySyncStatus({ enabled: true, status: 'running' });
+        return waitForQualitySyncCompletion();
+    }
+
+    return status;
+}
+
+window.triggerQualityManualSync = async function (sourceView = '') {
+    if (qualityManualSyncInFlight) return;
+    qualityManualSyncInFlight = true;
+    try {
+        renderQualitySyncStatus({ enabled: true, status: 'running' });
+        await ensureQualitySync(true);
+        showNotification('Sincronizacion de Calidad completada.', 'success');
+        if (sourceView === 'pending' || document.getElementById('view-quality-pending')?.style.display === 'block') {
+            loadQualityPendingCategories();
+            loadQualityPendingRecords();
+        } else if (sourceView === 'history' || document.getElementById('view-quality-history')?.style.display === 'block') {
+            loadQualityHistoryRecords();
+        }
+    } catch (error) {
+        console.error('Error triggering quality sync:', error);
+        showNotification(error.message || 'No se pudo sincronizar Calidad.', 'error');
+    } finally {
+        qualityManualSyncInFlight = false;
+    }
+};
 
 function refreshQualityCsvCache(force = false) {
     const now = Date.now();
@@ -6369,7 +6527,10 @@ function showQualityControlHome() {
     if (view) view.style.display = 'block';
 
     animateEntry('view-quality-control-home');
-    refreshQualityCsvCache();
+    ensureQualitySync(false).catch((error) => {
+        console.warn('Quality sync status failed:', error);
+        setQualitySyncStatusText(error.message || 'No se pudo consultar la sincronizacion.', 'error');
+    });
 
     const subtitle = document.querySelector('header .subtitle');
     if (subtitle) subtitle.textContent = 'Oficina Técnica | Registro de Control de Calidad';
@@ -7162,7 +7323,7 @@ async function loadQualityPendingRecords() {
     if (tbody) tbody.innerHTML = '<tr><td colspan="7" class="text-center" style="padding: 2rem; color: #888;">Cargando registros pendientes...</td></tr>';
 
     try {
-        await refreshQualityCsvCache(true);
+        await ensureQualitySync(false);
         const response = await fetch('/api/quality/pending');
         const data = await response.json();
 
@@ -7310,6 +7471,7 @@ async function loadQualityHistoryRecords() {
     if (tbody) tbody.innerHTML = '<tr><td colspan="7" class="text-center" style="padding: 2rem; color: #888;">Cargando historial...</td></tr>';
 
     try {
+        await ensureQualitySync(false);
         const response = await fetch('/api/quality/history');
         const data = await response.json();
 

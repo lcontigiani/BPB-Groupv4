@@ -2,7 +2,7 @@
 
 > Instrucciones corporativas para Claude dentro de BPB Argentina.
 > Este archivo se carga automáticamente al inicio de cada sesión.
-> Última actualización: Abril 2026 | Responsable: Lorenzo Contigiani
+> Última actualización: Abril 2026 (v2 — claude-mem integrado) | Responsable: Lorenzo Contigiani
 > 
 > ⚠️ Campos marcados con [COMPLETAR] requieren información interna que aún no fue provista.
 
@@ -102,6 +102,27 @@ La base de conocimiento de BPB está en la carpeta `wiki/`.
 
 ---
 
+## Memoria Persistente (claude-mem)
+
+Sistema activo: **claude-mem v6.5.0** — proyecto `bpb-argentina` | Worker: http://localhost:37777
+
+**Inicio de sesión:** hook SessionStart inyecta las últimas 50 observaciones automáticamente.
+**Fin de sesión:** hook Stop compila y archiva el contexto de la sesión.
+
+**Skills de memoria:**
+- `/mem-search` — Buscar en historial (3 capas: search → timeline → get_observations). Ahorro ~10x tokens.
+- `/smart-explore` — Explorar código con AST sin leer archivos completos. Ahorro 4-8x tokens.
+- `/timeline-report` — Reporte narrativo completo del historial del proyecto.
+- `/knowledge-agent` — Corpus consultable: clientes, propuestas, soporte técnico.
+
+**Tipos de observación:** `bugfix` | `feature` | `decision` | `discovery` | `change`
+
+**Privacidad:** Usar `<private>...</private>` para credenciales y datos sensibles — nunca se persisten en DB.
+
+> Para instalar (una sola vez): `cd BPB-Knowledge-Base && npx claude-mem install`
+
+---
+
 ## Reglas Operativas
 
 ### Siempre
@@ -197,4 +218,4 @@ Procesos prioritarios a documentar:
 | Fecha | Cambio | Por |
 |-------|--------|-----|
 | 2026-04-13 | Versión inicial | Lorenzo Contigiani / Claude |
-| [fecha] | [descripción] | [responsable] |
+| 2026-04-14 | v2: Memoria Persistente claude-mem integrada, hooks configurados | Lorenzo Contigiani / Claude |

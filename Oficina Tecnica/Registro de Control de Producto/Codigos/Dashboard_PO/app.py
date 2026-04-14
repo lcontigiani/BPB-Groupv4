@@ -49,6 +49,7 @@ import secrets
 from copy import deepcopy
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from quality_postgres import QualityPostgresStore
 
 # Logistics Solver Import
 from logistics_solver import Packer, Bin, Item, RotationType
@@ -14628,6 +14629,8 @@ QUALITY_CSV_CACHE_DIR = QUALITY_BASE_PATH / "_csv_cache"
 QUALITY_OBSERVATIONS_FILE = QUALITY_BASE_PATH / "quality_observations.json"
 QUALITY_PENDING_CATEGORIES_FILE = QUALITY_BASE_PATH / "quality_pending_categories.json"
 QUALITY_PENDING_HANDLERS_FILE = QUALITY_BASE_PATH / "quality_pending_handlers.json"
+QUALITY_POSTGRES_DSN = os.environ.get("BPB_QUALITY_PG_DSN", "").strip()
+QUALITY_POSTGRES_SYNC_MAX_AGE_SECONDS = max(30, int(os.environ.get("BPB_QUALITY_SYNC_MAX_AGE_SECONDS", "180") or "180"))
 QUALITY_SHEET_CACHE_MAP = {
     'Control de Calidad': QUALITY_CSV_CACHE_DIR / "control_de_calidad.csv",
     'Aprobaciones': QUALITY_CSV_CACHE_DIR / "aprobaciones.csv"
@@ -14640,6 +14643,18 @@ QUALITY_HISTORY_CACHE_LOCK = threading.Lock()
 QUALITY_PENDING_HIDDEN_CATEGORY_ID = 'hidden'
 QUALITY_PENDING_HIDDEN_CATEGORY_NAME = 'Ocultos'
 QUALITY_PENDING_HIDDEN_CATEGORY_COLOR = '#5c6370'
+QUALITY_POSTGRES_STORE = None
+QUALITY_POSTGRES_STORE_LOCK = threading.Lock()
+QUALITY_POSTGRES_SYNC_LOCK = threading.Lock()
+QUALITY_POSTGRES_SYNC_STATE = {
+    'running': False,
+    'run_id': '',
+    'trigger_source': '',
+    'triggered_by': '',
+    'started_at': '',
+    'finished_at': '',
+    'error': ''
+}
 QUALITY_HISTORY_CACHE = {
     'csv_mtime': None,
     'obs_mtime': None,
@@ -14650,6 +14665,124 @@ QUALITY_HISTORY_CACHE = {
 def _can_access_quality_module():
     role = str(session.get('role') or '').strip().lower()
     return role in {'admin', 'calidad'}
+
+
+def _quality_postgres_enabled():
+    return bool(QUALITY_POSTGRES_DSN)
+
+
+def _get_quality_postgres_store():
+    global QUALITY_POSTGRES_STORE
+    if not _quality_postgres_enabled():
+        raise RuntimeError('BPB_QUALITY_PG_DSN no configurado.')
+    with QUALITY_POSTGRES_STORE_LOCK:
+        if QUALITY_POSTGRES_STORE is None:
+            QUALITY_POSTGRES_STORE = QualityPostgresStore(
+                dsn=QUALITY_POSTGRES_DSN,
+                workbook_path=QUALITY_WORKBOOK_PATH,
+                observations_file=QUALITY_OBSERVATIONS_FILE,
+                categories_file=QUALITY_PENDING_CATEGORIES_FILE,
+                handlers_file=QUALITY_PENDING_HANDLERS_FILE,
+            )
+            QUALITY_POSTGRES_STORE.validate_connection()
+            QUALITY_POSTGRES_STORE.ensure_schema()
+            QUALITY_POSTGRES_STORE.bootstrap_json_state()
+        return QUALITY_POSTGRES_STORE
+
+
+def _quality_get_sync_status_payload():
+    if not _quality_postgres_enabled():
+        return {
+            'enabled': False,
+            'mode': 'legacy',
+            'status': 'legacy',
+            'should_sync': False,
+            'max_age_seconds': QUALITY_POSTGRES_SYNC_MAX_AGE_SECONDS,
+        }
+    store = _get_quality_postgres_store()
+    status = store.get_latest_sync_status()
+    with QUALITY_POSTGRES_SYNC_LOCK:
+        running = bool(QUALITY_POSTGRES_SYNC_STATE.get('running'))
+        if running:
+            status['status'] = 'running'
+            if QUALITY_POSTGRES_SYNC_STATE.get('run_id'):
+                status['run_id'] = QUALITY_POSTGRES_SYNC_STATE.get('run_id')
+            status['trigger_source'] = QUALITY_POSTGRES_SYNC_STATE.get('trigger_source') or status.get('trigger_source') or ''
+            status['triggered_by'] = QUALITY_POSTGRES_SYNC_STATE.get('triggered_by') or status.get('triggered_by') or ''
+            status['started_at'] = QUALITY_POSTGRES_SYNC_STATE.get('started_at') or status.get('started_at') or ''
+            status['finished_at'] = QUALITY_POSTGRES_SYNC_STATE.get('finished_at') or ''
+            status['error'] = QUALITY_POSTGRES_SYNC_STATE.get('error') or status.get('error') or ''
+    status['enabled'] = True
+    status['mode'] = 'postgres'
+    status['driver'] = store.driver_name()
+    status['max_age_seconds'] = QUALITY_POSTGRES_SYNC_MAX_AGE_SECONDS
+    status['should_sync'] = store.should_sync(QUALITY_POSTGRES_SYNC_MAX_AGE_SECONDS)
+    return status
+
+
+def _quality_start_postgres_sync(trigger_source='manual', triggered_by=''):
+    store = _get_quality_postgres_store()
+    with QUALITY_POSTGRES_SYNC_LOCK:
+        if QUALITY_POSTGRES_SYNC_STATE.get('running'):
+            return {
+                'started': False,
+                'run_id': QUALITY_POSTGRES_SYNC_STATE.get('run_id') or '',
+                'status': 'running'
+            }
+
+        run_id = store.create_sync_run(trigger_source=trigger_source, triggered_by=triggered_by)
+        QUALITY_POSTGRES_SYNC_STATE.update({
+            'running': True,
+            'run_id': run_id,
+            'trigger_source': trigger_source,
+            'triggered_by': triggered_by,
+            'started_at': datetime.now(timezone.utc).isoformat(),
+            'finished_at': '',
+            'error': ''
+        })
+
+    def _runner():
+        workbook_mtime = None
+        try:
+            if QUALITY_WORKBOOK_PATH.exists():
+                workbook_mtime = QUALITY_WORKBOOK_PATH.stat().st_mtime
+            _quality_force_save_workbook()
+            if QUALITY_WORKBOOK_PATH.exists():
+                workbook_mtime = QUALITY_WORKBOOK_PATH.stat().st_mtime
+            result = store.sync_from_workbook()
+            store.update_sync_run_success(run_id, result, workbook_mtime)
+            with QUALITY_POSTGRES_SYNC_LOCK:
+                QUALITY_POSTGRES_SYNC_STATE.update({
+                    'running': False,
+                    'finished_at': datetime.now(timezone.utc).isoformat(),
+                    'error': ''
+                })
+        except Exception as exc:
+            try:
+                if QUALITY_WORKBOOK_PATH.exists():
+                    workbook_mtime = QUALITY_WORKBOOK_PATH.stat().st_mtime
+            except Exception:
+                pass
+            store.update_sync_run_failure(run_id, str(exc), workbook_mtime)
+            with QUALITY_POSTGRES_SYNC_LOCK:
+                QUALITY_POSTGRES_SYNC_STATE.update({
+                    'running': False,
+                    'finished_at': datetime.now(timezone.utc).isoformat(),
+                    'error': str(exc)
+                })
+
+    thread = threading.Thread(target=_runner, name=f'quality-sync-{run_id[:8]}', daemon=True)
+    thread.start()
+    return {'started': True, 'run_id': run_id, 'status': 'running'}
+
+
+if QUALITY_POSTGRES_DSN:
+    try:
+        _get_quality_postgres_store()
+        print('[QUALITY][PG] PostgreSQL habilitado para modulo Calidad.')
+    except Exception as exc:
+        print(f'[QUALITY][PG] Error inicializando PostgreSQL: {exc}')
+        raise
 
 
 def _normalize_sheet_header(value):
@@ -14926,34 +15059,55 @@ def _quality_force_save_workbook():
     workbook_path = str(QUALITY_WORKBOOK_PATH)
     ps_script = f"""
 $ErrorActionPreference = 'Stop'
+
+function Invoke-WithRetry {{
+    param(
+        [scriptblock]$Script,
+        [int]$MaxRetries = 20,
+        [int]$DelayMs = 500
+    )
+    for ($attempt = 0; $attempt -lt $MaxRetries; $attempt++) {{
+        try {{
+            return & $Script
+        }}
+        catch [System.Runtime.InteropServices.COMException] {{
+            if ($attempt -ge ($MaxRetries - 1)) {{ throw }}
+            Start-Sleep -Milliseconds $DelayMs
+        }}
+    }}
+}}
+
 $path = @'
 {workbook_path}
 '@
 $excel = $null
 $workbook = $null
 try {{
-    $excel = New-Object -ComObject Excel.Application
+    $excel = Invoke-WithRetry {{ New-Object -ComObject Excel.Application }}
     $excel.Visible = $false
     $excel.DisplayAlerts = $false
     $excel.AskToUpdateLinks = $false
     $excel.EnableEvents = $false
     $excel.ScreenUpdating = $false
-    $excel.Calculation = -4105
-    $workbook = $excel.Workbooks.Open($path, 3, $false)
-    try {{ $workbook.RefreshAll() }} catch {{}}
-    try {{ $excel.CalculateUntilAsyncQueriesDone() }} catch {{}}
+    $workbook = Invoke-WithRetry {{ $excel.Workbooks.Open($path, 3, $false) }}
+    try {{ Invoke-WithRetry {{ $workbook.RefreshAll() }} | Out-Null }} catch {{}}
+    try {{ Invoke-WithRetry {{ $excel.CalculateUntilAsyncQueriesDone() }} | Out-Null }} catch {{}}
     for ($i = 0; $i -lt 120; $i++) {{
         $calculationState = 0
-        try {{ $calculationState = [int]$excel.CalculationState }} catch {{}}
+        try {{ $calculationState = [int](Invoke-WithRetry {{ $excel.CalculationState }}) }} catch {{}}
         if ($calculationState -eq 0) {{ break }}
         Start-Sleep -Milliseconds 500
     }}
-    try {{ $excel.CalculateFullRebuild() }} catch {{}}
-    $workbook.Save()
+    try {{ Invoke-WithRetry {{ $excel.CalculateFullRebuild() }} | Out-Null }} catch {{}}
+    Invoke-WithRetry {{ $workbook.Save() }} | Out-Null
 }}
 finally {{
-    if ($workbook -ne $null) {{ $workbook.Close($true) }}
-    if ($excel -ne $null) {{ $excel.Quit() }}
+    if ($workbook -ne $null) {{
+        try {{ Invoke-WithRetry {{ $workbook.Close($true) }} | Out-Null }} catch {{}}
+    }}
+    if ($excel -ne $null) {{
+        try {{ Invoke-WithRetry {{ $excel.Quit() }} | Out-Null }} catch {{}}
+    }}
     [System.GC]::Collect()
     [System.GC]::WaitForPendingFinalizers()
 }}
@@ -14970,6 +15124,134 @@ finally {{
         ],
         check=True,
         timeout=120,
+        capture_output=True,
+        text=True,
+    )
+
+
+def _quality_export_csv_via_excel():
+    if os.name != 'nt':
+        raise RuntimeError('Excel COM export solo disponible en Windows')
+    if not QUALITY_WORKBOOK_PATH.exists():
+        raise FileNotFoundError(f'Archivo no encontrado: {QUALITY_WORKBOOK_PATH}')
+
+    workbook_path = str(QUALITY_WORKBOOK_PATH)
+    control_csv = str(QUALITY_SHEET_CACHE_MAP['Control de Calidad'])
+    approvals_csv = str(QUALITY_SHEET_CACHE_MAP['Aprobaciones'])
+    ps_script = f"""
+$ErrorActionPreference = 'Stop'
+
+function Invoke-WithRetry {{
+    param(
+        [scriptblock]$Script,
+        [int]$MaxRetries = 30,
+        [int]$DelayMs = 500
+    )
+    for ($attempt = 0; $attempt -lt $MaxRetries; $attempt++) {{
+        try {{
+            return & $Script
+        }}
+        catch [System.Runtime.InteropServices.COMException] {{
+            if ($attempt -ge ($MaxRetries - 1)) {{ throw }}
+            Start-Sleep -Milliseconds $DelayMs
+        }}
+    }}
+}}
+
+function Convert-ToCsvValue {{
+    param([object]$Value)
+    if ($null -eq $Value) {{ return '' }}
+    $text = [string]$Value
+    if ($text.Contains('"')) {{ $text = $text.Replace('"', '""') }}
+    if ($text.IndexOfAny([char[]]@",`r`n") -ge 0) {{
+        return '"' + $text + '"'
+    }}
+    return $text
+}}
+
+function Export-WorksheetTextToCsv {{
+    param(
+        [object]$Worksheet,
+        [string]$Destination
+    )
+    $usedRange = Invoke-WithRetry {{ $Worksheet.UsedRange }}
+    $rowCount = [int](Invoke-WithRetry {{ $usedRange.Rows.Count }})
+    $colCount = [int](Invoke-WithRetry {{ $usedRange.Columns.Count }})
+    $tmp = $Destination + '.tmp'
+    $writer = [System.IO.StreamWriter]::new($tmp, $false, [System.Text.UTF8Encoding]::new($true))
+    try {{
+        for ($r = 1; $r -le $rowCount; $r++) {{
+            $values = New-Object string[] $colCount
+            for ($c = 1; $c -le $colCount; $c++) {{
+                $values[$c - 1] = Convert-ToCsvValue (Invoke-WithRetry {{ $Worksheet.Cells.Item($r, $c).Text }})
+            }}
+            $writer.WriteLine([string]::Join(',', $values))
+        }}
+    }}
+    finally {{
+        $writer.Dispose()
+    }}
+    Move-Item -LiteralPath $tmp -Destination $Destination -Force
+}}
+
+$path = @'
+{workbook_path}
+'@
+$controlCsv = @'
+{control_csv}
+'@
+$approvalsCsv = @'
+{approvals_csv}
+'@
+
+$excel = $null
+$workbook = $null
+try {{
+    $excel = New-Object -ComObject Excel.Application
+    $excel.Visible = $false
+    $excel.DisplayAlerts = $false
+    $excel.AskToUpdateLinks = $false
+    $excel.EnableEvents = $false
+    $excel.ScreenUpdating = $false
+
+    $workbook = Invoke-WithRetry {{ $excel.Workbooks.Open($path, 3, $false) }}
+    try {{ Invoke-WithRetry {{ $workbook.RefreshAll() }} | Out-Null }} catch {{}}
+    try {{ Invoke-WithRetry {{ $excel.CalculateUntilAsyncQueriesDone() }} | Out-Null }} catch {{}}
+    for ($i = 0; $i -lt 120; $i++) {{
+        $calculationState = 0
+        try {{ $calculationState = [int](Invoke-WithRetry {{ $excel.CalculationState }}) }} catch {{}}
+        if ($calculationState -eq 0) {{ break }}
+        Start-Sleep -Milliseconds 500
+    }}
+    try {{ Invoke-WithRetry {{ $excel.CalculateFullRebuild() }} | Out-Null }} catch {{}}
+    try {{ Invoke-WithRetry {{ $workbook.Save() }} | Out-Null }} catch {{}}
+
+    Export-WorksheetTextToCsv -Worksheet (Invoke-WithRetry {{ $workbook.Worksheets.Item('Control de Calidad') }}) -Destination $controlCsv
+    Export-WorksheetTextToCsv -Worksheet (Invoke-WithRetry {{ $workbook.Worksheets.Item('Aprobaciones') }}) -Destination $approvalsCsv
+}}
+finally {{
+    if ($workbook -ne $null) {{
+        try {{ Invoke-WithRetry {{ $workbook.Close($true) }} | Out-Null }} catch {{}}
+    }}
+    if ($excel -ne $null) {{
+        try {{ Invoke-WithRetry {{ $excel.Quit() }} | Out-Null }} catch {{}}
+    }}
+    [System.GC]::Collect()
+    [System.GC]::WaitForPendingFinalizers()
+}}
+"""
+    subprocess.run(
+        [
+            "powershell",
+            "-NoProfile",
+            "-NonInteractive",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-Command",
+            ps_script,
+        ],
+        check=True,
+        timeout=240,
         capture_output=True,
         text=True,
     )
@@ -14997,13 +15279,13 @@ def _quality_sync_csv_exports(force=False):
         if not needs_refresh:
             return
 
+        QUALITY_CSV_CACHE_DIR.mkdir(parents=True, exist_ok=True)
         try:
             _quality_force_save_workbook()
         except Exception as e:
-            print(f"[QUALITY][CACHE] Warning forcing workbook save: {e}")
+            print(f"[QUALITY][CACHE] Warning forcing workbook refresh/save: {e}")
         workbook_mtime = QUALITY_WORKBOOK_PATH.stat().st_mtime
 
-        QUALITY_CSV_CACHE_DIR.mkdir(parents=True, exist_ok=True)
         wb = _load_workbook_quietly(str(QUALITY_WORKBOOK_PATH), read_only=True, data_only=True)
         try:
             for sheet_name, csv_path in QUALITY_SHEET_CACHE_MAP.items():
@@ -15062,6 +15344,12 @@ def refresh_quality_csv_cache():
         return jsonify({"status": "error", "message": "No autorizado"}), 403
 
     try:
+        if _quality_postgres_enabled():
+            data = _quality_start_postgres_sync(
+                trigger_source='legacy-cache-refresh',
+                triggered_by=_format_quality_value(session.get('user'))
+            )
+            return jsonify({'status': 'success', 'data': data})
         _quality_sync_csv_exports(force=True)
         return jsonify({
             'status': 'success',
@@ -15073,6 +15361,38 @@ def refresh_quality_csv_cache():
         return jsonify({'status': 'error', 'message': str(e)}), 404
     except Exception as e:
         print(f"[QUALITY][CACHE] Error: {e}")
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
+@app.route('/api/quality/sync/status', methods=['GET'])
+def get_quality_sync_status():
+    if not session.get('user'):
+        return jsonify({"status": "error", "message": "No autenticado"}), 401
+    if not _can_access_quality_module():
+        return jsonify({"status": "error", "message": "No autorizado"}), 403
+
+    try:
+        return jsonify({'status': 'success', 'data': _quality_get_sync_status_payload()})
+    except Exception as e:
+        print(f"[QUALITY][SYNC][STATUS] Error: {e}")
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
+@app.route('/api/quality/sync', methods=['POST'])
+def start_quality_sync():
+    if not session.get('user'):
+        return jsonify({"status": "error", "message": "No autenticado"}), 401
+    if not _can_access_quality_module():
+        return jsonify({"status": "error", "message": "No autorizado"}), 403
+
+    try:
+        result = _quality_start_postgres_sync(
+            trigger_source='manual',
+            triggered_by=_format_quality_value(session.get('user'))
+        )
+        return jsonify({'status': 'success', 'data': result})
+    except Exception as e:
+        print(f"[QUALITY][SYNC] Error: {e}")
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
 
@@ -15443,6 +15763,9 @@ def get_quality_pending_records():
         return jsonify({"status": "error", "message": "No autorizado"}), 403
 
     try:
+        if _quality_postgres_enabled():
+            data = _get_quality_postgres_store().fetch_pending_records()
+            return jsonify({'status': 'success', 'data': data})
         data = _read_quality_pending_records()
         return jsonify({'status': 'success', 'data': data})
     except FileNotFoundError as e:
@@ -15460,6 +15783,9 @@ def get_quality_history_records():
         return jsonify({"status": "error", "message": "No autorizado"}), 403
 
     try:
+        if _quality_postgres_enabled():
+            data = _get_quality_postgres_store().fetch_history_records()
+            return jsonify({'status': 'success', 'data': data})
         data = _read_quality_history_records()
         return jsonify({'status': 'success', 'data': data})
     except FileNotFoundError as e:
@@ -15485,6 +15811,14 @@ def save_quality_observation():
         return jsonify({'status': 'error', 'message': 'item/produc requeridos'}), 400
 
     try:
+        if _quality_postgres_enabled():
+            saved = _get_quality_postgres_store().save_observation(
+                item=item,
+                produc=produc,
+                observacion=observacion,
+                updated_by=session.get('user') or ''
+            )
+            return jsonify({'status': 'success', 'data': saved})
         saved = _quality_update_observation(
             item=item,
             produc=produc,
@@ -15505,6 +15839,9 @@ def get_quality_pending_categories():
         return jsonify({"status": "error", "message": "No autorizado"}), 403
 
     try:
+        if _quality_postgres_enabled():
+            state = _get_quality_postgres_store().fetch_pending_categories_state()
+            return jsonify({'status': 'success', 'data': state})
         state = _quality_load_pending_categories_state()
         state['categories'] = _quality_sort_categories(state.get('categories', []))
         return jsonify({'status': 'success', 'data': state})
@@ -15527,6 +15864,17 @@ def create_quality_pending_category():
         return jsonify({'status': 'error', 'message': 'Ingrese un nombre para la categoria.'}), 400
 
     try:
+        if _quality_postgres_enabled():
+            state = _get_quality_postgres_store().fetch_pending_categories_state()
+            categories = state.get('categories', []) if isinstance(state, dict) else []
+            if any(str(category.get('name') or '').strip().lower() == name.lower() for category in categories):
+                return jsonify({'status': 'error', 'message': 'Ya existe una categoria con ese nombre.'}), 400
+            category = _get_quality_postgres_store().create_category(
+                name=name,
+                color=color,
+                updated_by=_format_quality_value(session.get('user'))
+            )
+            return jsonify({'status': 'success', 'data': category})
         with QUALITY_PENDING_CATEGORIES_LOCK:
             state = _quality_load_pending_categories_state()
             categories = state.setdefault('categories', [])
@@ -15568,6 +15916,27 @@ def update_quality_pending_category(category_id):
         return jsonify({'status': 'error', 'message': 'Ingrese un nombre para la categoria.'}), 400
 
     try:
+        if _quality_postgres_enabled():
+            state = _get_quality_postgres_store().fetch_pending_categories_state()
+            categories = state.get('categories', []) if isinstance(state, dict) else []
+            target = next((category for category in categories if str(category.get('id')) == str(category_id)), None)
+            if not target:
+                return jsonify({'status': 'error', 'message': 'Categoria no encontrada.'}), 404
+            if str(category_id) == QUALITY_PENDING_HIDDEN_CATEGORY_ID:
+                name = QUALITY_PENDING_HIDDEN_CATEGORY_NAME
+            if any(
+                str(category.get('id')) != str(category_id) and
+                str(category.get('name') or '').strip().lower() == name.lower()
+                for category in categories
+            ):
+                return jsonify({'status': 'error', 'message': 'Ya existe una categoria con ese nombre.'}), 400
+            updated = _get_quality_postgres_store().update_category(
+                category_id=category_id,
+                name=name,
+                color=color,
+                updated_by=_format_quality_value(session.get('user'))
+            )
+            return jsonify({'status': 'success', 'data': updated})
         with QUALITY_PENDING_CATEGORIES_LOCK:
             state = _quality_load_pending_categories_state()
             categories = state.setdefault('categories', [])
@@ -15610,6 +15979,14 @@ def delete_quality_pending_category(category_id):
         return jsonify({"status": "error", "message": "No autorizado"}), 403
 
     try:
+        if _quality_postgres_enabled():
+            if str(category_id) == QUALITY_PENDING_HIDDEN_CATEGORY_ID:
+                return jsonify({'status': 'error', 'message': 'La categoria Ocultos no se puede borrar.'}), 400
+            try:
+                _get_quality_postgres_store().delete_category(category_id)
+            except KeyError:
+                return jsonify({'status': 'error', 'message': 'Categoria no encontrada.'}), 404
+            return jsonify({'status': 'success'})
         with QUALITY_PENDING_CATEGORIES_LOCK:
             state = _quality_load_pending_categories_state()
             categories = state.setdefault('categories', [])
@@ -15650,6 +16027,18 @@ def assign_quality_pending_category():
         return jsonify({'status': 'error', 'message': 'Fila invalida.'}), 400
 
     try:
+        if _quality_postgres_enabled():
+            if category_id:
+                state = _get_quality_postgres_store().fetch_pending_categories_state()
+                categories = state.get('categories', []) if isinstance(state, dict) else []
+                if not any(str(category.get('id')) == category_id for category in categories):
+                    return jsonify({'status': 'error', 'message': 'Categoria no encontrada.'}), 404
+            payload = _get_quality_postgres_store().assign_category(
+                row_key=row_key,
+                category_id=category_id,
+                updated_by=_format_quality_value(session.get('user'))
+            )
+            return jsonify({'status': 'success', 'data': payload})
         with QUALITY_PENDING_CATEGORIES_LOCK:
             state = _quality_load_pending_categories_state()
             categories = state.setdefault('categories', [])
@@ -15689,6 +16078,13 @@ def assign_quality_pending_handler():
         return jsonify({'status': 'error', 'message': 'Usuario invalido.'}), 400
 
     try:
+        if _quality_postgres_enabled():
+            payload = _get_quality_postgres_store().assign_handler(
+                row_key=row_key,
+                handler_name=handler_name,
+                updated_by=_format_quality_value(session.get('user'))
+            )
+            return jsonify({'status': 'success', 'data': payload})
         with QUALITY_PENDING_HANDLERS_LOCK:
             state = _quality_load_pending_handlers_state()
             assignments = state.setdefault('assignments', {})
@@ -15714,6 +16110,9 @@ def get_admin_quality_stats():
         return jsonify({"status": "error", "message": "No autorizado"}), 403
 
     try:
+        if _quality_postgres_enabled():
+            data = _get_quality_postgres_store().fetch_admin_stats()
+            return jsonify({'status': 'success', 'data': data})
         data = _read_quality_admin_stats()
         return jsonify({'status': 'success', 'data': data})
     except FileNotFoundError as e:

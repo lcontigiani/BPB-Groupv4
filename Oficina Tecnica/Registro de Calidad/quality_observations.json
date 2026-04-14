@@ -2583,7 +2583,623 @@
       "observacion": "",
       "updated_at": "",
       "updated_by": ""
+    },
+    "ar7518||000-053-x-30211": {
+      "item": "AR7518",
+      "produc": "000-053-X-30211",
+      "subgrupo": "CONO",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar7517||000-053-x-32010": {
+      "item": "AR7517",
+      "produc": "000-053-X-32010",
+      "subgrupo": "CONO",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar7516||000-053-x-32210": {
+      "item": "AR7516",
+      "produc": "000-053-X-32210",
+      "subgrupo": "CONO",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar7520||000-053-x-33215": {
+      "item": "AR7520",
+      "produc": "000-053-X-33215",
+      "subgrupo": "CONO",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar7510||b&p-041-hd06-2rs": {
+      "item": "AR7510",
+      "produc": "B&P-041-HD06-2RS",
+      "subgrupo": "RODAMIENTO DE BOLAS",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar7509||b&p-041-hd07-2rs": {
+      "item": "AR7509",
+      "produc": "B&P-041-HD07-2RS",
+      "subgrupo": "RODAMIENTO DE BOLAS",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar7511||b&p-041-ls04-2rs": {
+      "item": "AR7511",
+      "produc": "B&P-041-LS04-2RS",
+      "subgrupo": "RODAMIENTO DE BOLAS",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar7512||b&p-041-ms02-2rs": {
+      "item": "AR7512",
+      "produc": "B&P-041-MS02-2RS",
+      "subgrupo": "RODAMIENTO DE BOLAS",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar7513||b&p-041-ms04-2rs": {
+      "item": "AR7513",
+      "produc": "B&P-041-MS04-2RS",
+      "subgrupo": "RODAMIENTO DE BOLAS",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar7515||b&p-041-ms05-2rs": {
+      "item": "AR7515",
+      "produc": "B&P-041-MS05-2RS",
+      "subgrupo": "RODAMIENTO DE BOLAS",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar7514||b&p-041-ms06-2rs": {
+      "item": "AR7514",
+      "produc": "B&P-041-MS06-2RS",
+      "subgrupo": "RODAMIENTO DE BOLAS",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "6088ic06000115t||b&p-056-bp-25010": {
+      "item": "6088IC06000115T",
+      "produc": "B&P-056-BP-25010",
+      "subgrupo": "ENGRANAJES Y CRUCETAS",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "a000300003106||bpb-044-bp17010-05": {
+      "item": "A000300003106",
+      "produc": "BPB-044-BP17010-05",
+      "subgrupo": "Partes y Piezas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "6088ic06000115t||tsg-caw-0000001": {
+      "item": "6088IC06000115T",
+      "produc": "TSG-CAW-0000001",
+      "subgrupo": "Camellon Cera perdida",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "6088ic06000115t||tsg-ccw-0010000": {
+      "item": "6088IC06000115T",
+      "produc": "TSG-CCW-0010000",
+      "subgrupo": "Cuerpo Central Cera perdida",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "6088ic06000115t||tsg-ccw-0020000": {
+      "item": "6088IC06000115T",
+      "produc": "TSG-CCW-0020000",
+      "subgrupo": "Cuerpo Central Cera perdida",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "6088ic06000115t||tsg-ccw-0030000": {
+      "item": "6088IC06000115T",
+      "produc": "TSG-CCW-0030000",
+      "subgrupo": "Cuerpo Central Cera perdida",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "6088ic06000115t||tsg-ccw-0030003": {
+      "item": "6088IC06000115T",
+      "produc": "TSG-CCW-0030003",
+      "subgrupo": "Cuerpo Central Cera perdida",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "6088ic06000115t||tsg-ccw-0040000": {
+      "item": "6088IC06000115T",
+      "produc": "TSG-CCW-0040000",
+      "subgrupo": "Cuerpo Central Cera perdida",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "6088ic06000115t||tsg-ccw-0050001": {
+      "item": "6088IC06000115T",
+      "produc": "TSG-CCW-0050001",
+      "subgrupo": "Cuerpo Central Cera perdida",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "6088ic06000115t||tsg-ccw-0050002": {
+      "item": "6088IC06000115T",
+      "produc": "TSG-CCW-0050002",
+      "subgrupo": "Cuerpo Central Cera perdida",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "6088ic06000115t||tsg-ccw-0050003": {
+      "item": "6088IC06000115T",
+      "produc": "TSG-CCW-0050003",
+      "subgrupo": "Cuerpo Central Cera perdida",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "6088ic06000115t||tsg-ccw-0050004": {
+      "item": "6088IC06000115T",
+      "produc": "TSG-CCW-0050004",
+      "subgrupo": "Cuerpo Central Cera perdida",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "6088ic06000115t||tsg-ccw-0070001": {
+      "item": "6088IC06000115T",
+      "produc": "TSG-CCW-0070001",
+      "subgrupo": "Cuerpo Central Cera perdida",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "6088ic06000115t||tsg-ccw-0070003": {
+      "item": "6088IC06000115T",
+      "produc": "TSG-CCW-0070003",
+      "subgrupo": "Cuerpo Central Cera perdida",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "6088ic06000115t||tsg-ccw-0070004": {
+      "item": "6088IC06000115T",
+      "produc": "TSG-CCW-0070004",
+      "subgrupo": "Cuerpo Central Cera perdida",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "6088ic06000115t||tsg-ccw-0090001": {
+      "item": "6088IC06000115T",
+      "produc": "TSG-CCW-0090001",
+      "subgrupo": "Cuerpo Central Cera perdida",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "6088ic06000115t||tsg-pax-0000001": {
+      "item": "6088IC06000115T",
+      "produc": "TSG-PAX-0000001",
+      "subgrupo": "Paralelogramo Estandar",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "6088ic06000115t||tsg-pax-002f000": {
+      "item": "6088IC06000115T",
+      "produc": "TSG-PAX-002F000",
+      "subgrupo": "Paralelogramo Estandar",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "1088ic05000106n||b&p-031-dac-30550023": {
+      "item": "1088IC05000106N",
+      "produc": "B&P-031-DAC-30550023",
+      "subgrupo": "AUTOMOTORES",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "6088ic06000109w||b&p-032-bp-25005-01": {
+      "item": "6088IC06000109W",
+      "produc": "B&P-032-BP-25005-01",
+      "subgrupo": "Tensores",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "6088ic06000109w||b&p-032-bp-25005-02": {
+      "item": "6088IC06000109W",
+      "produc": "B&P-032-BP-25005-02",
+      "subgrupo": "Tensores",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "6088ic06000109w||b&p-032-bp-25005-04": {
+      "item": "6088IC06000109W",
+      "produc": "B&P-032-BP-25005-04",
+      "subgrupo": "Tensores",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "6088ic06000109w||b&p-034-ge-25-es-2rs": {
+      "item": "6088IC06000109W",
+      "produc": "B&P-034-GE-25-ES-2RS",
+      "subgrupo": "ROTULAS",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "6088ic06000109w||b&p-034-ge-50-es-2rs": {
+      "item": "6088IC06000109W",
+      "produc": "B&P-034-GE-50-ES-2RS",
+      "subgrupo": "ROTULAS",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "6088ic06000109w||b&p-040-2210-tn-c3": {
+      "item": "6088IC06000109W",
+      "produc": "B&P-040-2210-TN-C3",
+      "subgrupo": "Rod. Varios",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "6088ic06000109w||b&p-040-51107": {
+      "item": "6088IC06000109W",
+      "produc": "B&P-040-51107",
+      "subgrupo": "Rod. Varios",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "6088ic06000109w||b&p-040-51120": {
+      "item": "6088IC06000109W",
+      "produc": "B&P-040-51120",
+      "subgrupo": "Rod. Varios",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "6088ic06000109w||b&p-040-51209": {
+      "item": "6088IC06000109W",
+      "produc": "B&P-040-51209",
+      "subgrupo": "Rod. Varios",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "6088ic06000109w||b&p-042-22212ckw33c3": {
+      "item": "6088IC06000109W",
+      "produc": "B&P-042-22212CKW33C3",
+      "subgrupo": "Rod.Esfericos",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "6088ic06000109w||b&p-042-22213ckw33c3": {
+      "item": "6088IC06000109W",
+      "produc": "B&P-042-22213CKW33C3",
+      "subgrupo": "Rod.Esfericos",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "6088ic06000109w||b&p-042-22216ckw33c3": {
+      "item": "6088IC06000109W",
+      "produc": "B&P-042-22216CKW33C3",
+      "subgrupo": "Rod.Esfericos",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "6088ic06000109w||b&p-045-pft-5-z": {
+      "item": "6088IC06000109W",
+      "produc": "B&P-045-PFT-5-Z",
+      "subgrupo": "SOPORTE DE CHAPAS",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "0088ic06000030j||b&p-047-sab-206-30dg": {
+      "item": "0088IC06000030J",
+      "produc": "B&P-047-SAB-206-30DG",
+      "subgrupo": "AUTOCENTRANTES",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "0088ic06000065r||b&p-047-sab-207-35dg": {
+      "item": "0088IC06000065R",
+      "produc": "B&P-047-SAB-207-35DG",
+      "subgrupo": "AUTOCENTRANTES",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "1088ic05000106n||b&p-048-203-krr3-e2": {
+      "item": "1088IC05000106N",
+      "produc": "B&P-048-203-KRR3-E2",
+      "subgrupo": "Rodamientos Esp.Agricolas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "0088ic06000017y||b&p-048-205-krr2": {
+      "item": "0088IC06000017Y",
+      "produc": "B&P-048-205-KRR2",
+      "subgrupo": "Rodamientos Esp.Agricolas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "6088ic06000109w||bpb-034-ge-20-es-2rs": {
+      "item": "6088IC06000109W",
+      "produc": "BPB-034-GE-20-ES-2RS",
+      "subgrupo": "Rotulas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "6088ic06000109w||bpb-034-ge-30-es-2rs": {
+      "item": "6088IC06000109W",
+      "produc": "BPB-034-GE-30-ES-2RS",
+      "subgrupo": "Rotulas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "6088ic06000109w||bpb-034-gez-012-es": {
+      "item": "6088IC06000109W",
+      "produc": "BPB-034-GEZ-012-ES",
+      "subgrupo": "Rotulas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "6088ic06000109w||bpb-034-gez-014-es-2": {
+      "item": "6088IC06000109W",
+      "produc": "BPB-034-GEZ-014-ES-2",
+      "subgrupo": "Rotulas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "6088ic06000109w||bpb-042-22205ckw33c3": {
+      "item": "6088IC06000109W",
+      "produc": "BPB-042-22205CKW33C3",
+      "subgrupo": "Rod.Esfericos",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "6088ic06000109w||bpb-045-pft-7-zm": {
+      "item": "6088IC06000109W",
+      "produc": "BPB-045-PFT-7-ZM",
+      "subgrupo": "Soporte",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "6088ic06000110y||000-054-tcy211": {
+      "item": "6088IC06000110Y",
+      "produc": "000-054-TCY211",
+      "subgrupo": "CUBETA",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "6088ic06000110y||000-054-tdy010": {
+      "item": "6088IC06000110Y",
+      "produc": "000-054-TDY010",
+      "subgrupo": "CUBETA",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "6088ic06000110y||000-054-tdy210": {
+      "item": "6088IC06000110Y",
+      "produc": "000-054-TDY210",
+      "subgrupo": "CUBETA",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "6088ic06000110y||000-054-tty215": {
+      "item": "6088IC06000110Y",
+      "produc": "000-054-TTY215",
+      "subgrupo": "CUBETA",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "6088ic06000107u||b&p-032-bp-25005-03": {
+      "item": "6088IC06000107U",
+      "produc": "B&P-032-BP-25005-03",
+      "subgrupo": "Tensores",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "6088ic06000107u||b&p-037-bp-23006": {
+      "item": "6088IC06000107U",
+      "produc": "B&P-037-BP-23006",
+      "subgrupo": "VARIOS",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "6088ic06000112z||b&p-037-m04132": {
+      "item": "6088IC06000112Z",
+      "produc": "B&P-037-M04132",
+      "subgrupo": "VARIOS",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "6088ic06000111p||b&p-040-5205-2rst": {
+      "item": "6088IC06000111P",
+      "produc": "B&P-040-5205-2RST",
+      "subgrupo": "Rod. Varios",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "6088ic06000107u||b&p-041-hd06-2rst": {
+      "item": "6088IC06000107U",
+      "produc": "B&P-041-HD06-2RST",
+      "subgrupo": "RODAMIENTO DE BOLAS",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "6088ic06000107u||b&p-041-hd08-2rst": {
+      "item": "6088IC06000107U",
+      "produc": "B&P-041-HD08-2RST",
+      "subgrupo": "RODAMIENTO DE BOLAS",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "6088ic06000107u||b&p-041-ms08-2rst": {
+      "item": "6088IC06000107U",
+      "produc": "B&P-041-MS08-2RST",
+      "subgrupo": "RODAMIENTO DE BOLAS",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "6088ic06000107u||b&p-047-pe-214": {
+      "item": "6088IC06000107U",
+      "produc": "B&P-047-PE-214",
+      "subgrupo": "AUTOCENTRANTES",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "6088ic06000112z||b&p-048-5203-kyy5": {
+      "item": "6088IC06000112Z",
+      "produc": "B&P-048-5203-KYY5",
+      "subgrupo": "Rodamientos Esp.Agricolas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "6088ic06000111p||b&p-048-fdecl211-55": {
+      "item": "6088IC06000111P",
+      "produc": "B&P-048-FDECL211-55",
+      "subgrupo": "Rodamientos Esp.Agricolas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "6088ic06000107u||bpb-041-1621-2rs": {
+      "item": "6088IC06000107U",
+      "produc": "BPB-041-1621-2RS",
+      "subgrupo": "Rod. Rigidos de Bolas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar7233||b&p-048-w-208-pp21-n": {
+      "item": "AR7233",
+      "produc": "B&P-048-W-208-PP21-N",
+      "subgrupo": "Rodamientos Esp.Agricolas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "6088ic06000075b||b&p-037-bp-25008": {
+      "item": "6088IC06000075B",
+      "produc": "B&P-037-BP-25008",
+      "subgrupo": "VARIOS",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "6088ic06000070t||b&p-040-1212-tn-c3": {
+      "item": "6088IC06000070T",
+      "produc": "B&P-040-1212-TN-C3",
+      "subgrupo": "Rod. Varios",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "6088ic06000070t||b&p-040-1305-tn-c3": {
+      "item": "6088IC06000070T",
+      "produc": "B&P-040-1305-TN-C3",
+      "subgrupo": "Rod. Varios",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "6088ic06000070t||b&p-040-1307-tn-c3": {
+      "item": "6088IC06000070T",
+      "produc": "B&P-040-1307-TN-C3",
+      "subgrupo": "Rod. Varios",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "6088ic06000070t||b&p-041-ms10-2rs": {
+      "item": "6088IC06000070T",
+      "produc": "B&P-041-MS10-2RS",
+      "subgrupo": "RODAMIENTO DE BOLAS",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "6088ic06000070t||b&p-047-f-209-a": {
+      "item": "6088IC06000070T",
+      "produc": "B&P-047-F-209-A",
+      "subgrupo": "AUTOCENTRANTES",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "4088ic04000074t||b&p-047-pe-212": {
+      "item": "4088IC04000074T",
+      "produc": "B&P-047-PE-212",
+      "subgrupo": "AUTOCENTRANTES",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "2088ic06000163s||b&p-047-sab-212-60dg": {
+      "item": "2088IC06000163S",
+      "produc": "B&P-047-SAB-212-60DG",
+      "subgrupo": "AUTOCENTRANTES",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
     }
   },
-  "updated_at": "2026-04-13T08:04:53"
+  "updated_at": "2026-04-14T08:34:04"
 }

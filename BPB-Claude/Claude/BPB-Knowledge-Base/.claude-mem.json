@@ -1,0 +1,11 @@
+{
+  "project": "bpb-argentina",
+  "worker_port": 37777,
+  "endless_mode": true,
+  "compress_at": 0.85,
+  "retention_window": 200,
+  "auto_inject": true,
+  "inject_limit": 50,
+  "observation_types": ["bugfix", "feature", "decision", "discovery", "change"],
+  "private_tags": true
+}

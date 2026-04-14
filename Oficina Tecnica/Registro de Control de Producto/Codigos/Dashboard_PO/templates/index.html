@@ -5397,13 +5397,24 @@
 
             </div>
 
-            <div class="header-right" style="display: flex; gap: 1rem; align-items: center;">
-
+            <div class="header-right" style="display: flex; gap: 1rem; align-items: center; margin-left:auto; justify-content:flex-end;">
                 <input type="text" id="quality-product-search" placeholder="Buscar..." class="search-input"
-                    style="max-width: 250px;" onkeyup="handleQualityPendingSearch(this)">
+                    style="max-width: 250px; order:1; flex:0 0 auto;" onkeyup="handleQualityPendingSearch(this)">
+
+                <button id="quality-pending-sync-button" class="btn" type="button" onclick="triggerQualityManualSync('pending')"
+                    style="display:flex; align-items:center; gap:8px; order:2; flex:0 0 auto;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M21 2v6h-6"></path>
+                        <path d="M3 11a9 9 0 0 1 15.55-5.36L21 8"></path>
+                        <path d="M3 22v-6h6"></path>
+                        <path d="M21 13a9 9 0 0 1-15.55 5.36L3 16"></path>
+                    </svg>
+                    Actualizar
+                </button>
 
                 <button class="btn" onclick="openQualityPendingCategoriesManager()"
-                    style="display:flex; align-items:center; gap:8px;">
+                    style="display:flex; align-items:center; gap:8px; order:3; flex:0 0 auto;">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                         stroke-linecap="round" stroke-linejoin="round">
                         <path d="M20.59 13.41 11 3.83a2 2 0 0 0-2.83 0L3.83 8.17a2 2 0 0 0 0 2.83l9.58 9.59a2 2 0 0 0 2.83 0l4.35-4.35a2 2 0 0 0 0-2.83Z"></path>
@@ -5413,7 +5424,7 @@
                 </button>
 
                 <button class="btn" onclick="window.toggleQualityPendingFilters()"
-                    style="display: flex; align-items: center; gap: 6px;">
+                    style="display: flex; align-items: center; gap: 6px; order:4; flex:0 0 auto;">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                         stroke-linecap="round" stroke-linejoin="round">
                         <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
@@ -5421,7 +5432,9 @@
                     Filtrar
                 </button>
 
-                <button class="btn" onclick="showQualityControlHome()">&larr; Volver</button>
+                <button class="btn" onclick="showQualityControlHome()" style="order:5; flex:0 0 auto;">&larr; Volver</button>
+
+                <span id="quality-pending-sync-label" style="display:none; color:var(--text-secondary); font-size:0.86rem; text-align:right; white-space:nowrap; order:6;"></span>
 
             </div>
 
@@ -5517,13 +5530,24 @@
 
             </div>
 
-            <div class="header-right" style="display: flex; gap: 1rem; align-items: center;">
-
+            <div class="header-right" style="display: flex; gap: 1rem; align-items: center; margin-left:auto; justify-content:flex-end;">
                 <input type="text" id="quality-history-search" placeholder="Buscar..." class="search-input"
-                    style="max-width: 250px;" onkeyup="handleQualityHistorySearch(this)">
+                    style="max-width: 250px; order:1; flex:0 0 auto;" onkeyup="handleQualityHistorySearch(this)">
+
+                <button id="quality-history-sync-button" class="btn" type="button" onclick="triggerQualityManualSync('history')"
+                    style="display:flex; align-items:center; gap:8px; order:2; flex:0 0 auto;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M21 2v6h-6"></path>
+                        <path d="M3 11a9 9 0 0 1 15.55-5.36L21 8"></path>
+                        <path d="M3 22v-6h6"></path>
+                        <path d="M21 13a9 9 0 0 1-15.55 5.36L3 16"></path>
+                    </svg>
+                    Actualizar
+                </button>
 
                 <button class="btn" onclick="window.toggleQualityHistoryFilters()"
-                    style="display: flex; align-items: center; gap: 6px;">
+                    style="display: flex; align-items: center; gap: 6px; order:4; flex:0 0 auto;">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                         stroke-linecap="round" stroke-linejoin="round">
                         <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
@@ -5531,7 +5555,9 @@
                     Filtrar
                 </button>
 
-                <button class="btn" onclick="showQualityControlHome()">&larr; Volver</button>
+                <button class="btn" onclick="showQualityControlHome()" style="order:5; flex:0 0 auto;">&larr; Volver</button>
+
+                <span id="quality-history-sync-label" style="display:none; color:var(--text-secondary); font-size:0.86rem; text-align:right; white-space:nowrap; order:6;"></span>
 
             </div>
 
