@@ -257,6 +257,22 @@ table {
     table-layout: auto;
 }
 
+/* Quality tables fill full panel width with equitable column distribution */
+#quality-pending-table,
+#quality-history-table {
+    width: 100%;
+    table-layout: fixed;
+}
+
+#quality-pending-table th,
+#quality-pending-table td,
+#quality-history-table th,
+#quality-history-table td {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 th {
     font-weight: 600;
     color: var(--text-secondary);

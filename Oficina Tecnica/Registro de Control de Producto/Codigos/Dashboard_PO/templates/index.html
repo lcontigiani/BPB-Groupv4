@@ -5354,7 +5354,7 @@
 
             </div>
 
-            <div class="dashboard-card active-card" onclick="showQualityHistoryPanel()">
+            <div class="dashboard-card active-card" onclick="showQualityApprovedPanel()">
 
                 <div class="card-icon" style="color: var(--bpb-blue);">
 
@@ -5387,7 +5387,7 @@
 
     <!-- VIEW: QUALITY PENDING LIST -->
 
-    <div id="view-quality-pending" class="panel" style="display: none; max-width: 1100px; margin: 0 auto;">
+    <div id="view-quality-pending" class="panel" style="display: none; max-width: 1400px; margin: 0 auto;">
 
         <div class="panel-header">
 
@@ -5399,10 +5399,10 @@
 
             <div class="header-right" style="display: flex; gap: 1rem; align-items: center; margin-left:auto; justify-content:flex-end;">
                 <input type="text" id="quality-product-search" placeholder="Buscar..." class="search-input"
-                    style="max-width: 250px; order:1; flex:0 0 auto;" onkeyup="handleQualityPendingSearch(this)">
+                    style="max-width: 250px; order:1; flex:0 0 auto; height:36px; box-sizing:border-box;" onkeyup="handleQualityPendingSearch(this)">
 
                 <button id="quality-pending-sync-button" class="btn" type="button" onclick="triggerQualityManualSync('pending')"
-                    style="display:flex; align-items:center; gap:8px; order:2; flex:0 0 auto;">
+                    style="display:flex; align-items:center; gap:8px; order:2; flex:0 0 auto; height:36px; box-sizing:border-box;">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <path d="M21 2v6h-6"></path>
@@ -5413,18 +5413,8 @@
                     Actualizar
                 </button>
 
-                <button class="btn" onclick="openQualityPendingCategoriesManager()"
-                    style="display:flex; align-items:center; gap:8px; order:3; flex:0 0 auto;">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M20.59 13.41 11 3.83a2 2 0 0 0-2.83 0L3.83 8.17a2 2 0 0 0 0 2.83l9.58 9.59a2 2 0 0 0 2.83 0l4.35-4.35a2 2 0 0 0 0-2.83Z"></path>
-                        <path d="M7 7h.01"></path>
-                    </svg>
-                    Categorias
-                </button>
-
                 <button class="btn" onclick="window.toggleQualityPendingFilters()"
-                    style="display: flex; align-items: center; gap: 6px; order:4; flex:0 0 auto;">
+                    style="display:flex; align-items:center; gap:6px; order:4; flex:0 0 auto; height:36px; box-sizing:border-box;">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                         stroke-linecap="round" stroke-linejoin="round">
                         <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
@@ -5432,19 +5422,47 @@
                     Filtrar
                 </button>
 
-                <button class="btn" onclick="showQualityControlHome()" style="order:5; flex:0 0 auto;">&larr; Volver</button>
+                <button class="btn" onclick="printQualityPending()"
+                    style="display:flex; align-items:center; justify-content:center; order:5; flex:0 0 auto; height:36px; box-sizing:border-box; padding:0 0.75rem;" title="Imprimir Registros Pendientes">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                        <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                        <rect x="6" y="14" width="12" height="8"></rect>
+                    </svg>
+                </button>
 
-                <span id="quality-pending-sync-label" style="display:none; color:var(--text-secondary); font-size:0.86rem; text-align:right; white-space:nowrap; order:6;"></span>
+                <button class="btn" onclick="showQualityControlHome()" style="order:6; flex:0 0 auto; height:36px; box-sizing:border-box;">&larr; Volver</button>
+
+                <span id="quality-pending-sync-label" style="display:none; color:var(--text-secondary); font-size:0.86rem; text-align:right; white-space:nowrap; order:7;"></span>
 
             </div>
 
         </div>
 
-        <div class="filter-group"
-            style="display: flex; justify-content: flex-end; align-items: center; margin-bottom: 1.5rem; padding-right: 0.5rem;">
+        <div style="display: flex; gap: 1rem; align-items: stretch; margin-bottom: 1.5rem; width: 100%;">
 
-            <div style="display: flex; gap: 0.75rem; align-items: center; justify-content: space-between; width: 100%; flex-wrap: wrap;">
-                <div id="quality-pending-category-pills" style="display: flex; gap: 0.5rem; flex-wrap: wrap;"></div>
+            <div style="width: 70%; display: flex; align-items: flex-start; padding: 0.85rem 1rem; box-sizing: border-box; background: #1a1a1a; border: 1px solid var(--border); border-radius: 10px; flex-wrap: wrap; gap: 0.5rem;">
+                <div id="quality-pending-category-pills" style="display: flex; gap: 0.5rem; flex-wrap: wrap; flex: 1;"></div>
+                <button onclick="openQualityPendingCategoriesManager()" style="flex:0 0 auto; display:flex; align-items:center; gap:6px; background:transparent; border:1px solid var(--border); color:var(--text-secondary); border-radius:8px; padding:0.4rem 0.7rem; cursor:pointer; font-size:0.82rem; transition:border-color 0.2s, color 0.2s;" onmouseover="this.style.borderColor='var(--bpb-blue)';this.style.color='var(--text-primary)';" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-secondary)';">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41 11 3.83a2 2 0 0 0-2.83 0L3.83 8.17a2 2 0 0 0 0 2.83l9.58 9.59a2 2 0 0 0 2.83 0l4.35-4.35a2 2 0 0 0 0-2.83Z"></path><path d="M7 7h.01"></path></svg>
+                    Categorias
+                </button>
+            </div>
+
+            <div style="width: 30%; box-sizing: border-box; background: #1a1a1a; border: 1px solid var(--border); border-radius: 10px; padding: 0.85rem 1rem; display: flex; align-items: center; justify-content: center; gap: 1rem;">
+                <canvas id="quality-pending-user-chart" width="130" height="130" style="flex: 0 0 130px; width: 130px; height: 130px;"></canvas>
+                <div style="display: flex; flex-direction: column; gap: 0.5rem; min-width: 0;">
+                    <div style="font-size: 0.7rem; color: var(--text-secondary); font-weight: 700; text-transform: uppercase; margin-bottom: 0.15rem;">Aprobaciones últimos 30 días</div>
+                    <div id="quality-pending-user-legend" style="display: flex; flex-direction: column; gap: 0.4rem; font-size: 0.85rem; color: var(--text-secondary);"></div>
+                    <button id="quality-stats-mode-toggle" onclick="toggleQualityPendingStatsMode()"
+                        style="margin-top:0.35rem; display:inline-flex; align-items:center; gap:0; background:transparent; border:1px solid var(--border); border-radius:8px; padding:0.35rem 0.6rem; cursor:pointer; font-size:0.82rem; font-family:inherit; transition:border-color 0.2s; width:fit-content;"
+                        onmouseover="this.style.borderColor='var(--border)'" onmouseout="this.style.borderColor='var(--border)'">
+                        <span id="quality-mode-label-registros" style="color:var(--bpb-blue); font-weight:700; transition:color 0.2s;">Registros</span>
+                        <span style="color:var(--text-secondary); margin:0 0.4rem; opacity:0.5;">|</span>
+                        <span id="quality-mode-label-piezas" style="color:var(--text-secondary); font-weight:400; transition:color 0.2s;">Piezas</span>
+                    </button>
+                </div>
             </div>
 
         </div>
@@ -5476,9 +5494,10 @@
 
         </div>
 
-        <div id="quality-pending-stats"
-            style="display: none; justify-content: flex-end; margin: -0.25rem 0 1rem; color: var(--text-secondary); font-size: 0.9rem; font-weight: 500;">
-            0 registros encontrados
+        <div id="quality-pending-stats" style="display:none;"><span id="quality-pending-stats-label"></span></div>
+
+        <div style="display:flex; justify-content:flex-end; margin-bottom:0.4rem;">
+            <span id="quality-pending-freshness-label" style="font-size:0.78rem; display:flex; align-items:center; gap:5px;"></span>
         </div>
 
         <div class="table-container" style="max-height: 62vh; overflow: auto; position: relative;">
@@ -5519,9 +5538,66 @@
 
     </div>
 
+    <!-- VIEW: QUALITY REWORKS -->
+
+    <div id="view-quality-reworks" class="panel" style="display: none; max-width: 1100px; margin: 0 auto;">
+
+        <div class="panel-header">
+
+            <div class="panel-title decorated-title">
+                <span class="current" style="color:#ff8a8a;">Re-Trabajos</span>
+            </div>
+
+            <div class="header-right" style="display: flex; gap: 1rem; align-items: center; margin-left:auto; justify-content:flex-end;">
+                <input type="text" id="quality-reworks-search" placeholder="Buscar..." class="search-input"
+                    style="max-width: 250px; order:1; flex:0 0 auto;" onkeyup="handleQualityReworksSearch(this)">
+
+                <button id="quality-reworks-sync-button" class="btn" type="button" onclick="triggerQualityManualSync('reworks')"
+                    style="display:flex; align-items:center; gap:8px; order:2; flex:0 0 auto;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M21 2v6h-6"></path>
+                        <path d="M3 11a9 9 0 0 1 15.55-5.36L21 8"></path>
+                        <path d="M3 22v-6h6"></path>
+                        <path d="M21 13a9 9 0 0 1-15.55 5.36L3 16"></path>
+                    </svg>
+                    Actualizar
+                </button>
+
+                <button class="btn" onclick="showQualityControlHome()" style="order:3; flex:0 0 auto;">&larr; Volver</button>
+            </div>
+
+        </div>
+
+        <div class="table-container" style="max-height: 62vh; overflow: auto; position: relative;">
+
+            <table id="quality-reworks-table">
+
+                <thead>
+                    <tr>
+                        <th style="position:sticky; top:0; z-index:3; background:#161616; text-align:left; vertical-align:middle; line-height:1.2;">Producto</th>
+                        <th class="text-center" style="position:sticky; top:0; z-index:3; background:#161616; text-align:center; vertical-align:middle; line-height:1.2;">SubGrupo</th>
+                        <th class="text-center" style="position:sticky; top:0; z-index:3; background:#161616; text-align:center; vertical-align:middle; line-height:1.2;">N&ordm; PO</th>
+                        <th class="text-center" style="position:sticky; top:0; z-index:3; background:#161616; text-align:center; vertical-align:middle; line-height:1.2;">Fecha<br>Ingreso</th>
+                        <th class="text-center" style="position:sticky; top:0; z-index:3; background:#161616; text-align:center; vertical-align:middle; line-height:1.2;">Estado</th>
+                        <th class="text-center" style="position:sticky; top:0; z-index:3; background:#161616; text-align:center; vertical-align:middle; line-height:1.2;">Encargado</th>
+                        <th class="text-center" style="position:sticky; top:0; z-index:3; background:#161616; text-align:center; vertical-align:middle; line-height:1.2;">Observaciones</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    <!-- Rows injected by JS -->
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
     <!-- VIEW: QUALITY HISTORY -->
 
-    <div id="view-quality-history" class="panel" style="display: none; max-width: 1000px; margin: 0 auto;">
+    <div id="view-quality-history" class="panel" style="display: none; max-width: 1400px; margin: 0 auto;">
 
         <div class="panel-header">
 
@@ -5555,9 +5631,17 @@
                     Filtrar
                 </button>
 
-                <button class="btn" onclick="showQualityControlHome()" style="order:5; flex:0 0 auto;">&larr; Volver</button>
+                <button class="btn" onclick="printQualityHistory()" style="display:flex; align-items:center; justify-content:center; order:5; flex:0 0 auto; width:36px; height:36px; padding:0;" title="Imprimir Historial">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                        <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                        <rect x="6" y="14" width="12" height="8"></rect>
+                    </svg>
+                </button>
 
-                <span id="quality-history-sync-label" style="display:none; color:var(--text-secondary); font-size:0.86rem; text-align:right; white-space:nowrap; order:6;"></span>
+                <button class="btn" onclick="showQualityControlHome()" style="order:6; flex:0 0 auto;">&larr; Volver</button>
+
+                <span id="quality-history-sync-label" style="display:none; color:var(--text-secondary); font-size:0.86rem; text-align:right; white-space:nowrap; order:7;"></span>
 
             </div>
 
@@ -5602,6 +5686,10 @@
         <div id="quality-history-stats"
             style="display: none; justify-content: flex-end; margin: -0.25rem 0 1rem; color: var(--text-secondary); font-size: 0.9rem; font-weight: 500;">
             0 registros encontrados
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; margin-bottom:0.4rem;">
+            <span id="quality-history-freshness-label" style="font-size:0.78rem; display:flex; align-items:center; gap:5px;"></span>
         </div>
 
         <div class="table-container" style="max-height: 62vh; overflow: auto; position: relative;">
@@ -5717,7 +5805,7 @@
 
                 <span style="color: var(--bpb-blue); margin: 0 10px;">&gt;</span>
 
-                Registro <span id="entry-date-crumb"></span>
+                Registro&nbsp;<span id="entry-date-crumb"></span>
 
             </div>
 

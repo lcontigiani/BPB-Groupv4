@@ -440,9 +440,10 @@ async function checkSession() {
                     },
                     'quality-control-home': showQualityControlHome,
                     'quality-pending': showQualityPending,
-                    'quality-records': showQualityHistoryPanel,
-                    'quality-history': showQualityHistoryPanel,
-                    'quality-stats': showQualityHistoryPanel,
+                    'quality-records': showQualityApprovedPanel,
+                    'quality-history': showQualityApprovedPanel,
+                    'quality-reworks': showQualityReworksPanel,
+                    'quality-stats': showQualityApprovedPanel,
                     'upload': () => { if (typeof showUploadForm === 'function') showUploadForm(); },
                     'profile': () => { if (typeof showUserProfile === 'function') showUserProfile(); },
                     'r016': () => { if (typeof showR016List === 'function') showR016List(); },
@@ -6076,7 +6077,7 @@ function exitISOTrackingPanel() {
             animateEntry('view-activity-entry');
         }
         const subtitle = document.querySelector('header .subtitle');
-        if (subtitle) subtitle.textContent = 'Oficina T?cnica | Registro de Actividad';
+        if (subtitle) subtitle.textContent = 'Oficina Técnica | Registro de Actividad';
         return;
     }
     if (window._isoTrackingReturn === 'iso-info') {
@@ -6361,6 +6362,8 @@ async function fetchQualitySyncStatus(force = false) {
 }
 
 function renderQualitySyncStatus(status) {
+    // During a manual sync keep the pulsing on — only 'running' updates are allowed through
+    if (qualityManualSyncInFlight && status?.status !== 'running') return;
     const buttons = [
         document.getElementById('quality-pending-sync-button'),
         document.getElementById('quality-history-sync-button')
@@ -6382,19 +6385,35 @@ function renderQualitySyncStatus(status) {
         buttons.forEach((button) => {
             button.disabled = true;
             button.style.display = 'inline-flex';
+            button.classList.remove('pulsing-border-red');
             button.classList.add('pulsing-btn');
-            button.style.borderColor = 'var(--bpb-blue)';
-            button.style.color = 'var(--bpb-blue)';
-            button.style.background = 'rgba(207, 22, 37, 0.1)';
+            button.style.borderColor = '#cf1625';
+            button.style.color = '#cf1625';
+            button.style.background = 'rgba(207, 22, 37, 0.15)';
             button.title = 'Actualizando...';
         });
         setQualitySyncStatusText('', 'running');
+        return;
+    }
+    if (status.should_sync) {
+        buttons.forEach((button) => {
+            button.disabled = false;
+            button.style.display = 'inline-flex';
+            button.classList.remove('pulsing-btn');
+            button.classList.add('pulsing-border-red');
+            button.style.borderColor = '';
+            button.style.color = '#cf1625';
+            button.style.background = 'rgba(207,22,37,0.08)';
+            button.title = 'Datos desactualizados \u2014 click para sincronizar';
+        });
+        setQualitySyncStatusText('', 'muted');
         return;
     }
     buttons.forEach((button) => {
         button.disabled = false;
         button.style.display = 'inline-flex';
         button.classList.remove('pulsing-btn');
+        button.classList.remove('pulsing-border-red');
         button.style.borderColor = '';
         button.style.color = '';
         button.style.background = '';
@@ -6467,10 +6486,15 @@ window.triggerQualityManualSync = async function (sourceView = '') {
         renderQualitySyncStatus({ enabled: true, status: 'running' });
         await ensureQualitySync(true);
         showNotification('Sincronizacion de Calidad completada.', 'success');
-        if (sourceView === 'pending' || document.getElementById('view-quality-pending')?.style.display === 'block') {
+        if (sourceView === 'pending') {
             loadQualityPendingCategories();
             loadQualityPendingRecords();
-        } else if (sourceView === 'history' || document.getElementById('view-quality-history')?.style.display === 'block') {
+        } else if (sourceView === 'history' || sourceView === 'reworks') {
+            loadQualityHistoryRecords();
+        } else if (document.getElementById('view-quality-pending')?.style.display === 'block') {
+            loadQualityPendingCategories();
+            loadQualityPendingRecords();
+        } else if (document.getElementById('view-quality-history')?.style.display === 'block') {
             loadQualityHistoryRecords();
         }
     } catch (error) {
@@ -6478,6 +6502,12 @@ window.triggerQualityManualSync = async function (sourceView = '') {
         showNotification(error.message || 'No se pudo sincronizar Calidad.', 'error');
     } finally {
         qualityManualSyncInFlight = false;
+        // Refresh button visual state to reflect actual post-sync status
+        fetchQualitySyncStatus(true).then((payload) => {
+            renderQualitySyncStatus(payload?.data || {});
+        }).catch(() => {
+            renderQualitySyncStatus({});
+        });
     }
 };
 
@@ -6545,14 +6575,32 @@ let currentQualityPendingYearsInitialized = false;
 let currentQualityPendingCategories = [];
 let currentQualityPendingCategoryAssignments = {};
 const QUALITY_PENDING_HIDDEN_CATEGORY_ID = 'hidden';
+const QUALITY_PENDING_STOCK_CATEGORY_ID = 'stock';
 const QUALITY_PENDING_UNCATEGORIZED_FILTER_ID = '__uncategorized__';
+
+function getQualityUserHiddenCategoryIds() {
+    try { return JSON.parse(localStorage.getItem('qualityPendingUserHiddenCategories') || '[]'); } catch { return []; }
+}
+function setQualityUserHiddenCategoryIds(ids) {
+    localStorage.setItem('qualityPendingUserHiddenCategories', JSON.stringify(ids));
+}
+function toggleQualityUserHiddenCategory(categoryId, btn) {
+    const ids = getQualityUserHiddenCategoryIds();
+    const idx = ids.indexOf(categoryId);
+    if (idx === -1) ids.push(categoryId); else ids.splice(idx, 1);
+    setQualityUserHiddenCategoryIds(ids);
+    const isNowHidden = idx === -1;
+    if (btn) btn.style.color = isNowHidden ? 'var(--bpb-blue)' : 'var(--text-secondary)';
+    renderQualityPendingTable();
+}
 let currentQualityPendingDraggedCategoryId = '';
-let currentQualityHistoryPeriodFilter = 'all';
+let currentQualityHistoryPeriodFilter = '7days';
 let currentQualityHistorySelectedYears = new Set();
 let currentQualityHistoryYearsInitialized = false;
 let currentQualityHistorySearch = '';
 let currentQualityHistorySelectedAuthors = new Set(['lgonzalez', 'vzarlenga']);
 let qualityHistoryRenderToken = 0;
+let qualityPendingRenderToken = 0;
 
 function parseQualityFilterDate(value) {
     if (!value) return null;
@@ -6684,7 +6732,6 @@ window.toggleQualityPendingFilters = function () {
     const container = document.getElementById('quality-pending-filters-container');
     if (!container) return;
     container.style.display = container.style.display === 'none' || !container.style.display ? 'flex' : 'none';
-    syncQualityFilterStatsVisibility('quality-pending-filters-container', 'quality-pending-stats');
 };
 
 window.toggleQualityHistoryFilters = function () {
@@ -6735,6 +6782,19 @@ function syncQualityObservationInMemory(item, produc, observacion) {
     (window._qualityHistoryRecords || []).forEach(applyUpdate);
 }
 
+function syncQualityMuestrasInMemory(item, produc, muestras) {
+    const normalizedItem = String(item || '').trim();
+    const normalizedProduc = String(produc || '').trim();
+    const applyUpdate = (record) => {
+        if (String(record?.item || '').trim() === normalizedItem && String(record?.produc || '').trim() === normalizedProduc) {
+            record.muestras = muestras;
+        }
+    };
+
+    (window._qualityPendingRecords || []).forEach(applyUpdate);
+    (window._qualityHistoryRecords || []).forEach(applyUpdate);
+}
+
 async function saveQualityObservationInput(textarea) {
     if (!(textarea instanceof HTMLTextAreaElement)) return;
 
@@ -6774,6 +6834,45 @@ async function saveQualityObservationInput(textarea) {
     }
 }
 
+async function saveQualityMuestrasInput(textarea) {
+    if (!(textarea instanceof HTMLTextAreaElement)) return;
+
+    const item = textarea.dataset.item || '';
+    const produc = textarea.dataset.produc || '';
+    const muestras = textarea.value || '';
+    const lastSaved = textarea.dataset.lastSaved || '';
+    if (muestras === lastSaved) return;
+
+    textarea.disabled = true;
+    textarea.style.opacity = '0.75';
+
+    try {
+        const response = await fetch('/api/quality/muestras', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ item, produc, muestras })
+        });
+        const data = await response.json();
+        if (!response.ok || data.status !== 'success') {
+            throw new Error(data.message || 'No se pudo guardar el valor.');
+        }
+
+        textarea.dataset.lastSaved = muestras;
+        textarea.style.borderColor = '#2ecc71';
+        syncQualityMuestrasInMemory(item, produc, muestras);
+        window.setTimeout(() => {
+            if (textarea.isConnected) textarea.style.borderColor = 'var(--border)';
+        }, 900);
+    } catch (error) {
+        console.error('Error saving quality muestras:', error);
+        textarea.style.borderColor = '#e74c3c';
+        showNotification(error.message || 'No se pudo guardar el valor.', 'error');
+    } finally {
+        textarea.disabled = false;
+        textarea.style.opacity = '1';
+    }
+}
+
 function bindQualityObservationInputs(scope) {
     if (!scope) return;
     scope.querySelectorAll('.quality-observation-input').forEach((textarea) => {
@@ -6782,6 +6881,14 @@ function bindQualityObservationInputs(scope) {
         textarea.dataset.lastSaved = textarea.value || '';
         textarea.addEventListener('input', () => autoResizeQualityObservationInput(textarea));
         textarea.addEventListener('blur', () => saveQualityObservationInput(textarea));
+        textarea.dataset.bound = '1';
+    });
+    scope.querySelectorAll('.quality-muestras-input').forEach((textarea) => {
+        autoResizeQualityObservationInput(textarea);
+        if (textarea.dataset.bound === '1') return;
+        textarea.dataset.lastSaved = textarea.value || '';
+        textarea.addEventListener('input', () => autoResizeQualityObservationInput(textarea));
+        textarea.addEventListener('blur', () => saveQualityMuestrasInput(textarea));
         textarea.dataset.bound = '1';
     });
 }
@@ -6861,10 +6968,15 @@ function renderQualityPendingCategoryPills() {
 
     const categories = Array.isArray(currentQualityPendingCategories) ? currentQualityPendingCategories : [];
     const hiddenCategory = categories.find((category) => String(category?.id || '') === QUALITY_PENDING_HIDDEN_CATEGORY_ID) || null;
-    const regularCategories = categories.filter((category) => String(category?.id || '') !== QUALITY_PENDING_HIDDEN_CATEGORY_ID);
+    const stockCategory = categories.find((category) => String(category?.id || '') === QUALITY_PENDING_STOCK_CATEGORY_ID) || null;
+    const regularCategories = categories.filter((category) => {
+        const cid = String(category?.id || '');
+        return cid !== QUALITY_PENDING_HIDDEN_CATEGORY_ID && cid !== QUALITY_PENDING_STOCK_CATEGORY_ID;
+    });
     const pills = [
         { id: 'all', name: 'Todos', color: '' },
         ...(hiddenCategory ? [hiddenCategory] : []),
+        ...(stockCategory ? [stockCategory] : []),
         { id: QUALITY_PENDING_UNCATEGORIZED_FILTER_ID, name: 'Sin Categoria', color: '#8b949e' },
         ...regularCategories
     ];
@@ -6937,16 +7049,31 @@ function renderQualityPendingCategoriesManagerContent(box) {
             <button class="btn" data-close-categories>&times;</button>
         </div>
         <div style="display:flex; flex-direction:column; gap:12px; max-height:48vh; overflow-y:auto; margin-bottom:18px;">
-            ${categories.length ? categories.map((category) => `
-                <div style="display:grid; grid-template-columns:minmax(0,1fr) 52px 96px 96px; gap:10px; align-items:center; background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:10px; padding:10px;">
-                    <input type="text" value="${escapeQualityHtml(category.name || '')}" data-category-name="${escapeQualityHtml(category.id)}" class="search-input" style="width:100%; min-width:0; box-sizing:border-box;" ${String(category.id) === QUALITY_PENDING_HIDDEN_CATEGORY_ID ? 'readonly' : ''}>
-                    <input type="color" value="${escapeQualityHtml(category.color || '#4aa3ff')}" data-category-color="${escapeQualityHtml(category.id)}" style="width:52px; min-width:52px; height:38px; border:none; background:none; padding:0; cursor:pointer; box-sizing:border-box;">
-                    <button class="btn" data-save-category="${escapeQualityHtml(category.id)}" style="width:96px;">Guardar</button>
-                    ${String(category.id) === QUALITY_PENDING_HIDDEN_CATEGORY_ID
+            ${categories.length ? categories.map((category) => {
+                const catId = String(category.id || '');
+                const isSystem = catId === QUALITY_PENDING_HIDDEN_CATEGORY_ID || catId === QUALITY_PENDING_STOCK_CATEGORY_ID;
+                const isUserHidden = getQualityUserHiddenCategoryIds().includes(catId);
+                const eyeColor = isUserHidden ? 'var(--bpb-blue)' : 'var(--text-secondary)';
+                const eyeBtn = isSystem ? `<span style="width:38px; display:inline-block;"></span>` : `
+                    <button data-toggle-eye="${escapeQualityHtml(catId)}"
+                        style="width:38px; height:38px; display:flex; align-items:center; justify-content:center; background:transparent; border:1px solid var(--border); border-radius:6px; cursor:pointer; color:${eyeColor}; padding:0; transition:color 0.2s;"
+                        title="Ocultar en vista Todos">
+                        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                    </button>`;
+                return `
+                <div style="display:grid; grid-template-columns:minmax(0,1fr) 38px 52px 96px 96px; gap:8px; align-items:center; background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:10px; padding:10px;">
+                    <input type="text" value="${escapeQualityHtml(category.name || '')}" data-category-name="${escapeQualityHtml(catId)}" class="search-input" style="width:100%; min-width:0; box-sizing:border-box;" ${isSystem ? 'readonly' : ''}>
+                    ${eyeBtn}
+                    <input type="color" value="${escapeQualityHtml(category.color || '#4aa3ff')}" data-category-color="${escapeQualityHtml(catId)}" style="width:52px; min-width:52px; height:38px; border:none; background:none; padding:0; cursor:pointer; box-sizing:border-box;">
+                    <button class="btn" data-save-category="${escapeQualityHtml(catId)}" style="width:96px;">Guardar</button>
+                    ${isSystem
                         ? '<button class="btn" disabled style="width:96px; opacity:0.5; cursor:not-allowed;">Sistema</button>'
-                        : `<button class="btn" data-delete-category="${escapeQualityHtml(category.id)}" style="width:96px; border-color:var(--bpb-blue); color:var(--bpb-blue); background:transparent;">Borrar</button>`}
-                </div>
-            `).join('') : '<div style="padding:14px; border:1px dashed var(--border); border-radius:10px; color:var(--text-secondary);">No hay categorias creadas.</div>'}
+                        : `<button class="btn" data-delete-category="${escapeQualityHtml(catId)}" style="width:96px; border-color:var(--bpb-blue); color:var(--bpb-blue); background:transparent;">Borrar</button>`}
+                </div>`;
+            }).join('') : '<div style="padding:14px; border:1px dashed var(--border); border-radius:10px; color:var(--text-secondary);">No hay categorias creadas.</div>'}
         </div>
         <div style="border-top:1px solid var(--border); padding-top:16px; display:grid; grid-template-columns:minmax(0,1fr) auto auto; gap:10px; align-items:center;">
             <input type="text" id="quality-new-category-name" class="search-input" placeholder="Nombre de la categoria">
@@ -6957,6 +7084,12 @@ function renderQualityPendingCategoriesManagerContent(box) {
 
     box.querySelector('[data-close-categories]')?.addEventListener('click', () => {
         box.closest('.quality-category-overlay')?.remove();
+    });
+    box.querySelectorAll('[data-toggle-eye]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            const catId = btn.getAttribute('data-toggle-eye');
+            toggleQualityUserHiddenCategory(catId, btn);
+        });
     });
     box.querySelectorAll('[data-save-category]').forEach((button) => {
         button.addEventListener('click', async () => {
@@ -7142,6 +7275,29 @@ function setQualityTableColumnWidths(tableSelector, widths) {
     colgroup.innerHTML = widths.map((width) => `<col style="width:${width};">`).join('');
 }
 
+async function removeQualityPendingHandler(rowKey) {
+    if (!rowKey) return;
+    try {
+        const response = await fetch(`/api/quality/pending-handler/${encodeURIComponent(rowKey)}`, {
+            method: 'DELETE'
+        });
+        const data = await response.json();
+        if (!response.ok || data.status !== 'success') throw new Error(data.message || 'No se pudo quitar el encargado.');
+
+        if (Array.isArray(window._qualityPendingRecords)) {
+            window._qualityPendingRecords = window._qualityPendingRecords.map((record) => (
+                String(record?.row_key || '') === String(rowKey)
+                    ? { ...record, encargado: '', encargado_updated_at: '' }
+                    : record
+            ));
+        }
+        renderQualityPendingTable();
+        showNotification('Encargado quitado.', 'success');
+    } catch (error) {
+        showNotification(error.message || 'No se pudo quitar el encargado.', 'error');
+    }
+}
+
 async function assignQualityPendingHandler(rowKey) {
     const handlerName = String(currentDisplayName || currentUser || 'Usuario').trim();
     if (!rowKey || !handlerName) return;
@@ -7170,7 +7326,7 @@ async function assignQualityPendingHandler(rowKey) {
 }
 
 function ensureQualityPendingTableHeader() {
-    setQualityTableColumnWidths('#quality-pending-table', ['20%', '17%', '8%', '12%', '15%', '17%', '11%']);
+    setQualityTableColumnWidths('#quality-pending-table', ['17%', '15%', '7%', '11%', '11%', '11%', '15%', '13%']);
     const thead = document.querySelector('#quality-pending-table thead');
     if (!thead) return;
     thead.innerHTML = `
@@ -7180,6 +7336,7 @@ function ensureQualityPendingTableHeader() {
             <th class="text-center" style="position:sticky; top:0; z-index:3; background:#161616; text-align:center; vertical-align:middle; line-height:1.2;">N&ordm; PO</th>
             <th class="text-center" style="position:sticky; top:0; z-index:3; background:#161616; text-align:center; vertical-align:middle; line-height:1.2;">Fecha<br>Ingreso</th>
             <th class="text-center" style="position:sticky; top:0; z-index:3; background:#161616; text-align:center; vertical-align:middle; line-height:1.2;">Estado</th>
+            <th class="text-center" style="position:sticky; top:0; z-index:3; background:#161616; text-align:center; vertical-align:middle; line-height:1.2;">N&ordm; Muestras</th>
             <th class="text-center" style="position:sticky; top:0; z-index:3; background:#161616; text-align:center; vertical-align:middle; line-height:1.2;">Observaciones</th>
             <th class="text-center" style="position:sticky; top:0; z-index:3; background:#161616; text-align:center; vertical-align:middle; line-height:1.2;">Encargado</th>
         </tr>
@@ -7187,7 +7344,7 @@ function ensureQualityPendingTableHeader() {
 }
 
 function ensureQualityHistoryTableHeader() {
-    setQualityTableColumnWidths('#quality-history-table', ['22%', '8%', '12%', '14%', '10%', '12%', '20%']);
+    setQualityTableColumnWidths('#quality-history-table', ['20%', '10%', '11%', '11%', '11%', '11%', '11%', '15%']);
     const thead = document.querySelector('#quality-history-table thead');
     if (!thead) return;
     thead.innerHTML = `
@@ -7195,6 +7352,7 @@ function ensureQualityHistoryTableHeader() {
             <th style="position:sticky; top:0; z-index:3; background:#161616; text-align:left; vertical-align:middle; line-height:1.2;">Producto</th>
             <th class="text-center" style="position:sticky; top:0; z-index:3; background:#161616; text-align:center; vertical-align:middle; line-height:1.2;">N&ordm; PO</th>
             <th class="text-center" style="position:sticky; top:0; z-index:3; background:#161616; text-align:center; vertical-align:middle; line-height:1.2;">Cantidad<br>Controlada</th>
+            <th class="text-center" style="position:sticky; top:0; z-index:3; background:#161616; text-align:center; vertical-align:middle; line-height:1.2;">N&ordm; Muestras</th>
             <th class="text-center" style="position:sticky; top:0; z-index:3; background:#161616; text-align:center; vertical-align:middle; line-height:1.2;">Ubicacion</th>
             <th class="text-center" style="position:sticky; top:0; z-index:3; background:#161616; text-align:center; vertical-align:middle; line-height:1.2;">Fecha de<br>Control</th>
             <th class="text-center" style="position:sticky; top:0; z-index:3; background:#161616; text-align:center; vertical-align:middle; line-height:1.2;">Autor</th>
@@ -7203,17 +7361,124 @@ function ensureQualityHistoryTableHeader() {
     `;
 }
 
+// --- Quality Pending Stats Mode ---
+window._qualityPendingStatsMode = 'registros';
+window._qualityPendingLastFiltered = [];
+
+function formatQualityChartNumber(value) {
+    if (value >= 1000000) {
+        const v = Math.round(value / 100000) / 10; // 1 decimal solo si es exacto
+        return (Number.isInteger(v) ? v : v.toFixed(1)) + 'M';
+    }
+    if (value >= 1000) {
+        return Math.round(value / 1000) + 'k'; // siempre entero
+    }
+    return String(value);
+}
+
+function toggleQualityPendingStatsMode() {
+    window._qualityPendingStatsMode = window._qualityPendingStatsMode === 'registros' ? 'piezas' : 'registros';
+    const lR = document.getElementById('quality-mode-label-registros');
+    const lP = document.getElementById('quality-mode-label-piezas');
+    if (lR && lP) {
+        const active = 'var(--bpb-blue)';
+        const idle = 'var(--text-secondary)';
+        lR.style.color = window._qualityPendingStatsMode === 'registros' ? active : idle;
+        lR.style.fontWeight = window._qualityPendingStatsMode === 'registros' ? '700' : '400';
+        lP.style.color = window._qualityPendingStatsMode === 'piezas' ? active : idle;
+        lP.style.fontWeight = window._qualityPendingStatsMode === 'piezas' ? '700' : '400';
+    }
+    renderQualityPendingUserChart();
+}
+
+// Compat: mantener por si algo lo llama
+function setQualityPendingStatsMode(mode) {
+    if (window._qualityPendingStatsMode !== mode) toggleQualityPendingStatsMode();
+}
+
+function renderQualityPendingStatsLabel(filteredRecords) {
+    window._qualityPendingLastFiltered = filteredRecords || [];
+}
+
+function renderQualityPendingUserChart() {
+    const canvas = document.getElementById('quality-pending-user-chart');
+    const legend = document.getElementById('quality-pending-user-legend');
+    if (!canvas || !legend) return;
+
+    // Usar historial de aprobaciones (hoja Aprobados) — campo author: 'name', fecha: 'fecha' DD/MM/YYYY
+    const records = Array.isArray(window._qualityHistoryRecords) ? window._qualityHistoryRecords : [];
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 30);
+
+    const recent = records.filter((record) => {
+        const raw = record.fecha || '';
+        // Intentar formato DD/MM/YYYY
+        const parts = raw.split('/');
+        if (parts.length === 3) {
+            const d = new Date(Number(parts[2]), Number(parts[1]) - 1, Number(parts[0]));
+            return d >= cutoff;
+        }
+        // Intentar ISO
+        if (raw) {
+            const d = new Date(raw);
+            return !isNaN(d) && d >= cutoff;
+        }
+        return false;
+    });
+
+    const USERS = [
+        { key: 'vzarlenga', label: 'V. Zarlenga', color: '#4aa3ff' },
+        { key: 'lgonzalez', label: 'L. Gonzalez', color: '#f5a623' }
+    ];
+
+    const isPiezas = window._qualityPendingStatsMode === 'piezas';
+    const values = {};
+    USERS.forEach((u) => { values[u.key] = 0; });
+    recent.forEach((record) => {
+        const author = String(record.name || '').trim().toLowerCase();
+        const matched = USERS.find((u) => u.key === author);
+        if (matched) {
+            values[matched.key] += isPiezas ? (Number(record.canti_real) || 0) : 1;
+        }
+    });
+
+    const segments = USERS.map((u) => ({ label: u.label, value: values[u.key], color: u.color }));
+    const total = USERS.reduce((sum, u) => sum + values[u.key], 0);
+
+    drawQualityDonutChart(canvas, segments, {
+        centerPrimary: formatQualityChartNumber(isPiezas ? Math.round(total) : total),
+        centerSecondary: ''
+    });
+
+    legend.innerHTML = USERS.map((u) => {
+        const pct = total > 0 ? Math.round((values[u.key] / total) * 100) : 0;
+        const displayVal = isPiezas ? formatQualityChartNumber(Math.round(values[u.key])) : values[u.key];
+        return `
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+            <span style="width:10px; height:10px; border-radius:50%; background:${u.color}; flex-shrink:0; display:inline-block;"></span>
+            <span>${u.label}: <strong style="color:var(--text-primary);">${displayVal}</strong> <span style="opacity:0.55; font-size:0.78rem;">— ${pct}%</span></span>
+        </div>`;
+    }).join('');
+}
+
 function renderQualityPendingTable() {
     const tbody = document.querySelector('#quality-pending-table tbody');
     if (!tbody) return;
     ensureQualityPendingTableHeader();
     renderQualityPendingCategoryPills();
+    renderQualityPendingUserChart();
 
     const records = Array.isArray(window._qualityPendingRecords) ? window._qualityPendingRecords : [];
     let filteredRecords = [...records];
 
     if (currentQualityPendingFilter === 'all') {
-        filteredRecords = filteredRecords.filter((record) => getQualityPendingAssignedCategoryId(record) !== QUALITY_PENDING_HIDDEN_CATEGORY_ID);
+        const userHiddenIds = new Set(getQualityUserHiddenCategoryIds());
+        filteredRecords = filteredRecords.filter((record) => {
+            const assignedId = getQualityPendingAssignedCategoryId(record);
+            return assignedId !== QUALITY_PENDING_HIDDEN_CATEGORY_ID
+                && assignedId !== QUALITY_PENDING_STOCK_CATEGORY_ID
+                && !userHiddenIds.has(assignedId);
+        });
     } else if (currentQualityPendingFilter === QUALITY_PENDING_UNCATEGORIZED_FILTER_ID) {
         filteredRecords = filteredRecords.filter((record) => !getQualityPendingAssignedCategoryId(record));
     } else {
@@ -7238,15 +7503,25 @@ function renderQualityPendingTable() {
     filteredRecords = filteredRecords.filter((record) => matchesQualityPeriodFilter(record.fecha_ing, currentQualityPendingPeriodFilter));
     filteredRecords = filteredRecords.filter((record) => matchesQualityYearFilter(record.fecha_ing, currentQualityPendingSelectedYears));
     filteredRecords.sort((a, b) => compareQualityDatesDesc(parseQualityFilterDate(a.fecha_ing), parseQualityFilterDate(b.fecha_ing)));
-    updateQualityFilterStats('quality-pending-stats', filteredRecords.length);
+    renderQualityPendingStatsLabel(filteredRecords);
+
+    const renderToken = ++qualityPendingRenderToken;
 
     if (!filteredRecords.length) {
-        tbody.innerHTML = '<tr><td colspan="7" class="text-center" style="padding: 2rem; color: #888;">No se encontraron registros.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center" style="padding: 2rem; color: #888;">No se encontraron registros.</td></tr>';
         return;
     }
 
-    tbody.innerHTML = filteredRecords.map((record) => `
-        <tr
+    const fmtFechaIng = (f) => {
+        if (!f) return '-';
+        const mIso = f.match(/^(\d{4})-(\d{2})-(\d{2})/);
+        if (mIso) return `${mIso[3]} / ${mIso[2]} / ${mIso[1]}`;
+        const mDmy = f.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
+        if (mDmy) return `${mDmy[1]} / ${mDmy[2]} / ${mDmy[3]}`;
+        return f;
+    };
+
+    const buildPendingRowHtml = (record) => `<tr
             data-row-key="${escapeQualityHtml(record.row_key || '')}"
             ondragover="handleQualityPendingRowDragOver(event)"
             ondragenter="handleQualityPendingRowDragEnter(event)"
@@ -7261,12 +7536,22 @@ function renderQualityPendingTable() {
             </td>
             <td class="text-center" style="max-width: 180px; white-space: normal; word-break: break-word; line-height: 1.35;">${record.subgrupo || '-'}</td>
             <td class="text-center">${record.oc_numero || '-'}</td>
-            <td class="text-center">${record.fecha_ing || '-'}</td>
+            <td class="text-center">${fmtFechaIng(record.fecha_ing)}</td>
             <td>
                 <div style="width: 100%;">
                     <div class="progress-track"><div class="progress-fill" style="width: ${Number(record.progress_pct || 0)}%; background: ${getQualityProgressColor(record.progress_pct)};"></div></div>
                     <span class="progress-text">${formatQualityQuantity(record.approved_qty)}/${formatQualityQuantity(record.total_qty)} (${Number(record.progress_pct || 0)}%)</span>
                 </div>
+            </td>
+            <td class="text-center">
+                <textarea
+                    class="quality-muestras-input"
+                    data-item="${escapeQualityHtml(record.item || '')}"
+                    data-produc="${escapeQualityHtml(record.produc || '')}"
+                    data-last-saved="${escapeQualityHtml(record.muestras || '')}"
+                    rows="1"
+                    style="width:100%; min-height:34px; resize:none; overflow:hidden; border:1px solid var(--border); border-radius:6px; background:rgba(255,255,255,0.04); color:var(--text-primary); padding:0.45rem 0.6rem; font:inherit; box-sizing:border-box; text-align:center;"
+                >${escapeQualityHtml(record.muestras || '')}</textarea>
             </td>
             <td class="text-center">
                 <textarea
@@ -7297,9 +7582,30 @@ function renderQualityPendingTable() {
                         </button>`}
                 </div>
             </td>
-        </tr>
-    `).join('');
-    bindQualityObservationInputs(tbody);
+        </tr>`;
+
+    tbody.innerHTML = '';
+    let pendingIndex = 0;
+    const pendingChunkSize = 200;
+
+    const appendPendingChunk = () => {
+        if (renderToken !== qualityPendingRenderToken) return;
+
+        const slice = filteredRecords.slice(pendingIndex, pendingIndex + pendingChunkSize);
+        const template = document.createElement('template');
+        template.innerHTML = slice.map(buildPendingRowHtml).join('');
+        const fragment = template.content.cloneNode(true);
+        const appendedRows = Array.from(fragment.querySelectorAll('tr'));
+        tbody.appendChild(fragment);
+        appendedRows.forEach((row) => bindQualityObservationInputs(row));
+
+        pendingIndex += pendingChunkSize;
+        if (pendingIndex < filteredRecords.length) {
+            requestAnimationFrame(appendPendingChunk);
+        }
+    };
+
+    requestAnimationFrame(appendPendingChunk);
 }
 
 function setQualityPendingFilter(filter) {
@@ -7312,10 +7618,363 @@ function handleQualityPendingSearch(input) {
     renderQualityPendingTable();
 }
 
+function printQualityPending() {
+    const records = Array.isArray(window._qualityPendingRecords) ? window._qualityPendingRecords : [];
+    if (!records.length) {
+        showNotification('No hay registros para imprimir.', 'warning');
+        return;
+    }
+
+    // Apply the same filters as renderQualityPendingTable()
+    let filtered = [...records];
+    if (currentQualityPendingFilter === 'all') {
+        filtered = filtered.filter((r) => {
+            const assignedId = getQualityPendingAssignedCategoryId(r);
+            return assignedId !== QUALITY_PENDING_HIDDEN_CATEGORY_ID && assignedId !== QUALITY_PENDING_STOCK_CATEGORY_ID;
+        });
+    } else if (currentQualityPendingFilter === QUALITY_PENDING_UNCATEGORIZED_FILTER_ID) {
+        filtered = filtered.filter((r) => !getQualityPendingAssignedCategoryId(r));
+    } else {
+        filtered = filtered.filter((r) => getQualityPendingAssignedCategoryId(r) === currentQualityPendingFilter);
+    }
+    if (currentQualityPendingSearch) {
+        const q = currentQualityPendingSearch.toLowerCase();
+        filtered = filtered.filter((r) => [r.produc, r.subgrupo, r.oc_numero, r.fecha_ing, r.observaciones, r.encargado, r.approved_qty, r.total_qty, r.progress_pct]
+            .some((v) => String(v || '').toLowerCase().includes(q)));
+    }
+    filtered = filtered.filter((r) => matchesQualityPeriodFilter(r.fecha_ing, currentQualityPendingPeriodFilter));
+    filtered = filtered.filter((r) => matchesQualityYearFilter(r.fecha_ing, currentQualityPendingSelectedYears));
+    filtered.sort((a, b) => compareQualityDatesDesc(parseQualityFilterDate(a.fecha_ing), parseQualityFilterDate(b.fecha_ing)));
+
+    if (!filtered.length) {
+        showNotification('No hay registros visibles para imprimir.', 'warning');
+        return;
+    }
+
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+        showNotification('Permita ventanas emergentes para imprimir.', 'error');
+        return;
+    }
+
+    // Determine active filter label
+    let filterLabel = 'Todos los registros';
+    if (currentQualityPendingFilter !== 'all') {
+        if (currentQualityPendingFilter === QUALITY_PENDING_UNCATEGORIZED_FILTER_ID) {
+            filterLabel = 'Sin Categor&iacute;a';
+        } else {
+            const cat = getQualityPendingCategoryById(currentQualityPendingFilter);
+            if (cat) filterLabel = escapeQualityHtml(cat.name || currentQualityPendingFilter);
+        }
+    }
+    if (currentQualityPendingSearch) {
+        filterLabel += ` &mdash; B&uacute;squeda: "${escapeQualityHtml(currentQualityPendingSearch)}"`;
+    }
+
+    const today = new Date();
+    const dateStr = today.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+    const esc = (v) => String(v || '-').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+    const ROWS_PER_PAGE = 25;
+    const theadHtml = `
+        <thead>
+            <tr>
+                <th style="width:20%; text-align:left;">Producto</th>
+                <th style="width:11%;">SubGrupo</th>
+                <th style="width:8%;">N&ordm; PO</th>
+                <th style="width:10%;">Fecha Ingreso</th>
+                <th style="width:18%;">Estado</th>
+                <th style="width:8%;">N&ordm; Muestras</th>
+                <th style="width:10%;">Encargado</th>
+                <th style="width:15%; text-align:left;">Observaciones</th>
+            </tr>
+        </thead>`;
+
+    const chunks = [];
+    for (let i = 0; i < filtered.length; i += ROWS_PER_PAGE) {
+        chunks.push(filtered.slice(i, i + ROWS_PER_PAGE));
+    }
+
+    const tablesHtml = chunks.map((chunk, chunkIdx) => {
+        const rowsInChunk = chunk.map((r, i) => {
+            const pct = Number(r.progress_pct || 0);
+            const progressColor = pct >= 100 ? '#27ae60' : pct >= 50 ? '#f39c12' : '#cf1625';
+            return `
+            <tr style="background:${i % 2 === 0 ? '#fff' : '#f8f8f8'};">
+                <td style="text-align:left; padding:7px 10px; border-bottom:1px solid #e0e0e0; font-size:0.82rem; line-height:1.35; word-break:break-word;">${esc(r.produc)}</td>
+                <td style="text-align:center; padding:7px 10px; border-bottom:1px solid #e0e0e0; font-size:0.82rem;">${esc(r.subgrupo)}</td>
+                <td style="text-align:center; padding:7px 10px; border-bottom:1px solid #e0e0e0; font-size:0.82rem;">${esc(r.oc_numero)}</td>
+                <td style="text-align:center; padding:7px 10px; border-bottom:1px solid #e0e0e0; font-size:0.82rem; white-space:nowrap;">${esc(r.fecha_ing)}</td>
+                <td style="text-align:center; padding:7px 10px; border-bottom:1px solid #e0e0e0; font-size:0.82rem;">
+                    <div style="background:#e8e8e8; border-radius:4px; height:8px; margin-bottom:3px; overflow:hidden;">
+                        <div style="height:100%; width:${pct}%; background:${progressColor}; border-radius:4px;"></div>
+                    </div>
+                    <span style="font-size:0.75rem; color:#555;">${esc(r.approved_qty)}/${esc(r.total_qty)} (${pct}%)</span>
+                </td>
+                <td style="text-align:center; padding:7px 10px; border-bottom:1px solid #e0e0e0; font-size:0.82rem; word-break:break-word;">${esc(r.muestras)}</td>
+                <td style="text-align:center; padding:7px 10px; border-bottom:1px solid #e0e0e0; font-size:0.82rem;">${esc(r.encargado)}</td>
+                <td style="text-align:left; padding:7px 10px; border-bottom:1px solid #e0e0e0; font-size:0.82rem; word-break:break-word;">${esc(r.observaciones)}</td>
+            </tr>`;
+        }).join('');
+        const isLast = chunkIdx === chunks.length - 1;
+        const topMargin = chunkIdx > 0 ? 'margin-top:130px;' : '';
+        return `<table style="width:100%; border-collapse:collapse; table-layout:fixed; ${topMargin}${isLast ? '' : 'page-break-after:always;'}">${theadHtml}<tbody>${rowsInChunk}</tbody></table>`;
+    }).join('');
+
+    const html = `<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Registros Pendientes de Calidad</title>
+<style>
+    @media print {
+        @page { margin: 0; size: A4 portrait; }
+        body { margin: 0; padding: 0; font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .page-container { position: relative; width: 100%; box-sizing: border-box; padding-top: 130px; padding-bottom: 110px; padding-left: 1.5cm; padding-right: 1.5cm; display: block; }
+        .header { position: fixed; top: 0; left: 0; right: 0; height: 100px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #cf1625; padding: 0 1.5cm; background: white; z-index: 1000; box-sizing: border-box; }
+        .footer { position: fixed; bottom: 0; left: 0; right: 0; height: 80px; border-top: 2px solid #cf1625; display: flex; justify-content: space-between; align-items: center; padding: 0 1.5cm; background: white; z-index: 2000; box-sizing: border-box; }
+        table { page-break-inside: auto; }
+        tr { page-break-inside: avoid; }
+    }
+    body { margin: 0; font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: white; color: #333; font-size: 13px; }
+    .header { position: fixed; top: 0; left: 0; right: 0; height: 100px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #cf1625; padding: 0 1.5cm; background: white; z-index: 1000; box-sizing: border-box; }
+    .footer { position: fixed; bottom: 0; left: 0; right: 0; height: 80px; border-top: 2px solid #cf1625; display: flex; justify-content: space-between; align-items: center; padding: 0 1.5cm; background: white; z-index: 2000; box-sizing: border-box; }
+    .page-container { box-sizing: border-box; padding-top: 130px; padding-bottom: 110px; padding-left: 1.5cm; padding-right: 1.5cm; }
+    .filter-bar { background: #f5f5f5; border: 1px solid #ddd; border-radius: 6px; padding: 7px 12px; margin-bottom: 12px; font-size: 0.82rem; color: #333; display: flex; gap: 20px; align-items: center; flex-wrap: wrap; }
+    .filter-bar strong { color: #cf1625; }
+    table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    thead tr { background: #cf1625; color: #fff; }
+    thead th { padding: 9px 10px; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; text-align: center; }
+    thead th:first-child { text-align: left; }
+    tbody tr:nth-child(even) { background: #f8f8f8; }
+    td { padding: 7px 10px; border-bottom: 1px solid #e0e0e0; font-size: 0.82rem; vertical-align: middle; }
+</style>
+</head>
+<body>
+<div class="header">
+    <div style="display:flex; align-items:center; gap:20px;">
+        <img src="/static/assets/iso_red.png" style="height:70px;">
+        <div>
+            <h1 style="margin:0; font-size:22px; color:#333;">Registro de Control de Calidad &mdash; Pendientes</h1>
+            <div style="font-size:14px; color:#666;">Oficina T&eacute;cnica &mdash; BPB &mdash; ${filtered.length} registro${filtered.length !== 1 ? 's' : ''}</div>
+        </div>
+    </div>
+    <div style="text-align:right; font-size:13px; color:#666;">
+        <div>Generado: ${dateStr}</div>
+        <div style="margin-top:3px; color:#cf1625; font-weight:600;">BPB Argentina S.A.</div>
+    </div>
+</div>
+<div class="footer">
+    <div style="flex:1; text-align:left; font-size:16px; color:#cf1625; font-weight:bold;">OFICINA T&Eacute;CNICA</div>
+    <div style="flex:1; text-align:center;">
+        <img src="/static/assets/Oficina_Tecnica_v3.png" style="height:55px; opacity:0.8;">
+    </div>
+    <div style="flex:1;"></div>
+</div>
+<div class="page-container">
+    <div class="filter-bar">
+        <span><strong>Filtro activo:</strong> ${filterLabel}</span>
+        <span><strong>Total:</strong> ${filtered.length} registros</span>
+    </div>
+    ${tablesHtml}
+</div>
+<script>window.onload = function() { window.print(); };<\/script>
+</body>
+</html>`;
+
+    printWindow.document.write(html);
+    printWindow.document.close();
+}
+
+function printQualityHistory() {
+    const ALLOWED_PERIODS = ['today', '7days', '30days'];
+    if (!ALLOWED_PERIODS.includes(currentQualityHistoryPeriodFilter)) {
+        showNotification('Para imprimir, se debe filtrar el periodo (Hoy, Últimos 7 días o Últimos 30 días).', 'warning');
+        return;
+    }
+
+    const records = Array.isArray(window._qualityHistoryRecords) ? window._qualityHistoryRecords : [];
+    if (!records.length) {
+        showNotification('No hay registros para imprimir.', 'warning');
+        return;
+    }
+
+    // Apply same filters as renderQualityHistoryTable
+    const filteredRecords = records.filter((record) => {
+        const normalizedAuthor = String(record.name || '').trim().toLowerCase();
+        if (!currentQualityHistorySelectedAuthors.has(normalizedAuthor)) return false;
+        if (!matchesQualityPeriodFilter(record.fecha, currentQualityHistoryPeriodFilter)) return false;
+        if (!matchesQualityYearFilter(record.fecha, currentQualityHistorySelectedYears)) return false;
+        if (!currentQualityHistorySearch) return true;
+        const query = currentQualityHistorySearch.toLowerCase();
+        return [record.produc, record.ubi, record.observaciones, record.oc_numero, record.canti_real, record.fecha, record.name]
+            .some((v) => String(v || '').toLowerCase().includes(query));
+    });
+    filteredRecords.sort((a, b) => compareQualityDatesDesc(parseQualityFilterDate(a.fecha), parseQualityFilterDate(b.fecha)));
+
+    if (!filteredRecords.length) {
+        showNotification('No hay registros visibles para imprimir.', 'warning');
+        return;
+    }
+
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+        showNotification('Permita ventanas emergentes para imprimir.', 'error');
+        return;
+    }
+
+    const periodLabels = { today: 'Hoy', '7days': 'Últimos 7 días', '30days': 'Últimos 30 días' };
+    const periodLabel = periodLabels[currentQualityHistoryPeriodFilter] || '';
+    const today = new Date();
+    const dateStr = today.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    const esc = (v) => String(v || '-').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const fmtDate = (f) => {
+        if (!f) return '-';
+        const mDmy = f.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
+        if (mDmy) return `${mDmy[1]} / ${mDmy[2]} / ${mDmy[3]}`;
+        const mIso = f.match(/^(\d{4})-(\d{2})-(\d{2})/);
+        if (mIso) return `${mIso[3]} / ${mIso[2]} / ${mIso[1]}`;
+        return f;
+    };
+
+    const ROWS_PER_PAGE = 25;
+    const theadHtml = `
+        <thead>
+            <tr>
+                <th style="width:22%; text-align:left;">Producto</th>
+                <th style="width:10%;">N&ordm; PO</th>
+                <th style="width:10%;">Cant. Controlada</th>
+                <th style="width:10%;">N&ordm; Muestras</th>
+                <th style="width:10%;">Ubicacion</th>
+                <th style="width:12%;">Fecha de Control</th>
+                <th style="width:10%;">Autor</th>
+                <th style="width:16%; text-align:left;">Observaciones</th>
+            </tr>
+        </thead>`;
+
+    const chunks = [];
+    for (let i = 0; i < filteredRecords.length; i += ROWS_PER_PAGE) {
+        chunks.push(filteredRecords.slice(i, i + ROWS_PER_PAGE));
+    }
+
+    const tablesHtml = chunks.map((chunk, chunkIdx) => {
+        const rowsInChunk = chunk.map((r, i) => `
+            <tr style="background:${i % 2 === 0 ? '#fff' : '#f8f8f8'};">
+                <td style="text-align:left; padding:7px 10px; border-bottom:1px solid #e0e0e0; font-size:0.82rem; line-height:1.35; word-break:break-word;">${esc(r.produc)}</td>
+                <td style="text-align:center; padding:7px 10px; border-bottom:1px solid #e0e0e0; font-size:0.82rem;">${esc(r.oc_numero)}</td>
+                <td style="text-align:center; padding:7px 10px; border-bottom:1px solid #e0e0e0; font-size:0.82rem;">${esc(r.canti_real)}</td>
+                <td style="text-align:center; padding:7px 10px; border-bottom:1px solid #e0e0e0; font-size:0.82rem;">${esc(r.muestras)}</td>
+                <td style="text-align:center; padding:7px 10px; border-bottom:1px solid #e0e0e0; font-size:0.82rem;">${esc(r.ubi)}</td>
+                <td style="text-align:center; padding:7px 10px; border-bottom:1px solid #e0e0e0; font-size:0.82rem; white-space:nowrap;">${fmtDate(r.fecha)}</td>
+                <td style="text-align:center; padding:7px 10px; border-bottom:1px solid #e0e0e0; font-size:0.82rem;">${esc(r.name)}</td>
+                <td style="text-align:left; padding:7px 10px; border-bottom:1px solid #e0e0e0; font-size:0.82rem; word-break:break-word;">${esc(r.observaciones)}</td>
+            </tr>`).join('');
+        const isLast = chunkIdx === chunks.length - 1;
+        const topMargin = chunkIdx > 0 ? 'margin-top:130px;' : '';
+        return `<table style="width:100%; border-collapse:collapse; table-layout:fixed; ${topMargin}${isLast ? '' : 'page-break-after:always;'}">${theadHtml}<tbody>${rowsInChunk}</tbody></table>`;
+    }).join('');
+
+    const html = `<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Historial de Control de Calidad</title>
+<style>
+    @media print {
+        @page { margin: 0; size: A4 portrait; }
+        body { margin: 0; padding: 0; font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .page-container { position: relative; width: 100%; box-sizing: border-box; padding-top: 130px; padding-bottom: 110px; padding-left: 1.5cm; padding-right: 1.5cm; display: block; }
+        .header { position: fixed; top: 0; left: 0; right: 0; height: 100px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #cf1625; padding: 0 1.5cm; background: white; z-index: 1000; box-sizing: border-box; }
+        .footer { position: fixed; bottom: 0; left: 0; right: 0; height: 80px; border-top: 2px solid #cf1625; display: flex; justify-content: space-between; align-items: center; padding: 0 1.5cm; background: white; z-index: 2000; box-sizing: border-box; }
+        table { page-break-inside: auto; }
+        tr { page-break-inside: avoid; }
+    }
+    body { margin: 0; font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: white; color: #333; font-size: 13px; }
+    .header { position: fixed; top: 0; left: 0; right: 0; height: 100px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #cf1625; padding: 0 1.5cm; background: white; z-index: 1000; box-sizing: border-box; }
+    .footer { position: fixed; bottom: 0; left: 0; right: 0; height: 80px; border-top: 2px solid #cf1625; display: flex; justify-content: space-between; align-items: center; padding: 0 1.5cm; background: white; z-index: 2000; box-sizing: border-box; }
+    .page-container { box-sizing: border-box; padding-top: 130px; padding-bottom: 110px; padding-left: 1.5cm; padding-right: 1.5cm; }
+    .filter-bar { background: #f5f5f5; border: 1px solid #ddd; border-radius: 6px; padding: 7px 12px; margin-bottom: 12px; font-size: 0.82rem; color: #333; display: flex; gap: 20px; align-items: center; flex-wrap: wrap; }
+    .filter-bar strong { color: #cf1625; }
+    table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    thead tr { background: #cf1625; color: #fff; }
+    thead th { padding: 9px 10px; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; text-align: center; }
+    thead th:first-child { text-align: left; }
+    tbody tr:nth-child(even) { background: #f8f8f8; }
+    td { padding: 7px 10px; border-bottom: 1px solid #e0e0e0; font-size: 0.82rem; vertical-align: middle; }
+</style>
+</head>
+<body>
+<div class="header">
+    <div style="display:flex; align-items:center; gap:20px;">
+        <img src="/static/assets/iso_red.png" style="height:70px;">
+        <div>
+            <h1 style="margin:0; font-size:22px; color:#333;">Historial de Control de Calidad</h1>
+            <div style="font-size:14px; color:#666;">Oficina T&eacute;cnica &mdash; BPB &mdash; ${filteredRecords.length} registro${filteredRecords.length !== 1 ? 's' : ''} &mdash; Periodo: ${esc(periodLabel)}</div>
+        </div>
+    </div>
+    <div style="text-align:right; font-size:13px; color:#666;">
+        <div>Generado: ${dateStr}</div>
+        <div style="margin-top:3px; color:#cf1625; font-weight:600;">BPB Argentina S.A.</div>
+    </div>
+</div>
+<div class="footer">
+    <div style="flex:1; text-align:left; font-size:16px; color:#cf1625; font-weight:bold;">OFICINA T&Eacute;CNICA</div>
+    <div style="flex:1; text-align:center;">
+        <img src="/static/assets/Oficina_Tecnica_v3.png" style="height:55px; opacity:0.8;">
+    </div>
+    <div style="flex:1;"></div>
+</div>
+<div class="page-container">
+    <div class="filter-bar">
+        <span><strong>Periodo:</strong> ${esc(periodLabel)}</span>
+        <span><strong>Total:</strong> ${filteredRecords.length} registros</span>
+    </div>
+    ${tablesHtml}
+</div>
+<script>window.onload = function() { window.print(); };<\/script>
+</body>
+</html>`;
+
+    printWindow.document.write(html);
+    printWindow.document.close();
+}
+
+let currentQualityReworksSearch = '';
+
+function handleQualityReworksSearch(input) {
+    currentQualityReworksSearch = String(input?.value || '').trim();
+    if (!Array.isArray(window._qualityReworksRecords)) return;
+    const query = currentQualityReworksSearch.toLowerCase();
+    const filtered = query
+        ? window._qualityReworksRecords.filter((r) =>
+              [r.produc, r.oc_numero, r.subgrupo, r.encargado, r.observaciones].some((v) =>
+                  String(v || '').toLowerCase().includes(query)
+              )
+          )
+        : window._qualityReworksRecords;
+    const saved = window._qualityReworksRecords;
+    window._qualityReworksRecords = filtered;
+    renderQualityReworksTable();
+    window._qualityReworksRecords = saved;
+}
+
 window.setQualityPendingPeriodFilter = function (filter) {
     currentQualityPendingPeriodFilter = filter || 'all';
     renderQualityPendingTable();
 };
+
+function _setQualityFreshnessLabel(spanId, live) {
+    const el = document.getElementById(spanId);
+    if (!el) return;
+    const now = new Date();
+    const hhmm = now.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+    if (live) {
+        el.innerHTML = `&#9679; <span style="color:#2ecc71;">En vivo (${hhmm})</span>`;
+    } else {
+        el.innerHTML = `&#9679; <span style="color:#f5a623;">Desde caché (${hhmm})</span>`;
+    }
+}
 
 async function loadQualityPendingRecords() {
     ensureQualityPendingTableHeader();
@@ -7323,7 +7982,7 @@ async function loadQualityPendingRecords() {
     if (tbody) tbody.innerHTML = '<tr><td colspan="7" class="text-center" style="padding: 2rem; color: #888;">Cargando registros pendientes...</td></tr>';
 
     try {
-        await ensureQualitySync(false);
+        // Fetch data immediately from cache — don't block on sync
         const response = await fetch('/api/quality/pending');
         const data = await response.json();
 
@@ -7338,6 +7997,21 @@ async function loadQualityPendingRecords() {
         });
         currentQualityPendingYearsInitialized = true;
         renderQualityPendingTable();
+        _setQualityFreshnessLabel('quality-pending-freshness-label', true);
+
+        // Background sync: if data is stale, sync silently then refresh the table
+        ensureQualitySync(false).then(() => fetch('/api/quality/pending').then((r) => r.json())).then((freshData) => {
+            if (freshData && freshData.status === 'success' && Array.isArray(freshData.data)) {
+                window._qualityPendingRecords = freshData.data;
+                populateQualityYearFilter('quality-pending-year-filter', freshData.data, 'fecha_ing', currentQualityPendingSelectedYears, {
+                    defaultMode: 'all',
+                    initialized: true
+                });
+                renderQualityPendingTable();
+                _setQualityFreshnessLabel('quality-pending-freshness-label', true);
+            }
+        }).catch((err) => console.warn('[Quality] Background sync (pending):', err));
+
     } catch (error) {
         console.error('Error loading quality pending records:', error);
         window._qualityPendingRecords = [];
@@ -7387,7 +8061,7 @@ function renderQualityHistoryTable() {
 
     if (!records.length) {
         updateQualityFilterStats('quality-history-stats', 0);
-        tbody.innerHTML = '<tr><td colspan="7" class="text-center" style="padding: 2rem; color: #888;">No hay registros en el historial.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center" style="padding: 2rem; color: #888;">No hay registros en el historial.</td></tr>';
         return;
     }
 
@@ -7406,6 +8080,7 @@ function renderQualityHistoryTable() {
             record.produc,
             record.ubi,
             record.observaciones,
+            record.muestras,
             record.oc_numero,
             record.canti_real,
             record.fecha,
@@ -7416,18 +8091,36 @@ function renderQualityHistoryTable() {
     updateQualityFilterStats('quality-history-stats', filteredRecords.length);
 
     if (!filteredRecords.length) {
-        tbody.innerHTML = '<tr><td colspan="7" class="text-center" style="padding: 2rem; color: #888;">No hay registros que coincidan con los filtros.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center" style="padding: 2rem; color: #888;">No hay registros que coincidan con los filtros.</td></tr>';
         return;
     }
 
+    const fmtHistoryFecha = (f) => {
+        if (!f) return '-';
+        const mDmy = f.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
+        if (mDmy) return `${mDmy[1]} / ${mDmy[2]} / ${mDmy[3]}`;
+        const mIso = f.match(/^(\d{4})-(\d{2})-(\d{2})/);
+        if (mIso) return `${mIso[3]} / ${mIso[2]} / ${mIso[1]}`;
+        return f;
+    };
     const buildHistoryRowHtml = (record) => `
         <tr>
-            <td style="text-align:left; white-space:normal; word-break:break-word; line-height:1.35;">${record.produc || '-'}</td>
-            <td class="text-center">${record.oc_numero || '-'}</td>
-            <td class="text-center">${record.canti_real || '-'}</td>
-            <td class="text-center">${record.ubi || '-'}</td>
-            <td class="text-center" style="white-space: nowrap;">${record.fecha || '-'}</td>
-            <td class="text-center">${record.name || '-'}</td>
+            <td style="text-align:left; white-space:normal; word-break:break-word; line-height:1.35;"><span style="${getQualityAr7ProductStyle(record)}">${escapeQualityHtml(record.produc || '-')}</span></td>
+            <td class="text-center">${escapeQualityHtml(record.oc_numero || '-')}</td>
+            <td class="text-center">${escapeQualityHtml(record.canti_real || '-')}</td>
+            <td class="text-center">
+                <textarea
+                    class="quality-muestras-input"
+                    data-item="${escapeQualityHtml(record.item || '')}"
+                    data-produc="${escapeQualityHtml(record.produc || '')}"
+                    data-last-saved="${escapeQualityHtml(record.muestras || '')}"
+                    rows="1"
+                    style="width:100%; min-height:34px; resize:none; overflow:hidden; border:1px solid var(--border); border-radius:6px; background:rgba(255,255,255,0.04); color:var(--text-primary); padding:0.45rem 0.6rem; font:inherit; box-sizing:border-box; text-align:center;"
+                >${escapeQualityHtml(record.muestras || '')}</textarea>
+            </td>
+            <td class="text-center">${escapeQualityHtml(record.ubi || '-')}</td>
+            <td class="text-center" style="white-space: nowrap;">${fmtHistoryFecha(record.fecha)}</td>
+            <td class="text-center">${escapeQualityHtml(record.name || '-')}</td>
             <td class="text-center">
                 <textarea
                     class="quality-observation-input"
@@ -7468,10 +8161,10 @@ function renderQualityHistoryTable() {
 async function loadQualityHistoryRecords() {
     ensureQualityHistoryTableHeader();
     const tbody = document.querySelector('#quality-history-table tbody');
-    if (tbody) tbody.innerHTML = '<tr><td colspan="7" class="text-center" style="padding: 2rem; color: #888;">Cargando historial...</td></tr>';
+    if (tbody) tbody.innerHTML = '<tr><td colspan="8" class="text-center" style="padding: 2rem; color: #888;">Cargando historial...</td></tr>';
 
     try {
-        await ensureQualitySync(false);
+        // Fetch data immediately from cache — don't block on sync
         const response = await fetch('/api/quality/history');
         const data = await response.json();
 
@@ -7487,6 +8180,22 @@ async function loadQualityHistoryRecords() {
         currentQualityHistoryYearsInitialized = true;
         renderQualityHistoryAuthorFilter();
         renderQualityHistoryTable();
+        _setQualityFreshnessLabel('quality-history-freshness-label', true);
+
+        // Background sync: if data is stale, sync silently then refresh the table
+        ensureQualitySync(false).then(() => fetch('/api/quality/history').then((r) => r.json())).then((freshData) => {
+            if (freshData && freshData.status === 'success' && Array.isArray(freshData.data)) {
+                window._qualityHistoryRecords = freshData.data;
+                populateQualityYearFilter('quality-history-year-filter', freshData.data, 'fecha', currentQualityHistorySelectedYears, {
+                    defaultMode: 'latestTwo',
+                    initialized: true
+                });
+                renderQualityHistoryAuthorFilter();
+                renderQualityHistoryTable();
+                _setQualityFreshnessLabel('quality-history-freshness-label', true);
+            }
+        }).catch((err) => console.warn('[Quality] Background sync (history):', err));
+
     } catch (error) {
         console.error('Error loading quality history records:', error);
         window._qualityHistoryRecords = [];
@@ -7599,19 +8308,32 @@ function showQualityPending() {
 
     renderQualityPendingCategoryPills();
     setQualityPendingFilter(currentQualityPendingFilter);
-    syncQualityFilterStatsVisibility('quality-pending-filters-container', 'quality-pending-stats');
     loadQualityPendingCategories();
     loadQualityPendingRecords();
+    // Cargar historial para el gráfico de aprobaciones si aún no está disponible
+    if (!Array.isArray(window._qualityHistoryRecords) || window._qualityHistoryRecords.length === 0) {
+        loadQualityHistoryRecords().then(() => renderQualityPendingUserChart());
+    } else {
+        renderQualityPendingUserChart();
+    }
     animateEntry('view-quality-pending');
 
     setQualityControlSubtitle();
 }
 
 function showQualityRecordsMenu() {
-    showQualityHistoryPanel();
+    showQualityHistoryMenu();
+}
+
+function showQualityHistoryMenu() {
+    showQualityApprovedPanel();
 }
 
 function showQualityHistoryPanel() {
+    showQualityApprovedPanel();
+}
+
+function showQualityApprovedPanel() {
     if (!canAccessQualityControl()) {
         showRoleRestrictionMessage('Acceso restringido al panel de Calidad');
         showRegistrosHome();
@@ -7637,8 +8359,239 @@ function showQualityHistoryPanel() {
     setQualityControlSubtitle();
 }
 
+function showQualityReworksPanel() {
+    showQualityStatsPanel();
+}
+
+async function showQualityStatsPanel() {
+    if (!canAccessQualityControl()) {
+        showRoleRestrictionMessage('Acceso restringido al panel de Calidad');
+        showRegistrosHome();
+        return;
+    }
+
+    localStorage.setItem('lastView', 'quality-reworks');
+    hideAllViews();
+
+    const view = document.getElementById('view-quality-reworks');
+    if (!view) return;
+    view.style.display = 'block';
+    view.style.maxWidth = '1360px';
+
+    view.innerHTML = `
+        <div class="panel-header">
+            <div class="panel-title decorated-title">Estad&iacute;sticas de Calidad</div>
+            <div class="header-right" style="display:flex; gap:1rem; align-items:center;">
+                <button class="btn" onclick="printQualityStats()" style="display:flex; align-items:center; gap:8px; padding: 6px 12px;" title="Imprimir Reporte">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                </button>
+                <button class="btn" onclick="showQualityHistoryMenu()">&larr; Volver</button>
+            </div>
+        </div>
+        <div id="admin-quality-stats-view" style="display:block; padding-top:1rem;">
+            <div style="display:flex; flex-wrap:wrap; gap:1rem; margin:0 0 1rem; align-items:flex-end; background: rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:10px; padding:12px; width:100%; box-sizing:border-box;">
+                <div style="display:flex; flex-direction:column; gap:6px; flex:1 1 100%;">
+                    <div style="display:flex; align-items:center; justify-content:space-between; font-size:0.9rem; color:var(--text-primary); gap:12px; flex-wrap:wrap;">
+                        <span style="font-weight:700; text-transform:uppercase; letter-spacing:0.05em;">Fecha de Aprobaci&oacute;n</span>
+                        <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap; justify-content:flex-end;">
+                            <button class="btn" id="quality-admin-user-filter" style="padding:6px 14px; display:flex; align-items:center; gap:8px;" title="Filtrar por Usuario">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="7" r="4"></circle><path d="M5.5 21a6.5 6.5 0 0 1 13 0"></path></svg>
+                                <span>Filtrar por Usuario</span>
+                            </button>
+                            <button class="btn" id="quality-admin-day-filter" style="padding:6px 14px; display:flex; align-items:center; gap:8px; min-width:140px;" title="Filtrar por d&iacute;a">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
+                                <span>Filtrar por D&iacute;a</span>
+                            </button>
+                            <button class="btn" style="padding:4px 8px;" onclick="qualityAdminPrevYear()">&larr;</button>
+                            <span id="quality-admin-year-label" style="font-weight:700;"></span>
+                            <button class="btn" style="padding:4px 8px;" onclick="qualityAdminNextYear()">&rarr;</button>
+                        </div>
+                    </div>
+                    <div id="quality-admin-months" style="display:grid; grid-template-columns: repeat(6, 1fr); gap:6px; margin-top:8px;"></div>
+                    <div style="margin-top:6px; color: var(--text-secondary); font-size:0.9rem; display:flex; gap:14px; flex-wrap:wrap; align-items:center;">
+                        <span id="quality-admin-range-label">Todos los meses</span>
+                        <span style="opacity:0.6;">&bull;</span>
+                        <span id="quality-admin-users-label">Usuarios: 0</span>
+                        <span style="opacity:0.6;">&bull;</span>
+                        <span id="quality-admin-generated-at">Cargando datos...</span>
+                    </div>
+                </div>
+            </div>
+
+            <div id="admin-quality-stats-cards" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap:1rem; margin-bottom:1.5rem;"></div>
+
+            <div style="display:flex; gap:1.5rem; flex-wrap:wrap;">
+                <div style="flex:1 1 420px; background:#1a1a1a; border:1px solid var(--border); border-radius:12px; padding:1rem;">
+                    <h4 style="margin:0 0 0.75rem; color:var(--text-primary);">Controles de Calidad por Usuario</h4>
+                    <canvas id="admin-quality-users-chart" width="540" height="280" style="width:100%;"></canvas>
+                </div>
+                <div style="flex:1 1 420px; background:#1a1a1a; border:1px solid var(--border); border-radius:12px; padding:1rem;">
+                    <h4 style="margin:0 0 0.75rem; color:var(--text-primary);">Tiempo de Control</h4>
+                    <canvas id="admin-quality-gauss-chart" width="540" height="280" style="width:100%;"></canvas>
+                    <div id="admin-quality-gauss-meta" style="margin-top:0.75rem; color:var(--text-secondary); font-size:0.9rem;"></div>
+                </div>
+            </div>
+
+            <div style="display:flex; gap:1.5rem; flex-wrap:wrap; margin-top:1.5rem;">
+                <div style="flex:1 1 420px; background:#1a1a1a; border:1px solid var(--border); border-radius:12px; padding:1rem;">
+                    <h4 style="margin:0 0 0.75rem; color:var(--text-primary);">Estado Actual de Registros</h4>
+                    <div style="display:flex; gap:1rem; align-items:center; flex-wrap:wrap;">
+                        <canvas id="admin-quality-status-chart" width="240" height="240" style="width:min(260px, 100%);"></canvas>
+                        <div id="admin-quality-status-legend" style="flex:1 1 200px; color:var(--text-secondary); font-size:0.95rem;"></div>
+                    </div>
+                </div>
+                <div style="flex:1 1 420px; background:#1a1a1a; border:1px solid var(--border); border-radius:12px; padding:1rem;">
+                    <h4 style="margin:0 0 0.75rem; color:var(--text-primary);">Controles por Mes</h4>
+                    <canvas id="admin-quality-line-chart" width="540" height="280" style="width:100%;"></canvas>
+                </div>
+            </div>
+
+            <div style="display:flex; gap:1.5rem; flex-wrap:wrap; margin-top:1.5rem;">
+                <div style="flex:1 1 420px; background:#1a1a1a; border:1px solid var(--border); border-radius:12px; padding:1rem; min-width:0; display:flex; flex-direction:column;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:0.75rem;">
+                        <h4 style="margin:0; color:var(--text-primary);">Ingresos Aprobados</h4>
+                        <span id="admin-quality-products-meta" style="font-size:0.9rem; color:var(--text-secondary);"></span>
+                    </div>
+                    <div style="position:relative; margin-bottom:0.9rem; width:100%; box-sizing:border-box;">
+                        <input id="admin-quality-product-search" type="text" placeholder="Buscar producto..." autocomplete="off"
+                            style="width:100%; max-width:100%; box-sizing:border-box; padding:11px 14px; border-radius:10px; border:1px solid var(--border); background:rgba(255,255,255,0.04); color:var(--text-primary); font-size:0.95rem;">
+                        <div id="admin-quality-product-suggestions" style="position:absolute; top:calc(100% + 6px); left:0; right:0; display:none; z-index:30; background:#121212; border:1px solid var(--border); border-radius:10px; box-shadow:0 12px 24px rgba(0,0,0,0.35); max-height:220px; overflow-y:auto; box-sizing:border-box;"></div>
+                    </div>
+                    <div class="table-container" style="flex:1 1 auto; min-height:0; overflow-y:auto; overflow-x:hidden; position:relative;">
+                        <table class="data-table" style="width:100%; border-collapse:separate; border-spacing:0; table-layout:fixed;">
+                            <thead>
+                                <tr>
+                                    <th style="width:36%; position:sticky; top:0; z-index:3; background:#161616; text-align:left; padding:14px 10px;">Producto</th>
+                                    <th style="width:16%; position:sticky; top:0; z-index:3; background:#161616; text-align:center; padding:14px 10px; line-height:1.1;">Fecha<br>Ingreso</th>
+                                    <th style="width:16%; position:sticky; top:0; z-index:3; background:#161616; text-align:center; padding:14px 10px; line-height:1.1;">Cantidad<br>Aprobada</th>
+                                    <th style="width:16%; position:sticky; top:0; z-index:3; background:#161616; text-align:center; padding:14px 10px; line-height:1.1;">Fecha<br>Aprobacion</th>
+                                    <th style="width:16%; position:sticky; top:0; z-index:3; background:#161616; text-align:center; padding:14px 10px;">Autor</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-quality-products-table"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div style="flex:1 1 420px; background:#1a1a1a; border:1px solid var(--border); border-radius:12px; padding:1rem; min-width:0;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:0.75rem;">
+                        <h4 style="margin:0; color:var(--text-primary);">Detalle del Ingreso</h4>
+                        <span id="admin-quality-product-detail-meta" style="font-size:0.9rem; color:var(--text-secondary);"></span>
+                    </div>
+                    <div id="admin-quality-product-detail-summary" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:0.75rem; margin-bottom:1rem;"></div>
+                    <div style="display:flex; gap:1rem; align-items:center; flex-wrap:wrap;">
+                        <canvas id="admin-quality-product-pie-chart" width="240" height="240" style="width:min(260px, 100%);"></canvas>
+                        <div id="admin-quality-product-pie-legend" style="flex:1 1 200px; color:var(--text-secondary); font-size:0.95rem;"></div>
+                    </div>
+                    <div id="admin-quality-product-approvals-table" style="margin-top:1rem;"></div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    const userBtn = document.getElementById('quality-admin-user-filter');
+    if (userBtn) userBtn.onclick = openQualityAdminUserFilter;
+    const dayBtn = document.getElementById('quality-admin-day-filter');
+    if (dayBtn) dayBtn.onclick = () => {
+        const fallback = (qualityAdminStatsStartMonth !== null) ? qualityAdminStatsStartMonth : new Date().getMonth();
+        openQualityAdminDayPicker(fallback);
+    };
+
+    animateEntry('view-quality-reworks');
+    setQualityControlSubtitle();
+    renderAdminQualityStatsLoading();
+    await refreshQualityCsvCache(true);
+    await fetchAdminQualityStats();
+}
+
+async function loadQualityReworksRecords() {
+    const tbody = document.querySelector('#quality-reworks-table tbody');
+    if (tbody) tbody.innerHTML = '<tr><td colspan="7" class="text-center" style="padding: 2rem; color: #888;">Cargando re-trabajos...</td></tr>';
+
+    try {
+        await ensureQualitySync(false);
+        if (!Array.isArray(window._qualityPendingRecords) || !currentQualityPendingCategories.length) {
+            await loadQualityPendingCategories();
+            const response = await fetch('/api/quality/pending');
+            const data = await response.json();
+            if (!response.ok || data.status !== 'success') {
+                throw new Error(data.message || 'No se pudieron cargar los registros pendientes.');
+            }
+            window._qualityPendingRecords = Array.isArray(data.data) ? data.data : [];
+        }
+
+        const reworkCategory = (currentQualityPendingCategories || []).find(
+            (cat) => String(cat.name || '').toLowerCase().includes('retrabajo')
+        );
+
+        if (!reworkCategory) {
+            if (tbody) tbody.innerHTML = '<tr><td colspan="7" class="text-center" style="padding: 2rem; color: #888;">No existe una categoria llamada "Retrabajo". Creala desde el panel de Pendientes.</td></tr>';
+            return;
+        }
+
+        const reworkRecords = (window._qualityPendingRecords || []).filter((record) => {
+            const catId = getQualityPendingAssignedCategoryId(record);
+            return catId === reworkCategory.category_id;
+        });
+
+        window._qualityReworksRecords = reworkRecords;
+        renderQualityReworksTable();
+    } catch (error) {
+        console.error('Error loading reworks records:', error);
+        if (tbody) tbody.innerHTML = `<tr><td colspan="7" class="text-center" style="padding: 2rem; color: #ff8a8a;">${escapeQualityHtml(error.message || 'Error al cargar re-trabajos.')}</td></tr>`;
+    }
+}
+
+function renderQualityReworksTable() {
+    const tbody = document.querySelector('#quality-reworks-table tbody');
+    if (!tbody) return;
+
+    const records = Array.isArray(window._qualityReworksRecords) ? window._qualityReworksRecords : [];
+
+    if (!records.length) {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center" style="padding: 2rem; color: #888;">No hay items con categoria "Retrabajo".</td></tr>';
+        return;
+    }
+
+    const buildReworkRowHtml = (record) => {
+        const progressPct = Number(record.progress_pct || 0);
+        return `
+        <tr>
+            <td style="text-align:left; white-space:normal; word-break:break-word; line-height:1.35;"><span style="${getQualityAr7ProductStyle(record)}">${escapeQualityHtml(record.produc || '-')}</span></td>
+            <td class="text-center" style="font-size:0.85rem; color:var(--text-secondary);">${escapeQualityHtml(record.subgrupo || '-')}</td>
+            <td class="text-center">${escapeQualityHtml(record.oc_numero || '-')}</td>
+            <td class="text-center" style="white-space:nowrap;">${escapeQualityHtml(record.fecha_ing || '-')}</td>
+            <td class="text-center" style="min-width:120px;">
+                <div style="width:100%;">
+                    <div class="progress-track"><div class="progress-fill" style="width:${progressPct}%; background:${getQualityProgressColor(progressPct)};"></div></div>
+                    <span class="progress-text">${formatQualityQuantity(record.approved_qty)}/${formatQualityQuantity(record.total_qty)} (${progressPct}%)</span>
+                </div>
+            </td>
+            <td class="text-center" style="color:var(--text-secondary); font-size:0.88rem;">${escapeQualityHtml(record.encargado || '-')}</td>
+            <td class="text-center">
+                <textarea
+                    class="quality-observation-input"
+                    data-item="${escapeQualityHtml(record.item || '')}"
+                    data-produc="${escapeQualityHtml(record.produc || '')}"
+                    data-last-saved="${escapeQualityHtml(record.observaciones || '')}"
+                    rows="1"
+                    style="width:100%; min-height:34px; resize:none; overflow:hidden; border:1px solid var(--border); border-radius:6px; background:rgba(255,255,255,0.04); color:var(--text-primary); padding:0.45rem 0.6rem; font:inherit; box-sizing:border-box; text-align:center;"
+                >${escapeQualityHtml(record.observaciones || '')}</textarea>
+            </td>
+        </tr>
+    `;
+    };
+
+    const template = document.createElement('template');
+    template.innerHTML = records.map(buildReworkRowHtml).join('');
+    const fragment = template.content.cloneNode(true);
+    const appendedRows = Array.from(fragment.querySelectorAll('tr'));
+    tbody.innerHTML = '';
+    tbody.appendChild(fragment);
+    appendedRows.forEach((row) => bindQualityObservationInputs(row));
+}
+
 function showQualityStatsPanel() {
-    showQualityHistoryPanel();
+    showQualityHistoryMenu();
 }
 
 // Global variable for current activity context
@@ -12072,6 +13025,12 @@ function hideAllViews() {
     const vQualityRecords = document.getElementById('view-quality-records-menu');
     if (vQualityRecords) vQualityRecords.style.display = 'none';
 
+    const vQualityHistoryMenu = document.getElementById('view-quality-history-menu');
+    if (vQualityHistoryMenu) vQualityHistoryMenu.style.display = 'none';
+
+    const vQualityReworks = document.getElementById('view-quality-reworks');
+    if (vQualityReworks) vQualityReworks.style.display = 'none';
+
     const vQualityHistory = document.getElementById('view-quality-history');
     if (vQualityHistory) vQualityHistory.style.display = 'none';
 
@@ -15168,6 +16127,7 @@ let qualityAdminStatsData = null;
 let qualityAdminStatsYear = null;
 let qualityAdminStatsStartMonth = null;
 let qualityAdminStatsEndMonth = null;
+const _qualityAdminStatsClientCache = { data: null, ts: 0, TTL: 90000 };
 let qualityAdminDayRangeStart = null;
 let qualityAdminDayRangeEnd = null;
 let qualityAdminAvailableUsers = [];
@@ -15363,8 +16323,11 @@ async function showAdminQualityStats() {
         title: `<span class="breadcrumb-link" onclick="showHome()">Oficina T&eacute;cnica</span> <span style="color:var(--bpb-blue); margin: 0 10px;">&gt;</span> <span class="breadcrumb-link" onclick="showAdminPanel()">Panel de Control</span> <span style="color:var(--bpb-blue); margin: 0 10px;">&gt;</span> <span class="breadcrumb-link" onclick="showAdminStatsMenu()">Estad&iacute;sticas</span> <span style="color:var(--bpb-blue); margin: 0 10px;">&gt;</span> <span class="current" style="color:var(--text-primary);">Registro de Calidad</span>`,
         backAction: 'showAdminStatsMenu()',
         actionsHtml: `
-            <button class="btn" onclick="printQualityStats()" style="display:flex; align-items:center; gap:8px; padding: 6px 12px;" title="Imprimir Reporte">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+            <button class="btn" onclick="forceRefreshAdminQualityStats()" style="display:flex; align-items:center; justify-content:center; width:36px; height:36px; padding:0;" title="Forzar actualización de datos">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h-6"></path><path d="M3 11a9 9 0 0 1 15.55-5.36L21 8"></path><path d="M3 22v-6h6"></path><path d="M21 13a9 9 0 0 1-15.55 5.36L3 16"></path></svg>
+            </button>
+            <button class="btn" onclick="printQualityStats()" style="display:flex; align-items:center; justify-content:center; width:36px; height:36px; padding:0;" title="Imprimir Reporte">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
             </button>
         `,
         maxWidth: '1360px'
@@ -15481,7 +16444,6 @@ async function showAdminQualityStats() {
         </div>
     `;
 
-    renderAdminQualityStatsLoading();
     const userBtn = document.getElementById('quality-admin-user-filter');
     if (userBtn) userBtn.onclick = openQualityAdminUserFilter;
     const dayBtn = document.getElementById('quality-admin-day-filter');
@@ -15489,7 +16451,21 @@ async function showAdminQualityStats() {
         const fallback = (qualityAdminStatsStartMonth !== null) ? qualityAdminStatsStartMonth : new Date().getMonth();
         openQualityAdminDayPicker(fallback);
     };
-    await refreshQualityCsvCache(true);
+
+    // Si hay datos en caché del cliente, renderizarlos de inmediato sin esperar
+    const now = Date.now();
+    if (_qualityAdminStatsClientCache.data && (now - _qualityAdminStatsClientCache.ts) < _qualityAdminStatsClientCache.TTL) {
+        qualityAdminStatsData = _qualityAdminStatsClientCache.data;
+        initAdminQualityStatsYear();
+        renderAdminQualityStatsDashboard();
+        // Actualizar en background sin bloquear
+        fetchAdminQualityStats().catch((err) => console.warn('[AdminQuality] Background refresh:', err));
+        refreshQualityCsvCache(false);
+        return;
+    }
+
+    renderAdminQualityStatsLoading();
+    refreshQualityCsvCache(false);
     await fetchAdminQualityStats();
 }
 
@@ -16037,15 +17013,27 @@ function getAdminQualityHistoryYears(records) {
 
 function initAdminQualityStatsYear() {
     const years = getAdminQualityHistoryYears(qualityAdminStatsData?.history_records || []);
+    const currentYear = new Date().getFullYear();
+    const currentMonth = new Date().getMonth(); // 0-based
+
     if (!years.length) {
-        qualityAdminStatsYear = new Date().getFullYear();
+        qualityAdminStatsYear = currentYear;
+        if (qualityAdminStatsStartMonth === null) {
+            qualityAdminStatsStartMonth = currentMonth;
+            qualityAdminStatsEndMonth = currentMonth;
+        }
         return;
     }
 
     if (qualityAdminStatsYear === null || !years.includes(qualityAdminStatsYear)) {
         qualityAdminStatsYear = years[0];
-        qualityAdminStatsStartMonth = null;
-        qualityAdminStatsEndMonth = null;
+        // Solo setear mes actual si es el año corriente, sino todo el año
+        if (qualityAdminStatsStartMonth === null) {
+            if (qualityAdminStatsYear === currentYear) {
+                qualityAdminStatsStartMonth = currentMonth;
+                qualityAdminStatsEndMonth = currentMonth;
+            }
+        }
     }
 }
 
@@ -16259,6 +17247,13 @@ function renderAdminQualityStatsLoading() {
     }
 }
 
+async function forceRefreshAdminQualityStats() {
+    _qualityAdminStatsClientCache.data = null;
+    _qualityAdminStatsClientCache.ts = 0;
+    renderAdminQualityStatsLoading();
+    await fetchAdminQualityStats();
+}
+
 async function fetchAdminQualityStats() {
     try {
         const response = await fetch('/api/admin/quality-stats');
@@ -16269,6 +17264,8 @@ async function fetchAdminQualityStats() {
         }
 
         qualityAdminStatsData = prepareAdminQualityStatsData(payload.data || {});
+        _qualityAdminStatsClientCache.data = qualityAdminStatsData;
+        _qualityAdminStatsClientCache.ts = Date.now();
         qualityAdminAvailableUsers = Array.from(new Set(
             (qualityAdminStatsData.history_records || [])
                 .map((record) => String(record.author || '').trim())
@@ -16314,6 +17311,8 @@ function renderAdminQualityStatsDashboard() {
     const timedControlsByPair = new Map();
     let durationValues = [];
     let controlledPieces = 0;
+    let controlledMuestras = 0;
+    const seenMuestraKeys = new Set();
     const uniqueControlPairs = new Set();
     const uniqueMonthPairs = Array.from({ length: 12 }, () => new Set());
     const pendingPairKeys = new Set(pendingRecordsInPeriod.map((record) => getQualityAdminPairKey(record)));
@@ -16339,6 +17338,14 @@ function renderAdminQualityStatsDashboard() {
         products.set(product, currentProduct);
 
         if (Number.isFinite(qty)) controlledPieces += qty;
+
+        // Muestras: suma única por item+produc+oc_numero
+        const muestraKey = `${String(record.item || '').trim()}|${String(record.produc || '').trim()}|${String(record.oc_numero || '').trim()}`;
+        if (!seenMuestraKeys.has(muestraKey)) {
+            seenMuestraKeys.add(muestraKey);
+            const mVal = parseFloat(String(record.muestras || '').replace(',', '.')) || 0;
+            if (mVal > 0) controlledMuestras += mVal;
+        }
     });
 
     validIngressHistory.forEach((record) => {
@@ -16389,16 +17396,16 @@ function renderAdminQualityStatsDashboard() {
                 meta: 'Productos unicos dentro del periodo'
             },
             {
-                label: 'Pendientes Actuales',
-                value: pendingCount.toLocaleString('es-AR'),
-                meta: 'Ingresos dentro del periodo'
-            },
-            {
                 label: 'Tiempo Promedio',
                 value: avgDays === null ? '-' : `${avgDays.toFixed(1)} dias`,
                 meta: durationValues.length
                     ? `${durationValues.length.toLocaleString('es-AR')} ${durationValues.length === 1 ? 'Registro disponible' : 'Registros disponibles'}${durationStats.removedCount ? `<br>${durationStats.removedCount.toLocaleString('es-AR')} fuera de rango` : ''}`
                     : 'Sin registros disponibles'
+            },
+            {
+                label: 'Muestras Controladas',
+                value: formatQualityQuantity(controlledMuestras),
+                meta: 'Suma de muestras controladas en el periodo'
             },
             {
                 label: 'Piezas Controladas',
@@ -16418,13 +17425,20 @@ function renderAdminQualityStatsDashboard() {
 
     const generatedAtEl = document.getElementById('quality-admin-generated-at');
     if (generatedAtEl) {
+        const cacheAge = _qualityAdminStatsClientCache.ts ? Math.floor((Date.now() - _qualityAdminStatsClientCache.ts) / 1000) : null;
+        const fromCache = cacheAge !== null && cacheAge > 2;
+        let label = '';
         if (data.generated_at) {
             const generatedAt = new Date(data.generated_at);
-            generatedAtEl.textContent = Number.isNaN(generatedAt.getTime())
-                ? 'Datos actualizados'
-                : `Actualizado: ${generatedAt.toLocaleString('es-AR')}`;
+            label = Number.isNaN(generatedAt.getTime()) ? '' : `Datos al: ${generatedAt.toLocaleString('es-AR')}`;
+        }
+        if (fromCache) {
+            const mins = Math.floor(cacheAge / 60);
+            const secs = cacheAge % 60;
+            const agoStr = mins > 0 ? `hace ${mins} min` : `hace ${secs} seg`;
+            generatedAtEl.innerHTML = `${label ? label + ' &mdash; ' : ''}<span style="color:#f5a623;" title="Datos cargados desde caché">&#9679; Desde caché (${agoStr})</span>`;
         } else {
-            generatedAtEl.textContent = 'Datos actualizados';
+            generatedAtEl.innerHTML = `${label ? label + ' &mdash; ' : ''}<span style="color:#2ecc71;" title="Datos recién cargados del servidor">&#9679; En vivo</span>`;
         }
     }
 
@@ -16434,12 +17448,16 @@ function renderAdminQualityStatsDashboard() {
         .map(([author, pairSet]) => [author, pairSet.size])
         .sort((a, b) => b[1] - a[1])
         .slice(0, 8);
+    const totalUserControls = topUsers.reduce((sum, entry) => sum + entry[1], 0);
     drawQualityBarChart(
         document.getElementById('admin-quality-users-chart'),
         topUsers.map((entry) => entry[1]),
         topUsers.map((entry) => entry[0]),
         {
-            tooltipFormatter: ({ label, value }) => `<strong>${escapeAdminQualityHtml(label)}</strong><br>${value.toLocaleString('es-AR')} controles`
+            tooltipFormatter: ({ label, value }) => {
+                const pct = totalUserControls > 0 ? Math.round((value / totalUserControls) * 100) : 0;
+                return `<strong>${escapeAdminQualityHtml(label)}</strong><br>${value.toLocaleString('es-AR')} controles (${pct}%)`;
+            }
         }
     );
 
@@ -16790,8 +17808,8 @@ function renderAdminQualityProductExplorer(history, productEntries, historyByPro
         ['Fecha Ingreso', formatAdminQualityDate(selectedGroup?.fecha_ing_iso)],
         ['Fecha Aprobacion', selectedGroup?.approval_label || '-'],
         ['Autor', selectedGroup?.authors?.join(', ') || '-'],
-        ['Cantidad Aprobada', formatQualityQuantity(approvedQty)],
-        ['Total Piezas', totalQty > 0 ? formatQualityQuantity(totalQty) : '-']
+        ['Cant. Controlada', formatQualityQuantity(approvedQty)],
+        ['Cant. Despachada', totalQty > 0 ? formatQualityQuantity(totalQty) : '-']
     ];
 
     detailMetaEl.textContent = groupedRows.length === 1
@@ -17343,10 +18361,13 @@ function drawQualityDonutChart(canvas, segments, options = {}) {
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.font = '700 24px "Manrope", sans-serif';
-        ctx.fillText(options.centerPrimary || total.toLocaleString('es-AR'), cx, cy - 8);
-        ctx.fillStyle = options.centerSubTextColor || 'rgba(255,255,255,0.65)';
-        ctx.font = '12px "Manrope", sans-serif';
-        ctx.fillText(options.centerSecondary || '', cx, cy + 16);
+        const hasSecondary = options.centerSecondary && String(options.centerSecondary).trim() !== '';
+        ctx.fillText(options.centerPrimary || total.toLocaleString('es-AR'), cx, hasSecondary ? cy - 8 : cy);
+        if (hasSecondary) {
+            ctx.fillStyle = options.centerSubTextColor || 'rgba(255,255,255,0.65)';
+            ctx.font = '12px "Manrope", sans-serif';
+            ctx.fillText(options.centerSecondary, cx, cy + 16);
+        }
     };
 
     drawFrame();
@@ -19714,6 +20735,24 @@ window.login = login;
 window.logout = logout;
 
 window.showNotification = showNotification;
+
+// Bloquear ";" en campos de actividad (proyecto y descripción)
+document.addEventListener('keydown', function (e) {
+    if (e.key === ';') {
+        const target = e.target;
+        if (
+            target.classList.contains('project-input-dynamic') ||
+            target.classList.contains('desc-input-dynamic')
+        ) {
+            e.preventDefault();
+            const now = Date.now();
+            if (!window._lastSemicolonWarn || now - window._lastSemicolonWarn > 3000) {
+                window._lastSemicolonWarn = now;
+                showNotification('El carácter ";" no está permitido en este campo.', 'error');
+            }
+        }
+    }
+}, true);
 
 function animateEntry(elementId) {
 

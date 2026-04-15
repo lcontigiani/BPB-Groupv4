@@ -235,6 +235,7 @@ class QualityPostgresStore:
                         produc TEXT NOT NULL,
                         subgrupo TEXT NOT NULL DEFAULT '',
                         observacion TEXT NOT NULL DEFAULT '',
+                        muestras TEXT NOT NULL DEFAULT '',
                         updated_at TIMESTAMPTZ NULL,
                         updated_by TEXT NOT NULL DEFAULT '',
                         PRIMARY KEY (item, produc)
@@ -330,10 +331,26 @@ class QualityPostgresStore:
                         fecha_ing TEXT NOT NULL DEFAULT '',
                         fecha_ing_iso TEXT NOT NULL DEFAULT '',
                         author_name TEXT NOT NULL DEFAULT '',
+                        is_ar7_item BOOLEAN NOT NULL DEFAULT false,
                         imported_at TIMESTAMPTZ NOT NULL
                     )
                     """
                 )
+                cur.execute(
+                    "ALTER TABLE quality_approvals ADD COLUMN IF NOT EXISTS is_ar7_item BOOLEAN NOT NULL DEFAULT false"
+                )
+                cur.execute(
+                    "ALTER TABLE quality_observations ADD COLUMN IF NOT EXISTS muestras TEXT NOT NULL DEFAULT ''"
+                )
+                cur.execute(
+                    "ALTER TABLE quality_approvals ADD COLUMN IF NOT EXISTS row_key TEXT NOT NULL DEFAULT ''"
+                )
+                # Índices para acelerar JOINs frecuentes
+                cur.execute("CREATE INDEX IF NOT EXISTS idx_quality_obs_item_produc ON quality_observations(item, produc)")
+                cur.execute("CREATE INDEX IF NOT EXISTS idx_quality_approvals_item_produc ON quality_approvals(item, produc)")
+                cur.execute("CREATE INDEX IF NOT EXISTS idx_quality_approvals_fecha_iso ON quality_approvals(fecha_iso DESC)")
+                cur.execute("CREATE INDEX IF NOT EXISTS idx_quality_approvals_row_key ON quality_approvals(row_key)")
+                cur.execute("CREATE INDEX IF NOT EXISTS idx_quality_snapshot_item_produc ON quality_pending_snapshot(item, produc)")
                 cur.execute(
                     "INSERT INTO quality_meta(key, value) VALUES (%s, %s) ON CONFLICT (key) DO NOTHING",
                     ("schema_version", "1"),
@@ -592,7 +609,7 @@ class QualityPostgresStore:
             produc = _format_value(self._get_value(row, header_map, "produc"))
             subgrupo = _format_value(self._get_value(row, header_map, "SubGrupo", "Sub Grupo", "Subgrupo"))
             oc_numero = _format_value(self._get_value(row, header_map, "OC numero", "OC Numero"))
-            canti_real = _parse_number(self._get_value(row, header_map, "canti_real"))
+            cant_despachada = _parse_number(self._get_value(row, header_map, "Cant_Despachada", "cant_despachada"))
             canti_real_item = _parse_number(self._get_value(row, header_map, "canti_real_item"))
             fecha_ing_raw = self._get_value(row, header_map, "Fecha_ing", "fecha_ing", "Fecha Ing")
             fecha_partida_raw = self._get_value(row, header_map, "Fecha Partida")
@@ -602,7 +619,7 @@ class QualityPostgresStore:
             fecha_partida_date = _parse_date(fecha_partida_raw)
             fecha_ing = _format_value(fecha_ing_raw)
             fecha_partida = _format_value(fecha_partida_raw)
-            total_qty = max(canti_real, 0.0)
+            total_qty = max(cant_despachada, 0.0)
             remaining_qty = max(canti_real_item, 0.0)
             if total_qty > 0:
                 remaining_qty = min(remaining_qty, total_qty)
@@ -705,6 +722,7 @@ class QualityPostgresStore:
             approvals.append(
                 {
                     "approval_key": f"{_tracking_key(item, produc)}||{oc_numero.lower()}||{fecha.lower()}||{ubi.lower()}||{sheet_row_index}",
+                    "row_key": _row_key(item, produc, oc_numero, fecha_ing),
                     "item": item,
                     "produc": produc,
                     "ubi": ubi,
@@ -715,6 +733,7 @@ class QualityPostgresStore:
                     "fecha_ing": fecha_ing,
                     "fecha_ing_iso": fecha_ing_date.isoformat() if fecha_ing_date else "",
                     "author_name": author_name,
+                    "is_ar7_item": _is_ar7_item(item),
                 }
             )
         return approvals
@@ -778,15 +797,15 @@ class QualityPostgresStore:
                     cur.executemany(
                         """
                         INSERT INTO quality_approvals(
-                            approval_key, item, produc, ubi, oc_numero, canti_real, fecha, fecha_iso,
-                            fecha_ing, fecha_ing_iso, author_name, imported_at
-                        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                            approval_key, row_key, item, produc, ubi, oc_numero, canti_real, fecha, fecha_iso,
+                            fecha_ing, fecha_ing_iso, author_name, is_ar7_item, imported_at
+                        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                         """,
                         [
                             (
-                                row["approval_key"], row["item"], row["produc"], row["ubi"], row["oc_numero"],
+                                row["approval_key"], row["row_key"], row["item"], row["produc"], row["ubi"], row["oc_numero"],
                                 row["canti_real"], row["fecha"], row["fecha_iso"], row["fecha_ing"],
-                                row["fecha_ing_iso"], row["author_name"], imported_at,
+                                row["fecha_ing_iso"], row["author_name"], row["is_ar7_item"], imported_at,
                             )
                             for row in approvals
                         ],
@@ -813,6 +832,7 @@ class QualityPostgresStore:
                 SELECT s.row_key, s.item, s.produc, s.subgrupo, s.oc_numero, s.fecha_ing, s.fecha_ing_iso,
                        s.total_qty, s.remaining_qty, s.approved_qty, s.progress_pct, s.is_approved, s.is_ar7_item,
                        COALESCE(o.observacion, '') AS observaciones,
+                       COALESCE(o.muestras, '') AS muestras,
                        COALESCE(h.handler_name, '') AS encargado,
                        COALESCE(h.updated_by, '') AS encargado_updated_by,
                        COALESCE(TO_CHAR(h.updated_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS'), '') AS encargado_updated_at
@@ -833,6 +853,7 @@ class QualityPostgresStore:
                     "fecha_ing": row.get("fecha_ing") or "",
                     "fecha_ing_iso": row.get("fecha_ing_iso") or "",
                     "observaciones": row.get("observaciones") or "",
+                    "muestras": row.get("muestras") or "",
                     "canti_real": _format_value(row.get("total_qty")),
                     "approved_qty": _format_value(row.get("approved_qty")),
                     "total_qty": _format_value(row.get("total_qty")),
@@ -855,10 +876,14 @@ class QualityPostgresStore:
                 conn,
                 """
                 SELECT a.item, a.produc, a.ubi, a.oc_numero, a.canti_real, a.fecha, a.fecha_iso,
-                       a.fecha_ing, a.fecha_ing_iso, a.author_name,
-                       COALESCE(o.observacion, '') AS observaciones
+                       a.fecha_ing, a.fecha_ing_iso, a.author_name, a.is_ar7_item,
+                       COALESCE(o.observacion, '') AS observaciones,
+                       COALESCE(o.muestras, '') AS muestras,
+                       COALESCE(h.handler_name, '') AS encargado
                 FROM quality_approvals a
                 LEFT JOIN quality_observations o ON o.item = a.item AND o.produc = a.produc
+                LEFT JOIN quality_pending_handlers h
+                    ON h.row_key = a.row_key
                 ORDER BY a.fecha_iso DESC, a.produc ASC, a.oc_numero ASC, a.ubi ASC
                 """,
             )
@@ -874,7 +899,10 @@ class QualityPostgresStore:
                     "fecha_ing": row.get("fecha_ing") or "",
                     "fecha_ing_iso": row.get("fecha_ing_iso") or "",
                     "name": row.get("author_name") or "",
+                    "is_ar7_item": bool(row.get("is_ar7_item")),
                     "observaciones": row.get("observaciones") or "",
+                    "muestras": row.get("muestras") or "",
+                    "encargado": row.get("encargado") or "",
                 }
                 for row in rows
             ]
@@ -915,35 +943,78 @@ class QualityPostgresStore:
         produc = _format_value(produc)
         if not item and not produc:
             raise ValueError("item/produc requeridos")
+        now = _utc_now()
         conn = self.connect()
         try:
-            existing = self._fetch_one(conn, "SELECT subgrupo FROM quality_observations WHERE item = %s AND produc = %s", (item, produc))
-            if not existing:
-                existing = self._fetch_one(
-                    conn,
-                    "SELECT subgrupo FROM quality_pending_snapshot WHERE item = %s AND produc = %s LIMIT 1",
-                    (item, produc),
-                ) or {"subgrupo": ""}
-            now = _utc_now()
             with conn.cursor() as cur:
                 cur.execute(
                     """
                     INSERT INTO quality_observations(item, produc, subgrupo, observacion, updated_at, updated_by)
-                    VALUES (%s, %s, %s, %s, %s, %s)
+                    VALUES (
+                        %s, %s,
+                        COALESCE(
+                            (SELECT subgrupo FROM quality_observations WHERE item=%s AND produc=%s LIMIT 1),
+                            (SELECT subgrupo FROM quality_pending_snapshot WHERE item=%s AND produc=%s LIMIT 1),
+                            ''
+                        ),
+                        %s, %s, %s
+                    )
                     ON CONFLICT (item, produc) DO UPDATE
                     SET observacion = EXCLUDED.observacion,
                         updated_at = EXCLUDED.updated_at,
                         updated_by = EXCLUDED.updated_by,
                         subgrupo = CASE WHEN quality_observations.subgrupo = '' THEN EXCLUDED.subgrupo ELSE quality_observations.subgrupo END
                     """,
-                    (item, produc, _format_value(existing.get("subgrupo")), str(observacion or "").strip(), now, _format_value(updated_by)),
+                    (item, produc, item, produc, item, produc, str(observacion or "").strip(), now, _format_value(updated_by)),
                 )
             conn.commit()
             return {
                 "item": item,
                 "produc": produc,
-                "subgrupo": _format_value(existing.get("subgrupo")),
                 "observacion": str(observacion or "").strip(),
+                "updated_at": now.isoformat(),
+                "updated_by": _format_value(updated_by),
+            }
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            conn.close()
+
+    def save_muestras(self, item: str, produc: str, muestras: str, updated_by: str = "") -> Dict[str, Any]:
+        item = _format_value(item)
+        produc = _format_value(produc)
+        if not item and not produc:
+            raise ValueError("item/produc requeridos")
+        now = _utc_now()
+        conn = self.connect()
+        try:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    INSERT INTO quality_observations(item, produc, subgrupo, muestras, updated_at, updated_by)
+                    VALUES (
+                        %s, %s,
+                        COALESCE(
+                            (SELECT subgrupo FROM quality_observations WHERE item=%s AND produc=%s LIMIT 1),
+                            (SELECT subgrupo FROM quality_pending_snapshot WHERE item=%s AND produc=%s LIMIT 1),
+                            ''
+                        ),
+                        %s, %s, %s
+                    )
+                    ON CONFLICT (item, produc) DO UPDATE
+                    SET muestras = EXCLUDED.muestras,
+                        updated_at = EXCLUDED.updated_at,
+                        updated_by = EXCLUDED.updated_by,
+                        subgrupo = CASE WHEN quality_observations.subgrupo = '' THEN EXCLUDED.subgrupo ELSE quality_observations.subgrupo END
+                    """,
+                    (item, produc, item, produc, item, produc, str(muestras or "").strip(), now, _format_value(updated_by)),
+                )
+            conn.commit()
+            return {
+                "item": item,
+                "produc": produc,
+                "muestras": str(muestras or "").strip(),
                 "updated_at": now.isoformat(),
                 "updated_by": _format_value(updated_by),
             }
@@ -1079,8 +1150,19 @@ class QualityPostgresStore:
         finally:
             conn.close()
 
+    def remove_handler(self, row_key: str) -> None:
+        conn = self.connect()
+        try:
+            with conn.cursor() as cur:
+                cur.execute("DELETE FROM quality_pending_handlers WHERE row_key = %s", (str(row_key or "").strip(),))
+            conn.commit()
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            conn.close()
+
     def fetch_admin_stats(self) -> Dict[str, Any]:
-        pending_records = self.fetch_pending_records()
         conn = self.connect()
         try:
             summary_row = self._fetch_one(
@@ -1099,6 +1181,7 @@ class QualityPostgresStore:
                 SELECT a.item, a.produc, a.ubi, a.oc_numero, a.canti_real, a.fecha, a.fecha_iso,
                        a.fecha_ing, a.fecha_ing_iso, a.author_name,
                        COALESCE(o.observacion, '') AS observaciones,
+                       COALESCE(o.muestras, '') AS muestras,
                        COALESCE(s.subgrupo, '') AS subgrupo,
                        COALESCE(s.total_qty, 0) AS total_qty
                 FROM quality_approvals a
@@ -1108,8 +1191,50 @@ class QualityPostgresStore:
                 ORDER BY a.fecha_iso DESC, a.produc ASC, a.oc_numero ASC
                 """,
             )
+            pending_rows = self._fetch_all(
+                conn,
+                """
+                SELECT s.row_key, s.item, s.produc, s.subgrupo, s.oc_numero, s.fecha_ing,
+                       s.fecha_ing_iso, s.total_qty, s.remaining_qty, s.approved_qty,
+                       s.progress_pct, s.is_approved, s.is_ar7_item,
+                       COALESCE(o.observacion, '') AS observaciones,
+                       COALESCE(o.muestras, '') AS muestras,
+                       COALESCE(h.handler_name, '') AS encargado,
+                       COALESCE(h.updated_by, '') AS encargado_updated_by,
+                       COALESCE(TO_CHAR(h.updated_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS'), '') AS encargado_updated_at
+                FROM quality_pending_snapshot s
+                LEFT JOIN quality_observations o ON o.item = s.item AND o.produc = s.produc
+                LEFT JOIN quality_pending_handlers h ON h.row_key = s.row_key
+                WHERE NOT s.is_approved
+                ORDER BY s.fecha_ing_iso DESC, s.produc ASC, s.oc_numero ASC
+                """,
+            )
         finally:
             conn.close()
+
+        pending_records = [
+            {
+                "row_key": row.get("row_key") or "",
+                "item": row.get("item") or "",
+                "produc": row.get("produc") or "",
+                "subgrupo": row.get("subgrupo") or "",
+                "oc_numero": row.get("oc_numero") or "",
+                "fecha_ing": row.get("fecha_ing") or "",
+                "fecha_ing_iso": row.get("fecha_ing_iso") or "",
+                "observaciones": row.get("observaciones") or "",
+                "muestras": row.get("muestras") or "",
+                "canti_real": _format_value(row.get("total_qty")),
+                "approved_qty": _format_value(row.get("approved_qty")),
+                "total_qty": _format_value(row.get("total_qty")),
+                "progress_pct": int(row.get("progress_pct") or 0),
+                "is_approved": bool(row.get("is_approved")),
+                "is_ar7_item": bool(row.get("is_ar7_item")),
+                "encargado": row.get("encargado") or "",
+                "encargado_updated_at": row.get("encargado_updated_at") or "",
+                "encargado_updated_by": row.get("encargado_updated_by") or "",
+            }
+            for row in pending_rows
+        ]
 
         history_records: List[Dict[str, Any]] = []
         timed_records = 0
@@ -1128,6 +1253,7 @@ class QualityPostgresStore:
                     "produc": row.get("produc") or "",
                     "subgrupo": row.get("subgrupo") or "",
                     "observaciones": row.get("observaciones") or "",
+                    "muestras": row.get("muestras") or "",
                     "oc_numero": row.get("oc_numero") or "",
                     "ubi": row.get("ubi") or "",
                     "approval_date": row.get("fecha_iso") or row.get("fecha") or "",

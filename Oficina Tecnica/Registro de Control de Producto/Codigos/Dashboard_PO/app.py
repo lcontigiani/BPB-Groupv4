@@ -14640,9 +14640,15 @@ QUALITY_OBSERVATIONS_LOCK = threading.Lock()
 QUALITY_PENDING_CATEGORIES_LOCK = threading.Lock()
 QUALITY_PENDING_HANDLERS_LOCK = threading.Lock()
 QUALITY_HISTORY_CACHE_LOCK = threading.Lock()
+QUALITY_HISTORY_COMPUTE_LOCK = threading.Lock()
+QUALITY_PENDING_COMPUTE_LOCK = threading.Lock()
+QUALITY_ADMIN_STATS_COMPUTE_LOCK = threading.Lock()
 QUALITY_PENDING_HIDDEN_CATEGORY_ID = 'hidden'
 QUALITY_PENDING_HIDDEN_CATEGORY_NAME = 'Ocultos'
 QUALITY_PENDING_HIDDEN_CATEGORY_COLOR = '#5c6370'
+QUALITY_PENDING_STOCK_CATEGORY_ID = 'stock'
+QUALITY_PENDING_STOCK_CATEGORY_NAME = 'Muestra en Stock'
+QUALITY_PENDING_STOCK_CATEGORY_COLOR = '#8b6914'
 QUALITY_POSTGRES_STORE = None
 QUALITY_POSTGRES_STORE_LOCK = threading.Lock()
 QUALITY_POSTGRES_SYNC_LOCK = threading.Lock()
@@ -14657,6 +14663,20 @@ QUALITY_POSTGRES_SYNC_STATE = {
 }
 QUALITY_HISTORY_CACHE = {
     'csv_mtime': None,
+    'obs_mtime': None,
+    'data': None
+}
+QUALITY_PENDING_CACHE_LOCK = threading.Lock()
+QUALITY_PENDING_CACHE = {
+    'csv_mtime': None,
+    'obs_mtime': None,
+    'handlers_mtime': None,
+    'data': None
+}
+QUALITY_ADMIN_STATS_CACHE_LOCK = threading.Lock()
+QUALITY_ADMIN_STATS_CACHE = {
+    'control_mtime': None,
+    'approvals_mtime': None,
     'obs_mtime': None,
     'data': None
 }
@@ -14757,6 +14777,9 @@ def _quality_start_postgres_sync(trigger_source='manual', triggered_by=''):
                     'finished_at': datetime.now(timezone.utc).isoformat(),
                     'error': ''
                 })
+            # Invalidar cache de admin stats para que el próximo acceso traiga datos frescos
+            with _QUALITY_ADMIN_STATS_PG_CACHE_LOCK:
+                _QUALITY_ADMIN_STATS_PG_CACHE['data'] = None
         except Exception as exc:
             try:
                 if QUALITY_WORKBOOK_PATH.exists():
@@ -15008,6 +15031,32 @@ def _quality_update_observation(item, produc, observacion, updated_by=''):
             'produc': produc or existing.get('produc', ''),
             'subgrupo': existing.get('subgrupo', ''),
             'observacion': str(observacion or '').strip(),
+            'updated_at': datetime.now().isoformat(timespec='seconds'),
+            'updated_by': _format_quality_value(updated_by)
+        }
+        registry['updated_at'] = datetime.now().isoformat(timespec='seconds')
+        _quality_save_observation_registry(registry)
+        return items[key]
+
+
+def _quality_update_muestras(item, produc, muestras, updated_by=''):
+    item = _format_quality_value(item)
+    produc = _format_quality_value(produc)
+    if not item and not produc:
+        raise ValueError('item/produc requeridos')
+
+    with QUALITY_OBSERVATIONS_LOCK:
+        registry = _quality_load_observation_registry()
+        items = registry.setdefault('items', {})
+        key = _quality_tracking_key(item, produc)
+        existing = items.get(key) if isinstance(items.get(key), dict) else {}
+
+        items[key] = {
+            'item': item or existing.get('item', ''),
+            'produc': produc or existing.get('produc', ''),
+            'subgrupo': existing.get('subgrupo', ''),
+            'observacion': existing.get('observacion', ''),
+            'muestras': str(muestras or '').strip(),
             'updated_at': datetime.now().isoformat(timespec='seconds'),
             'updated_by': _format_quality_value(updated_by)
         }
@@ -15450,13 +15499,13 @@ def _quality_build_control_snapshot():
         produc = _format_quality_value(_quality_get_value(row, header_map, 'produc'))
         subgrupo = _format_quality_value(_quality_get_value(row, header_map, 'SubGrupo', 'Sub Grupo', 'Subgrupo'))
         oc_numero = _format_quality_value(_quality_get_value(row, header_map, 'OC numero', 'OC Numero'))
-        canti_real = _format_quality_value(_quality_get_value(row, header_map, 'canti_real'))
+        cant_despachada = _format_quality_value(_quality_get_value(row, header_map, 'Cant_Despachada', 'cant_despachada'))
         canti_real_item = _format_quality_value(_quality_get_value(row, header_map, 'canti_real_item'))
         fecha_ing_raw = _quality_get_value(row, header_map, 'Fecha_ing')
         fecha_partida_raw = _quality_get_value(row, header_map, 'Fecha Partida')
         ubi = _format_quality_value(_quality_get_value(row, header_map, 'ubi', 'Ubi', 'ubicacion', 'Ubicacion'))
 
-        total_qty = _quality_parse_number(canti_real) or 0.0
+        total_qty = _quality_parse_number(cant_despachada) or 0.0
         remaining_qty = _quality_parse_number(canti_real_item) or 0.0
         approved_qty = max(total_qty - remaining_qty, 0.0)
         if total_qty > 0:
@@ -15531,96 +15580,127 @@ def _quality_build_control_snapshot():
 
 
 def _read_quality_pending_records():
-    _quality_sync_csv_exports(force=True)
-    snapshot = _quality_build_control_snapshot()
-    registry_items = _quality_register_snapshot_pairs(snapshot['records'])
-    handler_state = _quality_load_pending_handlers_state()
-    handler_assignments = handler_state.get('assignments') if isinstance(handler_state, dict) else {}
-    handler_assignments = handler_assignments if isinstance(handler_assignments, dict) else {}
-    grouped_records = {}
-    for record in snapshot['records']:
-        key = _quality_tracking_key(record['item'], record['produc'])
-        tracked = registry_items.get(key, {}) if isinstance(registry_items, dict) else {}
-        row_key = _quality_pending_row_key(record['item'], record['produc'], record['oc_numero'], record['fecha_ing'])
-        assigned_handler = handler_assignments.get(row_key) if isinstance(handler_assignments.get(row_key), dict) else {}
-        bucket = grouped_records.get(row_key)
-        if bucket is None:
-            bucket = {
-                'item': record['item'],
-                'produc': record['produc'],
-                'subgrupo': record.get('subgrupo', ''),
-                'row_key': row_key,
-                'oc_numero': record['oc_numero'],
-                'observaciones': _format_quality_value(tracked.get('observacion')),
-                'fecha_ing': record['fecha_ing'],
-                'total_qty_num': max(float(record.get('total_qty') or 0.0), 0.0),
-                'remaining_qty_num': 0.0,
-                'is_ar7_item': _quality_is_ar7_item(record['item']),
-                'encargado': _format_quality_value(assigned_handler.get('name')),
-                'encargado_updated_at': _format_quality_value(assigned_handler.get('updated_at')),
-                'encargado_updated_by': _format_quality_value(assigned_handler.get('updated_by')),
-                '_remaining_signatures': set(),
-            }
-            grouped_records[row_key] = bucket
+    _quality_sync_csv_exports()
+    control_csv_mtime = _quality_get_mtime(QUALITY_SHEET_CACHE_MAP['Control de Calidad'])
+    observations_mtime = _quality_get_mtime(QUALITY_OBSERVATIONS_FILE)
+    handlers_mtime = _quality_get_mtime(QUALITY_PENDING_HANDLERS_FILE)
 
-        bucket['total_qty_num'] = max(bucket['total_qty_num'], float(record.get('total_qty') or 0.0))
-        if not bucket.get('subgrupo') and record.get('subgrupo'):
-            bucket['subgrupo'] = record.get('subgrupo', '')
+    with QUALITY_PENDING_CACHE_LOCK:
+        if (
+            QUALITY_PENDING_CACHE.get('data') is not None and
+            QUALITY_PENDING_CACHE.get('csv_mtime') == control_csv_mtime and
+            QUALITY_PENDING_CACHE.get('obs_mtime') == observations_mtime and
+            QUALITY_PENDING_CACHE.get('handlers_mtime') == handlers_mtime
+        ):
+            return QUALITY_PENDING_CACHE['data']
 
-        remaining_qty = max(float(record.get('remaining_qty') or 0.0), 0.0)
-        remaining_signature = (
-            _format_quality_value(record.get('ubi')),
-            _format_quality_value(remaining_qty),
-            _format_quality_value(record.get('total_qty'))
-        )
-        if remaining_signature not in bucket['_remaining_signatures']:
-            bucket['_remaining_signatures'].add(remaining_signature)
-            bucket['remaining_qty_num'] += remaining_qty
+    with QUALITY_PENDING_COMPUTE_LOCK:
+        # Doble check: otro thread puede haber computado mientras esperábamos el lock
+        with QUALITY_PENDING_CACHE_LOCK:
+            if (
+                QUALITY_PENDING_CACHE.get('data') is not None and
+                QUALITY_PENDING_CACHE.get('csv_mtime') == control_csv_mtime and
+                QUALITY_PENDING_CACHE.get('obs_mtime') == observations_mtime and
+                QUALITY_PENDING_CACHE.get('handlers_mtime') == handlers_mtime
+            ):
+                return QUALITY_PENDING_CACHE['data']
 
-    records = []
-    for bucket in grouped_records.values():
-        total_qty = max(bucket.get('total_qty_num') or 0.0, 0.0)
-        remaining_qty = max(bucket.get('remaining_qty_num') or 0.0, 0.0)
-        if total_qty > 0:
-            remaining_qty = min(remaining_qty, total_qty)
-        approved_qty = max(total_qty - remaining_qty, 0.0)
+        snapshot = _quality_build_control_snapshot()
+        registry_items = _quality_register_snapshot_pairs(snapshot['records'])
+        handler_state = _quality_load_pending_handlers_state()
+        handler_assignments = handler_state.get('assignments') if isinstance(handler_state, dict) else {}
+        handler_assignments = handler_assignments if isinstance(handler_assignments, dict) else {}
+        grouped_records = {}
+        for record in snapshot['records']:
+            key = _quality_tracking_key(record['item'], record['produc'])
+            tracked = registry_items.get(key, {}) if isinstance(registry_items, dict) else {}
+            row_key = _quality_pending_row_key(record['item'], record['produc'], record['oc_numero'], record['fecha_ing'])
+            assigned_handler = handler_assignments.get(row_key) if isinstance(handler_assignments.get(row_key), dict) else {}
+            bucket = grouped_records.get(row_key)
+            if bucket is None:
+                bucket = {
+                    'item': record['item'],
+                    'produc': record['produc'],
+                    'subgrupo': record.get('subgrupo', ''),
+                    'row_key': row_key,
+                    'oc_numero': record['oc_numero'],
+                    'observaciones': _format_quality_value(tracked.get('observacion')),
+                    'fecha_ing': record['fecha_ing'],
+                    'total_qty_num': max(float(record.get('total_qty') or 0.0), 0.0),
+                    'remaining_qty_num': 0.0,
+                    'is_ar7_item': _quality_is_ar7_item(record['item']),
+                    'encargado': _format_quality_value(assigned_handler.get('name')),
+                    'encargado_updated_at': _format_quality_value(assigned_handler.get('updated_at')),
+                    'encargado_updated_by': _format_quality_value(assigned_handler.get('updated_by')),
+                    '_remaining_signatures': set(),
+                }
+                grouped_records[row_key] = bucket
 
-        if total_qty > 0:
-            raw_progress_pct = (approved_qty / total_qty) * 100
-            progress_pct = 100 if approved_qty >= total_qty else min(99, int(raw_progress_pct))
-        else:
-            progress_pct = 0
+            bucket['total_qty_num'] = max(bucket['total_qty_num'], float(record.get('total_qty') or 0.0))
+            if not bucket.get('subgrupo') and record.get('subgrupo'):
+                bucket['subgrupo'] = record.get('subgrupo', '')
 
-        is_approved = total_qty > 0 and approved_qty >= total_qty
-        if is_approved:
-            continue
+            remaining_qty = max(float(record.get('remaining_qty') or 0.0), 0.0)
+            remaining_signature = (
+                _format_quality_value(record.get('ubi')),
+                _format_quality_value(remaining_qty),
+                _format_quality_value(record.get('total_qty'))
+            )
+            if remaining_signature not in bucket['_remaining_signatures']:
+                bucket['_remaining_signatures'].add(remaining_signature)
+                bucket['remaining_qty_num'] += remaining_qty
 
-        bucket.pop('_remaining_signatures', None)
-        records.append({
-            'item': bucket['item'],
-            'produc': bucket['produc'],
-            'subgrupo': bucket.get('subgrupo', ''),
-            'row_key': bucket['row_key'],
-            'oc_numero': bucket['oc_numero'],
-            'observaciones': bucket.get('observaciones', ''),
-            'canti_real': _format_quality_value(total_qty),
-            'fecha_ing': bucket['fecha_ing'],
-            'approved_qty': _format_quality_value(approved_qty),
-            'total_qty': _format_quality_value(total_qty),
-            'progress_pct': progress_pct,
-            'is_approved': is_approved,
-            'is_ar7_item': bucket.get('is_ar7_item', False),
-            'encargado': bucket.get('encargado', ''),
-            'encargado_updated_at': bucket.get('encargado_updated_at', ''),
-            'encargado_updated_by': bucket.get('encargado_updated_by', '')
-        })
+        records = []
+        for bucket in grouped_records.values():
+            total_qty = max(bucket.get('total_qty_num') or 0.0, 0.0)
+            remaining_qty = max(bucket.get('remaining_qty_num') or 0.0, 0.0)
+            if total_qty > 0:
+                remaining_qty = min(remaining_qty, total_qty)
+            approved_qty = max(total_qty - remaining_qty, 0.0)
 
-    records.sort(key=lambda entry: (
-        _quality_parse_date(entry.get('fecha_ing')) or date.min,
-        entry.get('produc', ''),
-        entry.get('oc_numero', '')
-    ), reverse=True)
-    return records
+            if total_qty > 0:
+                raw_progress_pct = (approved_qty / total_qty) * 100
+                progress_pct = 100 if approved_qty >= total_qty else min(99, int(raw_progress_pct))
+            else:
+                progress_pct = 0
+
+            is_approved = total_qty > 0 and approved_qty >= total_qty
+            if is_approved:
+                continue
+
+            bucket.pop('_remaining_signatures', None)
+            records.append({
+                'item': bucket['item'],
+                'produc': bucket['produc'],
+                'subgrupo': bucket.get('subgrupo', ''),
+                'row_key': bucket['row_key'],
+                'oc_numero': bucket['oc_numero'],
+                'observaciones': bucket.get('observaciones', ''),
+                'canti_real': _format_quality_value(total_qty),
+                'fecha_ing': bucket['fecha_ing'],
+                'approved_qty': _format_quality_value(approved_qty),
+                'total_qty': _format_quality_value(total_qty),
+                'progress_pct': progress_pct,
+                'is_approved': is_approved,
+                'is_ar7_item': bucket.get('is_ar7_item', False),
+                'encargado': bucket.get('encargado', ''),
+                'encargado_updated_at': bucket.get('encargado_updated_at', ''),
+                'encargado_updated_by': bucket.get('encargado_updated_by', '')
+            })
+
+        records.sort(key=lambda entry: (
+            _quality_parse_date(entry.get('fecha_ing')) or date.min,
+            entry.get('produc', ''),
+            entry.get('oc_numero', '')
+        ), reverse=True)
+
+        with QUALITY_PENDING_CACHE_LOCK:
+            QUALITY_PENDING_CACHE['csv_mtime'] = control_csv_mtime
+            QUALITY_PENDING_CACHE['obs_mtime'] = observations_mtime
+            QUALITY_PENDING_CACHE['handlers_mtime'] = handlers_mtime
+            QUALITY_PENDING_CACHE['data'] = records
+
+        return records
 
 
 def _read_quality_history_records():
@@ -15637,6 +15717,8 @@ def _read_quality_history_records():
             return QUALITY_HISTORY_CACHE['data']
 
     registry_items = _quality_load_observation_items()
+    handler_state = _quality_load_pending_handlers_state()
+    handler_assignments = handler_state.get('assignments') or {}
     records = []
     csv_path = QUALITY_SHEET_CACHE_MAP['Aprobaciones']
     if not csv_path.exists():
@@ -15659,17 +15741,24 @@ def _read_quality_history_records():
                 continue
             item = _format_quality_value(_quality_get_value(row, header_map, 'item'))
             produc = _format_quality_value(_quality_get_value(row, header_map, 'produc'))
+            fecha_ing = _format_quality_value(_quality_get_value(row, header_map, 'Fecha_ing', 'fecha_ing', 'Fecha Ing'))
+            oc_numero = _format_quality_value(_quality_get_value(row, header_map, 'OC numero', 'OC Numero'))
             key = _quality_tracking_key(item, produc)
             tracked = registry_items.get(key, {}) if isinstance(registry_items, dict) else {}
+            handler_key = '||'.join([item.lower(), produc.lower(), oc_numero.lower(), fecha_ing.lower()])
+            encargado = _format_quality_value((handler_assignments.get(handler_key) or {}).get('name', ''))
             records.append({
                 'item': item,
                 'produc': produc,
                 'ubi': _format_quality_value(_quality_get_value(row, header_map, 'ubi', 'Ubi', 'ubicacion', 'Ubicacion')),
                 'observaciones': _format_quality_value(tracked.get('observacion')),
-                'oc_numero': _format_quality_value(_quality_get_value(row, header_map, 'OC numero', 'OC Numero')),
+                'oc_numero': oc_numero,
                 'canti_real': _format_quality_value(_quality_get_value(row, header_map, 'canti_real', 'CANTI_EXIS')),
                 'fecha': _format_quality_value(_quality_get_value(row, header_map, 'fecha')),
-                'name': _format_quality_value(_quality_get_value(row, header_map, 'name'))
+                'fecha_ing': fecha_ing,
+                'name': _format_quality_value(_quality_get_value(row, header_map, 'name')),
+                'is_ar7_item': _quality_is_ar7_item(item),
+                'encargado': encargado,
             })
 
     with QUALITY_HISTORY_CACHE_LOCK:
@@ -15681,6 +15770,20 @@ def _read_quality_history_records():
 
 
 def _read_quality_admin_stats():
+    _quality_sync_csv_exports()
+    control_mtime = _quality_get_mtime(QUALITY_SHEET_CACHE_MAP['Control de Calidad'])
+    approvals_mtime = _quality_get_mtime(QUALITY_SHEET_CACHE_MAP['Aprobaciones'])
+    obs_mtime = _quality_get_mtime(QUALITY_OBSERVATIONS_FILE)
+
+    with QUALITY_ADMIN_STATS_CACHE_LOCK:
+        if (
+            QUALITY_ADMIN_STATS_CACHE.get('data') is not None and
+            QUALITY_ADMIN_STATS_CACHE.get('control_mtime') == control_mtime and
+            QUALITY_ADMIN_STATS_CACHE.get('approvals_mtime') == approvals_mtime and
+            QUALITY_ADMIN_STATS_CACHE.get('obs_mtime') == obs_mtime
+        ):
+            return QUALITY_ADMIN_STATS_CACHE['data']
+
     snapshot = _quality_build_control_snapshot()
     registry_items = _quality_register_snapshot_pairs(snapshot['records'])
     ingress_pair = snapshot['ingress_pair']
@@ -15741,7 +15844,7 @@ def _read_quality_admin_stats():
     pending_count = sum(1 for record in pending_records if not record['is_approved'])
     approved_snapshot_count = sum(1 for record in pending_records if record['is_approved'])
 
-    return {
+    result = {
         'generated_at': datetime.now().isoformat(timespec='seconds'),
         'summary': {
             'pending_count': pending_count,
@@ -15753,6 +15856,14 @@ def _read_quality_admin_stats():
         'pending_records': pending_records,
         'history_records': history
     }
+
+    with QUALITY_ADMIN_STATS_CACHE_LOCK:
+        QUALITY_ADMIN_STATS_CACHE['control_mtime'] = control_mtime
+        QUALITY_ADMIN_STATS_CACHE['approvals_mtime'] = approvals_mtime
+        QUALITY_ADMIN_STATS_CACHE['obs_mtime'] = obs_mtime
+        QUALITY_ADMIN_STATS_CACHE['data'] = result
+
+    return result
 
 
 @app.route('/api/quality/pending', methods=['GET'])
@@ -15831,6 +15942,42 @@ def save_quality_observation():
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
 
+@app.route('/api/quality/muestras', methods=['POST'])
+def save_quality_muestras():
+    if not session.get('user'):
+        return jsonify({"status": "error", "message": "No autenticado"}), 401
+    if not _can_access_quality_module():
+        return jsonify({"status": "error", "message": "No autorizado"}), 403
+
+    data = request.get_json(silent=True) or {}
+    item = _format_quality_value(data.get('item'))
+    produc = _format_quality_value(data.get('produc'))
+    muestras = str(data.get('muestras') or '').strip()
+
+    if not item and not produc:
+        return jsonify({'status': 'error', 'message': 'item/produc requeridos'}), 400
+
+    try:
+        if _quality_postgres_enabled():
+            saved = _get_quality_postgres_store().save_muestras(
+                item=item,
+                produc=produc,
+                muestras=muestras,
+                updated_by=session.get('user') or ''
+            )
+            return jsonify({'status': 'success', 'data': saved})
+        saved = _quality_update_muestras(
+            item=item,
+            produc=produc,
+            muestras=muestras,
+            updated_by=session.get('user') or ''
+        )
+        return jsonify({'status': 'success', 'data': saved})
+    except Exception as e:
+        print(f"[QUALITY][MUESTRAS] Error saving muestras: {e}")
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
 @app.route('/api/quality/pending-categories', methods=['GET'])
 def get_quality_pending_categories():
     if not session.get('user'):
@@ -15865,15 +16012,16 @@ def create_quality_pending_category():
 
     try:
         if _quality_postgres_enabled():
-            state = _get_quality_postgres_store().fetch_pending_categories_state()
-            categories = state.get('categories', []) if isinstance(state, dict) else []
-            if any(str(category.get('name') or '').strip().lower() == name.lower() for category in categories):
-                return jsonify({'status': 'error', 'message': 'Ya existe una categoria con ese nombre.'}), 400
-            category = _get_quality_postgres_store().create_category(
-                name=name,
-                color=color,
-                updated_by=_format_quality_value(session.get('user'))
-            )
+            try:
+                category = _get_quality_postgres_store().create_category(
+                    name=name,
+                    color=color,
+                    updated_by=_format_quality_value(session.get('user'))
+                )
+            except Exception as _cat_err:
+                if 'unique' in str(_cat_err).lower() or '23505' in str(_cat_err):
+                    return jsonify({'status': 'error', 'message': 'Ya existe una categoria con ese nombre.'}), 400
+                raise
             return jsonify({'status': 'success', 'data': category})
         with QUALITY_PENDING_CATEGORIES_LOCK:
             state = _quality_load_pending_categories_state()
@@ -15917,25 +16065,21 @@ def update_quality_pending_category(category_id):
 
     try:
         if _quality_postgres_enabled():
-            state = _get_quality_postgres_store().fetch_pending_categories_state()
-            categories = state.get('categories', []) if isinstance(state, dict) else []
-            target = next((category for category in categories if str(category.get('id')) == str(category_id)), None)
-            if not target:
-                return jsonify({'status': 'error', 'message': 'Categoria no encontrada.'}), 404
             if str(category_id) == QUALITY_PENDING_HIDDEN_CATEGORY_ID:
                 name = QUALITY_PENDING_HIDDEN_CATEGORY_NAME
-            if any(
-                str(category.get('id')) != str(category_id) and
-                str(category.get('name') or '').strip().lower() == name.lower()
-                for category in categories
-            ):
-                return jsonify({'status': 'error', 'message': 'Ya existe una categoria con ese nombre.'}), 400
-            updated = _get_quality_postgres_store().update_category(
-                category_id=category_id,
-                name=name,
-                color=color,
-                updated_by=_format_quality_value(session.get('user'))
-            )
+            try:
+                updated = _get_quality_postgres_store().update_category(
+                    category_id=category_id,
+                    name=name,
+                    color=color,
+                    updated_by=_format_quality_value(session.get('user'))
+                )
+            except KeyError:
+                return jsonify({'status': 'error', 'message': 'Categoria no encontrada.'}), 404
+            except Exception as _upd_err:
+                if 'unique' in str(_upd_err).lower() or '23505' in str(_upd_err):
+                    return jsonify({'status': 'error', 'message': 'Ya existe una categoria con ese nombre.'}), 400
+                raise
             return jsonify({'status': 'success', 'data': updated})
         with QUALITY_PENDING_CATEGORIES_LOCK:
             state = _quality_load_pending_categories_state()
@@ -16102,8 +16246,40 @@ def assign_quality_pending_handler():
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
 
+@app.route('/api/quality/pending-handler/<path:row_key>', methods=['DELETE'])
+def remove_quality_pending_handler(row_key):
+    if not session.get('user'):
+        return jsonify({"status": "error", "message": "No autenticado"}), 401
+    if not _can_access_quality_module():
+        return jsonify({"status": "error", "message": "No autorizado"}), 403
+
+    row_key = str(row_key or '').strip()
+    if not row_key:
+        return jsonify({'status': 'error', 'message': 'Fila invalida.'}), 400
+
+    try:
+        if _quality_postgres_enabled():
+            _get_quality_postgres_store().remove_handler(row_key=row_key)
+            return jsonify({'status': 'success'})
+        with QUALITY_PENDING_HANDLERS_LOCK:
+            state = _quality_load_pending_handlers_state()
+            assignments = state.get('assignments', {})
+            assignments.pop(row_key, None)
+            state['updated_at'] = datetime.now().isoformat(timespec='seconds')
+            _quality_save_pending_handlers_state(state)
+        return jsonify({'status': 'success'})
+    except Exception as e:
+        print(f"[QUALITY][HANDLER] Error removing handler: {e}")
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
+_QUALITY_ADMIN_STATS_PG_CACHE_LOCK = threading.Lock()
+_QUALITY_ADMIN_STATS_PG_CACHE = {'data': None, 'ts': 0.0}
+_QUALITY_ADMIN_STATS_PG_TTL = 90  # seconds
+
 @app.route('/api/admin/quality-stats', methods=['GET'])
 def get_admin_quality_stats():
+    import time as _time
     if not session.get('user'):
         return jsonify({"status": "error", "message": "No autenticado"}), 401
     if session.get('role') != 'admin':
@@ -16111,7 +16287,15 @@ def get_admin_quality_stats():
 
     try:
         if _quality_postgres_enabled():
+            now = _time.monotonic()
+            with _QUALITY_ADMIN_STATS_PG_CACHE_LOCK:
+                cached = _QUALITY_ADMIN_STATS_PG_CACHE
+                if cached['data'] is not None and (now - cached['ts']) < _QUALITY_ADMIN_STATS_PG_TTL:
+                    return jsonify({'status': 'success', 'data': cached['data']})
             data = _get_quality_postgres_store().fetch_admin_stats()
+            with _QUALITY_ADMIN_STATS_PG_CACHE_LOCK:
+                _QUALITY_ADMIN_STATS_PG_CACHE['data'] = data
+                _QUALITY_ADMIN_STATS_PG_CACHE['ts'] = _time.monotonic()
             return jsonify({'status': 'success', 'data': data})
         data = _read_quality_admin_stats()
         return jsonify({'status': 'success', 'data': data})
