@@ -7,3 +7,11 @@ Oficina Tecnica/Registro de Control de Producto/Codigos/Dashboard_PO/*.bak
 Oficina Tecnica/Registro de Control de Producto/Codigos/Dashboard_PO/Datos/cotizacion_backups/
 *.bak
 _runtime_logs/
+
+# Archivos temporales del sistema
+C꞉temp_fw.txt
+*.lock
+
+# Archivos de cotizacion grandes (>50MB) — usar LFS
+Oficina Tecnica/Registro de Control de Producto/Codigos/Dashboard_PO/cotizacion_records.json
+Oficina Tecnica/Registro de Control de Producto/Codigos/Dashboard_PO/cotizacion_records.json.bak
