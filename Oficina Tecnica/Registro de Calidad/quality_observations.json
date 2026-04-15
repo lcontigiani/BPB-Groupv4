@@ -2677,16 +2677,16 @@
       "produc": "B&P-056-BP-25010",
       "subgrupo": "ENGRANAJES Y CRUCETAS",
       "observacion": "",
-      "updated_at": "",
-      "updated_by": ""
+      "updated_at": "2026-04-15T16:46:19",
+      "updated_by": "calidad@bpbargentina.com"
     },
     "a000300003106||bpb-044-bp17010-05": {
       "item": "A000300003106",
       "produc": "BPB-044-BP17010-05",
       "subgrupo": "Partes y Piezas",
-      "observacion": "",
-      "updated_at": "",
-      "updated_by": ""
+      "observacion": "(ver con Raul)",
+      "updated_at": "2026-04-15T17:08:36",
+      "updated_by": "calidad2@bpbargentina.com"
     },
     "6088ic06000115t||tsg-caw-0000001": {
       "item": "6088IC06000115T",
@@ -2957,8 +2957,8 @@
       "produc": "B&P-048-205-KRR2",
       "subgrupo": "Rodamientos Esp.Agricolas",
       "observacion": "",
-      "updated_at": "",
-      "updated_by": ""
+      "updated_at": "2026-04-15T17:05:28",
+      "updated_by": "calidad2@bpbargentina.com"
     },
     "6088ic06000109w||bpb-034-ge-20-es-2rs": {
       "item": "6088IC06000109W",
@@ -3199,7 +3199,31 @@
       "observacion": "",
       "updated_at": "",
       "updated_by": ""
+    },
+    "ar7306||b&p-041-ms01-2rs": {
+      "item": "AR7306",
+      "produc": "B&P-041-MS01-2RS",
+      "subgrupo": "RODAMIENTO DE BOLAS",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "6088ic06000010n||b&p-047-ecl209-28dg": {
+      "item": "6088IC06000010N",
+      "produc": "B&P-047-ECL209-28DG",
+      "subgrupo": "AUTOCENTRANTES",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "0088simi000157y||b&p-041-ms04-2rst": {
+      "item": "0088SIMI000157Y",
+      "produc": "B&P-041-MS04-2RST",
+      "subgrupo": "RODAMIENTO DE BOLAS",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
     }
   },
-  "updated_at": "2026-04-14T08:34:04"
+  "updated_at": "2026-04-15T17:08:36"
 }

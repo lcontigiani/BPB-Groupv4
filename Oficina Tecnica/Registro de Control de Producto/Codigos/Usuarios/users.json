@@ -6,7 +6,7 @@
         "created_at": "2026-01-12 10:20:00",
         "display_name": "Lorenzo Contigiani",
         "position": "Ing. en Operaciones",
-        "department": "Oficina T\u00e9cnica",
+        "department": "Oficina TÃƒÆ’Ã‚Â©cnica",
         "signature": ""
     },
     "aalberto@bpbargentina.com": {
@@ -16,7 +16,7 @@
         "created_at": "2026-01-13 17:16:38",
         "display_name": "Agustin Alberto",
         "position": "Ing. de Producto",
-        "department": "Oficina T\u00e9cnica",
+        "department": "Oficina TÃƒÆ’Ã‚Â©cnica",
         "signature": "Agustin Alberto"
     },
     "afareleira@bpbargentina.com": {
@@ -26,7 +26,7 @@
         "created_at": "2026-01-14 08:29:13",
         "display_name": "Agustin Fareleira",
         "position": "Ing. de producto",
-        "department": "Oficina T\u00e9cnica",
+        "department": "Oficina TÃƒÆ’Ã‚Â©cnica",
         "signature": ""
     },
     "lcochis@bpbargentina.com": {
@@ -74,5 +74,15 @@
         "role": "calidad",
         "status": "approved",
         "created_at": "2026-03-17 14:42:50"
+    },
+    "calidad@bpbargentina.com": {
+        "password": "scrypt:32768:8:1$zunVbeLEHkOYFF59$00b330af5aee84c165e9dbcee9fdcdc29f87e6b76d68ce8341167f44bc75e6c4f4ef556de341f0430212b98bc84fa3af0513c0bd9061b527725e6700390b39f3",
+        "display_name": "Veronica",
+        "position": "Zarlenga",
+        "department": "Calidad",
+        "signature": "",
+        "role": "calidad",
+        "status": "approved",
+        "created_at": "2026-04-15 15:54:32"
     }
 }

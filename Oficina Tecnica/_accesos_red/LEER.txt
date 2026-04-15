@@ -1,7 +1,7 @@
 Accesos generados para la red BPB.
 
  [Esta PC]       http://127.0.0.1:8080/
- [Otras PCs LAN] http://192.168.0.137:8080/
+ [Otras PCs LAN] http://192.168.0.114:8080/
 
-Compartir "Oficina Tecnica - Red (192.168.0.137).url" con las otras PCs.
+Compartir "Oficina Tecnica - Red (192.168.0.114).url" con las otras PCs.
 Si la IP del servidor cambia, volver a correr este bat.

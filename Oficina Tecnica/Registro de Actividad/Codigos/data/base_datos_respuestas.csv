@@ -11,9 +11,6 @@ Armado de DXF. para enviar a cortar chapas para producción de tapas y guardapol
 Por otro lado, inicie el desarrollo del Panel de ""ISO 9001""."
 26/01/2026;17:23:05;e5394502;Lorenzo Contigiani;lcontigiani@bpbargentina.com;Registros de Control de Calidad;Registros de Control de Calidad;1 Horas;He realizado el registro de algunos rodamientos cónicos solicitados por Calidad (32011,32014,32212,30207)
 26/01/2026;17:35:08;e5394502;Cesar Torigian;ctorigian@bpbargentina.com;SimpliseedtyS2;SimpliseedtyS2;8,5 Horas;Desarrollo de funda e impresión de prueba.
-26/01/2026;08:19:19;e5394502;Luciano Cochis;lcochis@bpbargentina.com;Cuerpo de Siembra;Cuerpo de Siembra;3 Horas;Piezas recibidas de pintura + Temas para Reunión c/Producción + Contacto con ingeniería ascanelli, etc.
-26/01/2026;08:19:20;e5394502;Luciano Cochis;lcochis@bpbargentina.com;Caja Eléctrica;Caja Eléctrica;1,5 Horas;Patente
-26/01/2026;08:19:20;e5394502;Luciano Cochis;lcochis@bpbargentina.com;Otros;Otros;4 Horas;OC, consultas, reuniones, revisiones, etc
 27/01/2026;17:11:38;9107fd60;Lorenzo Contigiani;lcontigiani@bpbargentina.com;Panel de Control O.T;Panel de Control O.T;8 Horas;"Se llevaron a cabo mejoras solicitas por Luciano Cochis en estadísticas del sistema.
 Ademas, se continuo el desarrollo del sistema ISO 9001 integrado al Panel de Control, iniciando con R019-01 (Datos de Entrada)."
 27/01/2026;17:11:38;9107fd60;Lorenzo Contigiani;lcontigiani@bpbargentina.com;Sistema de Costos;Sistema de Costos;0,5 Horas;Charla de Eliseo para revisar avances y determinar modificaciones pertinentes (costos de importación discriminados) para un futuro análisis en la semana del 02/01/2026.
@@ -560,6 +557,8 @@ Se llevaron a cabo mejoras en el sistema de cotización"
 10/04/2026;09:14:16;8af9e115;Franco Beaz;fbeaz@bpbargentina.com;Caja Eléctrica;Caja Eléctrica;4 Horas;Abastecimineto de herramientas y seguimiento de pulido de partes para anodizado
 10/04/2026;09:14:16;8af9e115;Franco Beaz;fbeaz@bpbargentina.com;Caja Cuchillas Electrica;Caja Cuchillas Electrica;4 Horas;"Se busca provedor en china, envio de mail y archivos a Midland para trata de conseguir quien nos pueda fabricar la caja de cuchillas tipica de john deere. 
 Al final del dia quedo montado el prototipo en el motor para realizar la prueba electrica"
+10/04/2026;17:16:00;8af9e115;Agustin Fareleira;afareleira@bpbargentina.com;Planimetría;Planimetría;5 horas;DTR3062 TPL diseño de sello
+10/04/2026;17:16:00;8af9e115;Agustin Fareleira;afareleira@bpbargentina.com;Mazas Agricolas Varias;Mazas Agricolas Varias;3 horas;Se respondio a china con los modelos 3D. Se modificaron planos con especificaciones del cliente
 13/04/2026;17:13:42;36ce3f2d;Franco Beaz;fbeaz@bpbargentina.com;Caja Eléctrica;Caja Eléctrica;5 Horas;Se realizaron renders, se hablo los tiempos de entrega con pizzi, se abastecio a Gabriel con herramientas para el pulido y roscado, se siguio la fabricacion de las piezas para medir el torque.
 13/04/2026;17:13:42;36ce3f2d;Franco Beaz;fbeaz@bpbargentina.com;Otros;Otros;3 Horas;Limpieza y acomodo de la sala de ensayo junto a Agustin F
 13/04/2026;17:13:42;36ce3f2d;Franco Beaz;fbeaz@bpbargentina.com;Caja Cuchillas Electrica;Caja Cuchillas Electrica;1 Horas;Se dejo todo listo para probar el prototipo con el motor electrico.
@@ -577,3 +576,28 @@ Se analizo la posicion de el horometro y dispositivo para contener los component
 13/04/2026;17:20:31;36ce3f2d;Agustin Fareleira;afareleira@bpbargentina.com;Orden de Compra;Orden de Compra;1 Horas;Se controlaron planos para ordenes de compra PO966/PO86/PO87
 13/04/2026;17:23:01;36ce3f2d;Lorenzo Contigiani;lcontigiani@bpbargentina.com;Registros de Control de Calidad;Registros de Control de Calidad;5 Horas;Se completaron 40 registros.
 13/04/2026;17:23:02;36ce3f2d;Lorenzo Contigiani;lcontigiani@bpbargentina.com;Panel de Control O.T;Panel de Control O.T;4 Horas;"Se arreglaron detalles de la pagina web y se inicio el arreglo del sistema de ""Registro de Control de Calidad de Producto"""
+14/04/2026;17:07:53;05e8f8f7;David Martin;dmartin@bpbargentina.com;SimpliseedtyS1;SimpliseedtyS1;8,5 Horas;Diseño e impresion de postizos de anclajes a cuerpo, armado y puesta a punto de dosi para AG TECH
+14/04/2026;17:09:55;05e8f8f7;Lorenzo Contigiani;lcontigiani@bpbargentina.com;Panel de Control O.T;Panel de Control O.T;8 Horas;Se avanzo en el proyecto de control de calidad para calidad.
+14/04/2026;17:13:49;05e8f8f7;Agustin Alberto;aalberto@bpbargentina.com;Calidad;Calidad;1,5 Horas;Se realizaron unos conos para imprimir y poder girar de manera correcta el rodamiento BB203KRR2FD, maña se realizará el ensayo.
+14/04/2026;17:13:49;05e8f8f7;Agustin Alberto;aalberto@bpbargentina.com;BP;BP;7 Horas;Se comenzaron a realizar los planos de cadenas correspondientes a este BP, aproximadamente se llego a la mitad.
+14/04/2026;17:16:44;05e8f8f7;Cesar Torigian;ctorigian@bpbargentina.com;SimpliseedtyS1;SimpliseedtyS1;2 Horas;Puesta a punto de dosificador para enviar a AGTECH
+14/04/2026;17:16:44;05e8f8f7;Cesar Torigian;ctorigian@bpbargentina.com;SimpliseedtyS2;SimpliseedtyS2;6 Horas;Diseño 3D de Simpliseedty S2 para enviar a fabricar a China.
+14/04/2026;17:17:36;05e8f8f7;Tomas Colacilli;tcolacilli@bpbargentina.com;Cuerpo de Siembra;Cuerpo de Siembra;9 Horas;Montaje y comprobación dosificador MaterMacc, RS5000 distribución de componentes para poder montar cuerpo, fertilizacion en línea, barre rastrojos, cuchilla de corte y cuerpo fertilizador
+14/04/2026;17:20:43;05e8f8f7;Agustin Fareleira;afareleira@bpbargentina.com;Maquina de tierra;Maquina de tierra;4 Horas;Desarmado de la maquina para intercambiar soportes con autocentrantes. Tambien para hacer unas modificaciones
+14/04/2026;17:20:43;05e8f8f7;Agustin Fareleira;afareleira@bpbargentina.com;Calidad;Calidad;5 Horas;Se buscaron muestras de resina para registro fotográfico para presentación cliente ascanelli, tambien se preparo rodamiento para rotar.
+14/04/2026;07:10:27;05e8f8f7;Franco Beaz;fbeaz@bpbargentina.com;Caja Cuchillas Electrica;Caja Cuchillas Electrica;4,5 Horas;"Busqueda de informacion para brindar a Doris, para que siga la busqueda de la caja de cuchillas que utiliza john deere.
+A la espera de Juan F para hacer la prueba del prototipo con el motor"
+14/04/2026;07:10:27;05e8f8f7;Franco Beaz;fbeaz@bpbargentina.com;Calidad;Calidad;1 Horas;"Soporte tecnico para Ludmila en cuestiones de reportes de rodamientos de agujas.
+Organizacion entre oficina tecnica para el girado de rodamiento requerido por Vero"
+14/04/2026;07:10:27;05e8f8f7;Franco Beaz;fbeaz@bpbargentina.com;Caja Eléctrica;Caja Eléctrica;3,5 Horas;Medicion de torque con la caja en vacio, medicion del lado del motor y del lado del eje cuadrado
+15/04/2026;17:14:47;95ebbce5;Tomas Colacilli;tcolacilli@bpbargentina.com;Cuerpo de Siembra;Cuerpo de Siembra;9 Horas;Reunión Ascanelli, disposición máquina Ascanelli, informe montaje máquina Ascanelli, prueba placa de vinculación cuerpo grano fino, cotización resortes, set de planos maza roscada para cotizar china
+15/04/2026;17:15:21;95ebbce5;Agustin Alberto;aalberto@bpbargentina.com;Calidad;Calidad;1,5 Horas;Se realizó el ensayo de giro de rodamiento BB203KRR2FD, por toque alto.
+15/04/2026;17:15:21;95ebbce5;Agustin Alberto;aalberto@bpbargentina.com;Calidad;Calidad;1 Horas;Se buscó en deposito el BP-25010 y ayudé a Veronica a realizar la medición de dureza.
+15/04/2026;17:15:21;95ebbce5;Agustin Alberto;aalberto@bpbargentina.com;BP;BP;6 Horas;Se avanzó con la planimetría correspondiente a este BP, queda pendiente realizar el plano de conjunto.
+15/04/2026;17:17:03;95ebbce5;Agustin Fareleira;afareleira@bpbargentina.com;Calidad;Calidad;1,5 Horas;Prueba de rodamiento BB203KRR2FDpor torque alto con Alberto A.
+15/04/2026;17:17:03;95ebbce5;Agustin Fareleira;afareleira@bpbargentina.com;Informes;Informes;3 Horas;Se preparo informe de W59190-TS contra SKF BB2-3500A
+15/04/2026;17:17:03;95ebbce5;Agustin Fareleira;afareleira@bpbargentina.com;Calidad;Calidad;2 Horas;Busqueda de muestras de sellos de SKF en OT para presentación Ascanelli
+15/04/2026;17:17:03;95ebbce5;Agustin Fareleira;afareleira@bpbargentina.com;Mazas Agricolas Varias;Mazas Agricolas Varias;2,5 Horas;Costeo de maza agrícola Crucianelli
+15/04/2026;17:17:14;95ebbce5;David Martin;dmartin@bpbargentina.com;SimpliseedtyS1;SimpliseedtyS1;8,5 Horas;Anclajes funda-cuerpo, pruebas de diferentes placas, diseño de eje de enrasador de acero, tutorial de armado.
+15/04/2026;17:19:26;95ebbce5;Lorenzo Contigiani;lcontigiani@bpbargentina.com;Panel de Control O.T;Panel de Control O.T;8 Horas;Se finalizo la primer versión del panel de control de calidad.
+15/04/2026;17:19:26;95ebbce5;Lorenzo Contigiani;lcontigiani@bpbargentina.com;Otros;Otros;1 Horas;Asistencia a Nicolas y se cambio la computadora.

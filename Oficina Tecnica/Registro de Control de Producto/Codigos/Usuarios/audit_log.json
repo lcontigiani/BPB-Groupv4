@@ -2944,5 +2944,17 @@
         "user": "lcontigiani@bpbargentina.com",
         "action": "Approved User",
         "details": "Target: calidad2@bpbargentina.com"
+    },
+    {
+        "timestamp": "2026-04-15 15:55:03",
+        "user": "lcontigiani@bpbargentina.com",
+        "action": "Approved User",
+        "details": "Target: calidad@bpbargentina.com"
+    },
+    {
+        "timestamp": "2026-04-15 15:56:07",
+        "user": "lcontigiani@bpbargentina.com",
+        "action": "Updated Role",
+        "details": "Target: calidad@bpbargentina.com, New Role: calidad"
     }
 ]
