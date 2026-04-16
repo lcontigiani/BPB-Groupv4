@@ -15627,12 +15627,12 @@ def _read_quality_pending_records():
                     'observaciones': _format_quality_value(tracked.get('observacion')),
                     'fecha_ing': record['fecha_ing'],
                     'total_qty_num': max(float(record.get('total_qty') or 0.0), 0.0),
-                    'remaining_qty_num': 0.0,
+                    'approved_qty_num': 0.0,
                     'is_ar7_item': _quality_is_ar7_item(record['item']),
                     'encargado': _format_quality_value(assigned_handler.get('name')),
                     'encargado_updated_at': _format_quality_value(assigned_handler.get('updated_at')),
                     'encargado_updated_by': _format_quality_value(assigned_handler.get('updated_by')),
-                    '_remaining_signatures': set(),
+                    '_approved_signatures': set(),
                 }
                 grouped_records[row_key] = bucket
 
@@ -15640,23 +15640,23 @@ def _read_quality_pending_records():
             if not bucket.get('subgrupo') and record.get('subgrupo'):
                 bucket['subgrupo'] = record.get('subgrupo', '')
 
-            remaining_qty = max(float(record.get('remaining_qty') or 0.0), 0.0)
-            remaining_signature = (
+            approved_qty = max(float(record.get('approved_qty') or 0.0), 0.0)
+            approved_signature = (
                 _format_quality_value(record.get('ubi')),
-                _format_quality_value(remaining_qty),
+                _format_quality_value(approved_qty),
                 _format_quality_value(record.get('total_qty'))
             )
-            if remaining_signature not in bucket['_remaining_signatures']:
-                bucket['_remaining_signatures'].add(remaining_signature)
-                bucket['remaining_qty_num'] += remaining_qty
+            if approved_signature not in bucket['_approved_signatures']:
+                bucket['_approved_signatures'].add(approved_signature)
+                bucket['approved_qty_num'] += approved_qty
 
         records = []
         for bucket in grouped_records.values():
             total_qty = max(bucket.get('total_qty_num') or 0.0, 0.0)
-            remaining_qty = max(bucket.get('remaining_qty_num') or 0.0, 0.0)
+            approved_qty = max(bucket.get('approved_qty_num') or 0.0, 0.0)
             if total_qty > 0:
-                remaining_qty = min(remaining_qty, total_qty)
-            approved_qty = max(total_qty - remaining_qty, 0.0)
+                approved_qty = min(approved_qty, total_qty)
+            remaining_qty = max(total_qty - approved_qty, 0.0)
 
             if total_qty > 0:
                 raw_progress_pct = (approved_qty / total_qty) * 100
@@ -15668,7 +15668,8 @@ def _read_quality_pending_records():
             if is_approved:
                 continue
 
-            bucket.pop('_remaining_signatures', None)
+            bucket.pop('_approved_signatures', None)
+            fecha_ing_date = _quality_parse_date(bucket.get('fecha_ing'))
             records.append({
                 'item': bucket['item'],
                 'produc': bucket['produc'],
@@ -15678,6 +15679,7 @@ def _read_quality_pending_records():
                 'observaciones': bucket.get('observaciones', ''),
                 'canti_real': _format_quality_value(total_qty),
                 'fecha_ing': bucket['fecha_ing'],
+                'fecha_ing_iso': fecha_ing_date.isoformat() if fecha_ing_date else '',
                 'approved_qty': _format_quality_value(approved_qty),
                 'total_qty': _format_quality_value(total_qty),
                 'progress_pct': progress_pct,
@@ -15840,9 +15842,9 @@ def _read_quality_admin_stats():
             'match_level': match_level
         })
 
-    pending_records = snapshot['records']
-    pending_count = sum(1 for record in pending_records if not record['is_approved'])
-    approved_snapshot_count = sum(1 for record in pending_records if record['is_approved'])
+    pending_records = _read_quality_pending_records()
+    pending_count = len(pending_records)
+    approved_snapshot_count = max(0, len(snapshot['records']) - pending_count)
 
     result = {
         'generated_at': datetime.now().isoformat(timespec='seconds'),

@@ -16136,6 +16136,8 @@ let qualityAdminUsersInitialized = false;
 let qualityAdminProductQuery = '';
 let qualityAdminSelectedProduct = '';
 let qualityAdminSelectedProductRowKey = '';
+let qualityAdminIngressMode = 'approved';
+let qualityAdminPeriodGranularity = 'day';
 let qualityAdminPrintState = null;
 
 function buildQualityAdminNormalizedRecord(record, type) {
@@ -16143,6 +16145,7 @@ function buildQualityAdminNormalizedRecord(record, type) {
     const ingressDate = parseQualityFilterDate(record?.fecha_ing_iso);
     const controlledQty = Number(record?.controlled_qty || 0);
     const totalQty = Number(record?.total_qty || 0);
+    const approvedQty = Number(record?.approved_qty || 0);
     const progressPct = Number(record?.progress_pct || 0);
     const controlDays = Number(record?.control_days);
 
@@ -16158,6 +16161,8 @@ function buildQualityAdminNormalizedRecord(record, type) {
         _product: String(record?.produc || '').trim(),
         _controlledQty: Number.isFinite(controlledQty) ? controlledQty : 0,
         _totalQty: Number.isFinite(totalQty) ? totalQty : 0,
+        _approvedQty: Number.isFinite(approvedQty) ? approvedQty : 0,
+        _pendingQty: Math.max((Number.isFinite(totalQty) ? totalQty : 0) - (Number.isFinite(approvedQty) ? approvedQty : 0), 0),
         _progressPct: Number.isFinite(progressPct) ? progressPct : 0,
         _controlDays: Number.isFinite(controlDays) ? controlDays : null
     };
@@ -16393,15 +16398,24 @@ async function showAdminQualityStats() {
                 </div>
             </div>
             <div style="flex:1 1 420px; background:#1a1a1a; border:1px solid var(--border); border-radius:12px; padding:1rem;">
-                <h4 style="margin:0 0 0.75rem; color:var(--text-primary);">Controles por Mes</h4>
-                <canvas id="admin-quality-line-chart" width="540" height="280" style="width:100%;"></canvas>
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin:0 0 0.75rem; flex-wrap:wrap;">
+                    <h4 style="margin:0; color:var(--text-primary);">Controles por Periodo</h4>
+                    <button id="quality-admin-period-toggle" onclick="toggleQualityAdminPeriodGranularity()" style="margin-top: 0.35rem; display: inline-flex; align-items: center; gap: 0px; background: transparent; border:1px solid var(--border); border-radius: 8px; padding: 0.35rem 0.6rem; cursor: pointer; font-size: 0.82rem; font-family: inherit; transition: border-color 0.2s; width: fit-content; box-shadow:none; outline:none; appearance:none; -webkit-appearance:none; overflow:hidden; line-height:1.1;" onmouseover="this.style.borderColor='var(--border)'" onmouseout="this.style.borderColor='var(--border)'">
+                        <span id="quality-admin-period-label-months" style="color:var(--text-secondary); font-weight:400; transition:color 0.2s;">Meses</span>
+                        <span style="color:var(--text-secondary); margin:0 0.4rem; opacity:0.5;">|</span>
+                        <span id="quality-admin-period-label-weeks" style="color:var(--text-secondary); font-weight:400; transition:color 0.2s;">Semanas</span>
+                        <span style="color:var(--text-secondary); margin:0 0.4rem; opacity:0.5;">|</span>
+                        <span id="quality-admin-period-label-days" style="color:var(--bpb-blue); font-weight:700; transition:color 0.2s;">Dias</span>
+                    </button>
+                </div>
+                <canvas id="admin-quality-line-chart" width="540" height="320" style="width:100%;"></canvas>
             </div>
         </div>
 
         <div style="display:flex; gap:1.5rem; flex-wrap:wrap; margin-top:1.5rem;">
             <div style="flex:1 1 420px; background:#1a1a1a; border:1px solid var(--border); border-radius:12px; padding:1rem; min-width:0; display:flex; flex-direction:column;">
                 <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:0.75rem;">
-                    <h4 style="margin:0; color:var(--text-primary);">Ingresos Aprobados</h4>
+                    <h4 style="margin:0; color:var(--text-primary);">Ingresos</h4>
                     <span id="admin-quality-products-meta" style="font-size:0.9rem; color:var(--text-secondary);"></span>
                 </div>
                 <div style="position:relative; margin-bottom:0.9rem; width:100%; box-sizing:border-box;">
@@ -16414,14 +16428,21 @@ async function showAdminQualityStats() {
                     >
                     <div id="admin-quality-product-suggestions" style="position:absolute; top:calc(100% + 6px); left:0; right:0; display:none; z-index:30; background:#121212; border:1px solid var(--border); border-radius:10px; box-shadow:0 12px 24px rgba(0,0,0,0.35); max-height:220px; overflow-y:auto; box-sizing:border-box;"></div>
                 </div>
+                <div style="display:flex; gap:0.65rem; margin-bottom:0.9rem; flex-wrap:wrap;">
+                    <button id="quality-admin-ingress-toggle" onclick="toggleQualityAdminIngressMode()" style="margin-top: 0.1rem; display: inline-flex; align-items: center; gap: 0px; background: transparent; border:1px solid var(--border); border-radius: 8px; padding: 0.35rem 0.6rem; cursor: pointer; font-size: 0.82rem; font-family: inherit; transition: border-color 0.2s; width: fit-content; box-shadow:none; outline:none; appearance:none; -webkit-appearance:none; overflow:hidden; line-height:1.1;" onmouseover="this.style.borderColor='var(--border)'" onmouseout="this.style.borderColor='var(--border)'">
+                        <span id="quality-admin-ingress-label-approved" style="color:var(--bpb-blue); font-weight:700; transition:color 0.2s;">Aprobados</span>
+                        <span style="color:var(--text-secondary); margin:0 0.4rem; opacity:0.5;">|</span>
+                        <span id="quality-admin-ingress-label-pending" style="color:var(--text-secondary); font-weight:400; transition:color 0.2s;">Pendientes</span>
+                    </button>
+                </div>
                 <div class="table-container" style="flex:1 1 auto; min-height:0; overflow-y:auto; overflow-x:hidden; position:relative;">
                     <table class="data-table" style="width:100%; border-collapse:separate; border-spacing:0; table-layout:fixed;">
                         <thead>
                             <tr>
                                 <th style="width:36%; position:sticky; top:0; z-index:3; background:#161616; text-align:left; padding:14px 10px;">Producto</th>
                                 <th style="width:16%; position:sticky; top:0; z-index:3; background:#161616; text-align:center; padding:14px 10px; line-height:1.1;">Fecha<br>Ingreso</th>
-                                <th style="width:16%; position:sticky; top:0; z-index:3; background:#161616; text-align:center; padding:14px 10px; line-height:1.1;">Cantidad<br>Aprobada</th>
-                                <th style="width:16%; position:sticky; top:0; z-index:3; background:#161616; text-align:center; padding:14px 10px; line-height:1.1;">Fecha<br>Aprobacion</th>
+                                <th id="admin-quality-ingress-qty-header" style="width:16%; position:sticky; top:0; z-index:3; background:#161616; text-align:center; padding:14px 10px; line-height:1.1;">Cantidad<br>Aprobada</th>
+                                <th id="admin-quality-ingress-date-header" style="width:16%; position:sticky; top:0; z-index:3; background:#161616; text-align:center; padding:14px 10px; line-height:1.1;">Fecha<br>Aprobacion</th>
                                 <th style="width:16%; position:sticky; top:0; z-index:3; background:#161616; text-align:center; padding:14px 10px;">Autor</th>
                             </tr>
                         </thead>
@@ -16558,18 +16579,59 @@ function printQualityStats() {
 
     const rangeLabel = document.getElementById('quality-admin-range-label')?.textContent || 'Todo el periodo';
     const today = new Date().toLocaleDateString('es-AR');
-    const productPrintRows = Array.isArray(qualityAdminPrintState?.productPrintRows) ? qualityAdminPrintState.productPrintRows : [];
     const productPrintQuery = String(qualityAdminPrintState?.productPrintQuery || '').trim();
-    const productPrintChunks = [];
-    for (let i = 0; i < productPrintRows.length; i += 48) {
-        productPrintChunks.push(productPrintRows.slice(i, i + 48));
-    }
+    const queryLower = productPrintQuery.toLowerCase();
+    const approvedPrintRows = getFilteredAdminQualityHistoryByDateField('fecha_ing_iso')
+        .filter((record) => !queryLower || String(record?.produc || '').toLowerCase().includes(queryLower))
+        .sort((a, b) => {
+            const ingressCompare = compareQualityDatesDesc(parseQualityFilterDate(a?.fecha_ing_iso), parseQualityFilterDate(b?.fecha_ing_iso));
+            if (ingressCompare !== 0) return ingressCompare;
+            const approvalCompare = compareQualityDatesDesc(parseQualityFilterDate(a?.approval_date), parseQualityFilterDate(b?.approval_date));
+            if (approvalCompare !== 0) return approvalCompare;
+            return String(a?.produc || '').localeCompare(String(b?.produc || ''), 'es');
+        })
+        .map((record) => ({
+            item: String(record?.item || '').trim(),
+            produc: String(record?.produc || '').trim(),
+            oc_numero: String(record?.oc_numero || '').trim(),
+            fecha_ing_iso: String(record?.fecha_ing_iso || '').trim(),
+            controlled_qty: Number(record?.controlled_qty || 0),
+            approval_date: String(record?.approval_date || '').trim(),
+            ubi: String(record?.ubi || '').trim(),
+            author: String(record?.author || '').trim()
+        }));
+    const pendingPrintRows = (Array.isArray(qualityAdminStatsData?.pending_records) ? qualityAdminStatsData.pending_records : [])
+        .filter((record) => isQualityAdminRecordInSelectedPeriod(record, 'ingress'))
+        .filter((record) => !queryLower || String(record?.produc || '').toLowerCase().includes(queryLower))
+        .sort((a, b) => {
+            const ingressCompare = compareQualityDatesDesc(parseQualityFilterDate(a?.fecha_ing_iso), parseQualityFilterDate(b?.fecha_ing_iso));
+            if (ingressCompare !== 0) return ingressCompare;
+            return String(a?.produc || '').localeCompare(String(b?.produc || ''), 'es');
+        })
+        .map((record) => ({
+            item: String(record?.item || '').trim(),
+            produc: String(record?.produc || '').trim(),
+            oc_numero: String(record?.oc_numero || '').trim(),
+            fecha_ing_iso: String(record?.fecha_ing_iso || '').trim(),
+            approved_qty: Number(record?.approved_qty || 0),
+            total_qty: Number(record?.total_qty || 0),
+            progress_pct: Number(record?.progress_pct || 0),
+            encargado: String(record?.encargado || '').trim()
+        }));
 
-    const renderProductPrintTable = (rows) => `
+    const chunkRows = (rows, size = 48) => {
+        const chunks = [];
+        for (let i = 0; i < rows.length; i += size) chunks.push(rows.slice(i, i + size));
+        return chunks;
+    };
+
+    const renderApprovedPrintTable = (rows) => `
         <table style="width:100%; border-collapse:collapse; font-size:11px;">
             <thead>
                 <tr>
                     <th style="text-align:left;">Producto</th>
+                    <th style="text-align:center;">Item</th>
+                    <th style="text-align:center;">OC</th>
                     <th style="text-align:center;">Fecha Ingreso</th>
                     <th style="text-align:center;">Cantidad Aprobada</th>
                     <th style="text-align:center;">Fecha Aprobacion</th>
@@ -16581,6 +16643,8 @@ function printQualityStats() {
                 ${rows.map((row) => `
                     <tr>
                         <td>${escapeAdminQualityHtml(row?.produc || '-')}</td>
+                        <td style="text-align:center;">${escapeAdminQualityHtml(row?.item || '-')}</td>
+                        <td style="text-align:center;">${escapeAdminQualityHtml(row?.oc_numero || '-')}</td>
                         <td style="text-align:center;">${escapeAdminQualityHtml(formatAdminQualityDate(row?.fecha_ing_iso))}</td>
                         <td style="text-align:center;">${escapeAdminQualityHtml(formatQualityQuantity(row?.controlled_qty))}</td>
                         <td style="text-align:center;">${escapeAdminQualityHtml(formatAdminQualityDate(row?.approval_date))}</td>
@@ -16592,27 +16656,66 @@ function printQualityStats() {
         </table>
     `;
 
-    const productPagesHtml = productPrintChunks.length
-        ? productPrintChunks.map((chunk, index) => `
-            <div class="page-container quality-print-products-page"${index === 0 ? '' : ' style="page-break-before: always;"'}>
+    const renderPendingPrintTable = (rows) => `
+        <table style="width:100%; border-collapse:collapse; font-size:11px;">
+            <thead>
+                <tr>
+                    <th style="text-align:left;">Producto</th>
+                    <th style="text-align:center;">Item</th>
+                    <th style="text-align:center;">OC</th>
+                    <th style="text-align:center;">Fecha Ingreso</th>
+                    <th style="text-align:center;">Aprobadas</th>
+                    <th style="text-align:center;">Pendientes</th>
+                    <th style="text-align:center;">Progreso</th>
+                    <th style="text-align:center;">Encargado</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${rows.map((row) => {
+                    const totalQty = Math.max(0, Number(row?.total_qty || 0));
+                    const approvedQty = Math.max(0, Number(row?.approved_qty || 0));
+                    const pendingQty = totalQty > 0 ? Math.max(totalQty - approvedQty, 0) : 0;
+                    const progress = totalQty > 0 ? Math.round((approvedQty / totalQty) * 100) : Number(row?.progress_pct || 0);
+                    return `
+                    <tr>
+                        <td>${escapeAdminQualityHtml(row?.produc || '-')}</td>
+                        <td style="text-align:center;">${escapeAdminQualityHtml(row?.item || '-')}</td>
+                        <td style="text-align:center;">${escapeAdminQualityHtml(row?.oc_numero || '-')}</td>
+                        <td style="text-align:center;">${escapeAdminQualityHtml(formatAdminQualityDate(row?.fecha_ing_iso))}</td>
+                        <td style="text-align:center;">${escapeAdminQualityHtml(formatQualityQuantity(approvedQty))}</td>
+                        <td style="text-align:center;">${escapeAdminQualityHtml(formatQualityQuantity(pendingQty))}</td>
+                        <td style="text-align:center;">${escapeAdminQualityHtml(`${progress}%`)}</td>
+                        <td style="text-align:center;">${escapeAdminQualityHtml(row?.encargado || '-')}</td>
+                    </tr>
+                `;
+                }).join('')}
+            </tbody>
+        </table>
+    `;
+
+    const renderProductPages = (title, rows, tableRenderer, startOnNewPage = true) => {
+        const chunks = chunkRows(rows);
+        return chunks.length
+        ? chunks.map((chunk, index) => `
+            <div class="page-container quality-print-products-page"${startOnNewPage || index > 0 ? ' style="page-break-before: always;"' : ''}>
                 <div class="content-wrapper" style="height:auto; min-height:calc(100vh - 198px);">
                     <div class="quality-print-products-header">
                         <div>
-                            <h2 class="quality-print-products-title">Ingresos Aprobados</h2>
+                            <h2 class="quality-print-products-title">${title}</h2>
                             <div class="quality-print-products-subtitle">${productPrintQuery ? `Filtro de producto: ${escapeAdminQualityHtml(productPrintQuery)}` : 'Sin filtro de producto'}</div>
                         </div>
-                        <div style="font-size:12px; color:#666;">${productPrintRows.length.toLocaleString('es-AR')} registros</div>
+                        <div style="font-size:12px; color:#666;">${rows.length.toLocaleString('es-AR')} registros</div>
                     </div>
-                    ${renderProductPrintTable(chunk)}
+                    ${tableRenderer(chunk)}
                 </div>
             </div>
         `).join('')
         : `
-            <div class="page-container quality-print-products-page">
+            <div class="page-container quality-print-products-page"${startOnNewPage ? ' style="page-break-before: always;"' : ''}>
                 <div class="content-wrapper" style="height:auto; min-height:calc(100vh - 198px);">
                     <div class="quality-print-products-header">
                         <div>
-                            <h2 class="quality-print-products-title">Ingresos Aprobados</h2>
+                            <h2 class="quality-print-products-title">${title}</h2>
                             <div class="quality-print-products-subtitle">${productPrintQuery ? `Filtro de producto: ${escapeAdminQualityHtml(productPrintQuery)}` : 'Sin filtro de producto'}</div>
                         </div>
                         <div style="font-size:12px; color:#666;">0 registros</div>
@@ -16621,6 +16724,12 @@ function printQualityStats() {
                 </div>
             </div>
         `;
+    };
+
+    const productPagesHtml = [
+        renderProductPages('Ingresos Pendientes', pendingPrintRows, renderPendingPrintTable, true),
+        renderProductPages('Ingresos Aprobados', approvedPrintRows, renderApprovedPrintTable, true)
+    ].join('');
 
     const styles = `
         <style>
@@ -16869,6 +16978,15 @@ function printQualityStats() {
                 margin-right:0 !important;
                 text-align:left;
             }
+            #quality-print-row-two > div:last-child .quality-print-chart-center {
+                min-height: 420px !important;
+                padding: 4px 2px 10px !important;
+            }
+            #quality-print-row-two > div:last-child .print-chart-img {
+                max-height: 420px !important;
+                height: 420px !important;
+                object-fit: contain !important;
+            }
             .quality-print-products-header {
                 display:flex;
                 justify-content:space-between;
@@ -16985,7 +17103,25 @@ function getQualityPrintChartImage(canvasId) {
         return canvas.toDataURL('image/png');
     }
     if (canvasId === 'admin-quality-line-chart') {
-        drawQualityLineChart(canvas, state.monthCounts || [], state.monthLabels || [], printColors);
+        canvas.style.width = '980px';
+        canvas.style.height = '620px';
+        drawQualityLineChart(canvas, [
+            { name: 'Total', values: state.periodTotalValues || [], color: '#4aa3ff' },
+            { name: 'vzarlenga', values: state.periodVzarlengaValues || [], color: '#f5a623' },
+            { name: 'lgonzalez', values: state.periodLgonzalezValues || [], color: '#2ecc71' }
+        ], state.periodLabels || [], {
+            ...printColors,
+            gridColor: 'rgba(0,0,0,0.16)',
+            axisTextColor: '#111111',
+            labelTextColor: '#111111',
+            axisFontSize: 12,
+            labelFontSize: 12,
+            legendFontSize: 11,
+            leftPadding: 42,
+            rightPadding: 10,
+            topPadding: 8,
+            bottomPadding: 98
+        });
         return canvas.toDataURL('image/png');
     }
     if (canvasId === 'admin-quality-status-chart') {
@@ -17234,6 +17370,168 @@ function getFilteredAdminQualityHistoryByDateField(dateField) {
     });
 }
 
+function toggleQualityAdminPeriodGranularity() {
+    const order = ['month', 'week', 'day'];
+    const currentIndex = order.indexOf(qualityAdminPeriodGranularity);
+    qualityAdminPeriodGranularity = order[(currentIndex + 1) % order.length];
+    renderAdminQualityStatsDashboard();
+}
+
+function updateQualityAdminPeriodToggleUi() {
+    const monthLabel = document.getElementById('quality-admin-period-label-months');
+    const weekLabel = document.getElementById('quality-admin-period-label-weeks');
+    const dayLabel = document.getElementById('quality-admin-period-label-days');
+    const activeMap = {
+        month: monthLabel,
+        week: weekLabel,
+        day: dayLabel
+    };
+
+    [monthLabel, weekLabel, dayLabel].forEach((node) => {
+        if (!node) return;
+        const active = activeMap[qualityAdminPeriodGranularity] === node;
+        node.style.color = active ? 'var(--bpb-blue)' : 'var(--text-secondary)';
+        node.style.fontWeight = active ? '700' : '400';
+    });
+}
+
+function getQualityAdminSelectedDateBounds() {
+    initAdminQualityStatsYear();
+    if (qualityAdminPeriodGranularity === 'month') {
+        return {
+            start: new Date(qualityAdminStatsYear, 0, 1),
+            end: new Date(qualityAdminStatsYear, 11, 31)
+        };
+    }
+    if (qualityAdminDayRangeStart && qualityAdminDayRangeEnd) {
+        const start = parseQualityFilterDate(qualityAdminDayRangeStart);
+        const end = parseQualityFilterDate(qualityAdminDayRangeEnd);
+        if (start && end) return { start, end };
+    }
+
+    const startMonth = qualityAdminStatsStartMonth !== null ? qualityAdminStatsStartMonth : 0;
+    const endMonth = qualityAdminStatsStartMonth !== null
+        ? (qualityAdminStatsEndMonth !== null ? qualityAdminStatsEndMonth : qualityAdminStatsStartMonth)
+        : 11;
+    const start = new Date(qualityAdminStatsYear, startMonth, 1);
+    const end = new Date(qualityAdminStatsYear, endMonth + 1, 0);
+    return { start, end };
+}
+
+function formatQualityAdminPeriodDayLabel(date) {
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    return `${day}/${month}`;
+}
+
+function getQualityAdminWeekStart(date) {
+    const dt = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    const day = dt.getDay();
+    const diff = day === 0 ? -6 : 1 - day;
+    dt.setDate(dt.getDate() + diff);
+    return dt;
+}
+
+function buildQualityAdminPeriodSeries(records) {
+    const filteredRecords = Array.isArray(records) ? records : [];
+    const bounds = getQualityAdminSelectedDateBounds();
+    if (!bounds?.start || !bounds?.end) {
+        return { labels: [], values: [] };
+    }
+
+    if (qualityAdminPeriodGranularity === 'day') {
+        const map = new Map();
+        let cursor = new Date(bounds.start.getFullYear(), bounds.start.getMonth(), bounds.start.getDate());
+        const last = new Date(bounds.end.getFullYear(), bounds.end.getMonth(), bounds.end.getDate());
+        while (cursor <= last) {
+            const weekday = cursor.getDay();
+            if (weekday !== 0 && weekday !== 6) {
+                const key = cursor.toISOString().slice(0, 10);
+                map.set(key, new Set());
+            }
+            cursor.setDate(cursor.getDate() + 1);
+        }
+        filteredRecords.forEach((record) => {
+            const dt = parseQualityFilterDate(record?.approval_date);
+            if (!dt) return;
+            const key = dt.toISOString().slice(0, 10);
+            if (map.has(key)) map.get(key).add(getQualityAdminUniqueRecordKey(record));
+        });
+        return {
+            labels: Array.from(map.keys()).map((key) => formatQualityAdminPeriodDayLabel(parseQualityFilterDate(key))),
+            values: Array.from(map.values()).map((bucket) => bucket.size)
+        };
+    }
+
+    if (qualityAdminPeriodGranularity === 'week') {
+        const map = new Map();
+        let cursor = getQualityAdminWeekStart(bounds.start);
+        const last = new Date(bounds.end.getFullYear(), bounds.end.getMonth(), bounds.end.getDate());
+        while (cursor <= last) {
+            const key = cursor.toISOString().slice(0, 10);
+            map.set(key, new Set());
+            cursor = new Date(cursor.getFullYear(), cursor.getMonth(), cursor.getDate() + 7);
+        }
+        filteredRecords.forEach((record) => {
+            const dt = parseQualityFilterDate(record?.approval_date);
+            if (!dt) return;
+            const weekStart = getQualityAdminWeekStart(dt).toISOString().slice(0, 10);
+            if (map.has(weekStart)) map.get(weekStart).add(getQualityAdminUniqueRecordKey(record));
+        });
+        return {
+            labels: Array.from(map.keys()).map((key) => `Sem ${formatQualityAdminPeriodDayLabel(parseQualityFilterDate(key))}`),
+            values: Array.from(map.values()).map((bucket) => bucket.size)
+        };
+    }
+
+    const map = new Map();
+    const monthNames = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];
+    const startMonth = bounds.start.getMonth();
+    const endMonth = bounds.end.getMonth();
+    const startYear = bounds.start.getFullYear();
+    const endYear = bounds.end.getFullYear();
+    let year = startYear;
+    let month = startMonth;
+    while (year < endYear || (year === endYear && month <= endMonth)) {
+        const key = `${year}-${String(month + 1).padStart(2, '0')}`;
+        map.set(key, new Set());
+        month += 1;
+        if (month > 11) {
+            month = 0;
+            year += 1;
+        }
+    }
+    filteredRecords.forEach((record) => {
+        const dt = parseQualityFilterDate(record?.approval_date);
+        if (!dt) return;
+        const key = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}`;
+        if (map.has(key)) map.get(key).add(getQualityAdminUniqueRecordKey(record));
+    });
+    return {
+        labels: Array.from(map.keys()).map((key) => {
+            const [y, m] = key.split('-').map(Number);
+            return startYear === endYear ? monthNames[(m || 1) - 1] : `${monthNames[(m || 1) - 1]} ${y}`;
+        }),
+        values: Array.from(map.values()).map((bucket) => bucket.size)
+    };
+}
+
+function getQualityAdminPeriodChartRecords(username = '') {
+    const records = Array.isArray(qualityAdminStatsData?.history_records) ? qualityAdminStatsData.history_records : [];
+    initAdminQualityStatsYear();
+    const targetUser = String(username || '').trim().toLowerCase();
+
+    return records.filter((record) => {
+        if (!record || record._approvalYear !== qualityAdminStatsYear) return false;
+        if (targetUser && record._authorLower !== targetUser) return false;
+
+        if (qualityAdminPeriodGranularity === 'month') {
+            return true;
+        }
+        return isQualityAdminRecordInSelectedPeriod(record, 'approval');
+    });
+}
+
 function renderAdminQualityStatsLoading() {
     const cards = document.getElementById('admin-quality-stats-cards');
     if (cards) {
@@ -17313,7 +17611,7 @@ function renderAdminQualityStatsDashboard() {
     let controlledPieces = 0;
     let controlledMuestras = 0;
     const seenMuestraKeys = new Set();
-    const uniqueControlPairs = new Set();
+    const uniqueControlRecords = new Set();
     const uniqueMonthPairs = Array.from({ length: 12 }, () => new Set());
     const pendingPairKeys = new Set(pendingRecordsInPeriod.map((record) => getQualityAdminPairKey(record)));
     const currentPendingPairKeys = new Set(pendingRecords.map((record) => getQualityAdminPairKey(record)));
@@ -17321,12 +17619,12 @@ function renderAdminQualityStatsDashboard() {
 
     history.forEach((record) => {
         const author = String(record.author || 'Sin autor').trim() || 'Sin autor';
-        const pairKey = getQualityAdminPairKey(record);
-        uniqueControlPairs.add(pairKey);
+        const uniqueRecordKey = getQualityAdminUniqueRecordKey(record);
+        uniqueControlRecords.add(uniqueRecordKey);
         if (record._approvalMonth !== null && record._approvalMonth !== undefined) {
-            uniqueMonthPairs[record._approvalMonth].add(pairKey);
+            uniqueMonthPairs[record._approvalMonth].add(uniqueRecordKey);
         }
-        const userPairKey = `${author}|${pairKey}`;
+        const userPairKey = `${author}|${uniqueRecordKey}`;
         if (!users.has(author)) users.set(author, new Set());
         users.get(author).add(userPairKey);
 
@@ -17384,16 +17682,17 @@ function renderAdminQualityStatsDashboard() {
             : (sortedDurations[(sortedDurations.length / 2) - 1] + sortedDurations[sortedDurations.length / 2]) / 2)
         : null;
     const uniqueProducts = ingressProducts.size;
-    const periodPendingCount = Array.from(uniqueControlPairs).filter((pairKey) => currentPendingPairKeys.has(pairKey)).length;
-    const periodCompletedCount = Math.max(0, uniqueControlPairs.size - periodPendingCount);
+    const pendingUniqueRecordKeys = new Set(pendingRecordsInPeriod.map((record) => getQualityAdminUniqueRecordKey(record)));
+    const periodPendingCount = pendingUniqueRecordKeys.size;
+    const periodCompletedCount = Array.from(uniqueControlRecords).filter((key) => !pendingUniqueRecordKeys.has(key)).length;
 
     const cards = document.getElementById('admin-quality-stats-cards');
     if (cards) {
         const cardData = [
             {
                 label: 'Controles del Periodo',
-                value: uniqueControlPairs.size.toLocaleString('es-AR'),
-                meta: 'Productos unicos dentro del periodo'
+                value: uniqueControlRecords.size.toLocaleString('es-AR'),
+                meta: 'Registros unicos dentro del periodo'
             },
             {
                 label: 'Tiempo Promedio',
@@ -17472,14 +17771,21 @@ function renderAdminQualityStatsDashboard() {
         }
     }
 
-    const months = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];
-    const monthCounts = uniqueMonthPairs.map((monthSet) => monthSet.size);
+    const periodSeriesVzarlenga = buildQualityAdminPeriodSeries(getQualityAdminPeriodChartRecords('vzarlenga'));
+    const periodSeriesLgonzalez = buildQualityAdminPeriodSeries(getQualityAdminPeriodChartRecords('lgonzalez'));
+    const periodSeriesTotal = {
+        labels: [...periodSeriesVzarlenga.labels],
+        values: periodSeriesVzarlenga.values.map((value, index) => value + (periodSeriesLgonzalez.values[index] || 0))
+    };
+    updateQualityAdminPeriodToggleUi();
     qualityAdminPrintState = {
         topUsersLabels: topUsers.map((entry) => entry[0]),
         topUsersValues: topUsers.map((entry) => entry[1]),
         durationValues: [...durationValues],
-        monthLabels: [...months],
-        monthCounts: [...monthCounts],
+        periodLabels: [...periodSeriesTotal.labels],
+        periodTotalValues: [...periodSeriesTotal.values],
+        periodVzarlengaValues: [...periodSeriesVzarlenga.values],
+        periodLgonzalezValues: [...periodSeriesLgonzalez.values],
         statusSegments: [
             { label: 'Con cantidades pendientes', value: periodPendingCount, color: '#f5a623' },
             { label: 'Terminados', value: periodCompletedCount, color: '#4aa3ff' }
@@ -17487,8 +17793,12 @@ function renderAdminQualityStatsDashboard() {
         statusCenterPrimary: `${periodPendingCount + periodCompletedCount}`,
         statusCenterSecondary: 'Registros'
     };
-    drawQualityLineChart(document.getElementById('admin-quality-line-chart'), monthCounts, months, {
-        tooltipFormatter: ({ label, value }) => `<strong>${escapeAdminQualityHtml(label)}</strong><br>${value.toLocaleString('es-AR')} controles`
+    drawQualityLineChart(document.getElementById('admin-quality-line-chart'), [
+        { name: 'Total', values: periodSeriesTotal.values, color: '#4aa3ff' },
+        { name: 'vzarlenga', values: periodSeriesVzarlenga.values, color: '#f5a623' },
+        { name: 'lgonzalez', values: periodSeriesLgonzalez.values, color: '#2ecc71' }
+    ], periodSeriesTotal.labels, {
+        tooltipFormatter: ({ label, value, seriesName }) => `<strong>${escapeAdminQualityHtml(seriesName || '')}</strong><br>${escapeAdminQualityHtml(label)}<br>${value.toLocaleString('es-AR')} controles`
     });
 
     const statusCanvas = document.getElementById('admin-quality-status-chart');
@@ -17512,11 +17822,12 @@ function renderAdminQualityStatsDashboard() {
         `;
     }
 
+    const ingressExplorerSource = qualityAdminIngressMode === 'pending' ? pendingRecordsInPeriod : validPeriodControls;
     const controlProducts = new Map();
     const controlHistoryByProduct = new Map();
-    validPeriodControls.forEach((record) => {
+    ingressExplorerSource.forEach((record) => {
         const product = record._product || 'Sin producto';
-        const qty = record._controlledQty;
+        const qty = qualityAdminIngressMode === 'pending' ? record._pendingQty : record._controlledQty;
         const current = controlProducts.get(product) || { count: 0, qty: 0 };
         current.count += 1;
         current.qty += Number.isFinite(qty) ? qty : 0;
@@ -17533,7 +17844,7 @@ function renderAdminQualityStatsDashboard() {
             return a.product.localeCompare(b.product, 'es');
         });
 
-    renderAdminQualityProductExplorer(validPeriodControls, productEntries, controlHistoryByProduct, new Set(controlHistoryByProduct.keys()));
+    renderAdminQualityProductExplorer(ingressExplorerSource, productEntries, controlHistoryByProduct, new Set(controlHistoryByProduct.keys()));
 }
 
 function escapeAdminQualityHtml(value) {
@@ -17570,6 +17881,14 @@ function getQualityAdminGroupKey(record, index) {
 
 function getQualityAdminPairKey(record) {
     return `${String(record?.item || '').trim()}|${String(record?.produc || '').trim()}`;
+}
+
+function getQualityAdminUniqueRecordKey(record) {
+    return [
+        String(record?.item || '').trim(),
+        String(record?.produc || '').trim(),
+        String(record?.oc_numero || '').trim()
+    ].join('|');
 }
 
 function getQualityDurationPercentile(sortedValues, percentile) {
@@ -17629,7 +17948,9 @@ function buildQualityAdminProductGroups(records) {
         if (!groups.has(key)) {
             groups.set(key, {
                 key,
+                item: String(record?.item || '').trim(),
                 produc: String(record?.produc || '').trim(),
+                oc_numero: String(record?.oc_numero || '').trim(),
                 fecha_ing_iso: String(record?.fecha_ing_iso || '').trim(),
                 records: [],
                 approved_qty: 0,
@@ -17641,11 +17962,13 @@ function buildQualityAdminProductGroups(records) {
         }
 
         const group = groups.get(key);
-        const qty = Number(record?.controlled_qty || 0);
+        const qty = Number(record?.controlled_qty || record?._approvedQty || record?.approved_qty || 0);
         const totalQty = Number(record?.total_qty || 0);
         const pairKey = `${String(record?.item || '').trim()}|${String(record?.produc || '').trim()}`;
 
         group.records.push(record);
+        if (!group.item && record?.item) group.item = String(record.item).trim();
+        if (!group.oc_numero && record?.oc_numero) group.oc_numero = String(record.oc_numero).trim();
         group.approved_qty += Number.isFinite(qty) ? qty : 0;
         if (record?.author) group.authors.add(String(record.author).trim());
         if (Number.isFinite(totalQty) && totalQty > 0 && !group.totalByPair.has(pairKey)) {
@@ -17680,6 +18003,37 @@ function buildQualityAdminProductGroups(records) {
     });
 }
 
+function setQualityAdminIngressMode(mode) {
+    const nextMode = mode === 'pending' ? 'pending' : 'approved';
+    if (qualityAdminIngressMode === nextMode) return;
+    qualityAdminIngressMode = nextMode;
+    qualityAdminSelectedProductRowKey = '';
+    renderAdminQualityStatsDashboard();
+}
+
+function toggleQualityAdminIngressMode() {
+    setQualityAdminIngressMode(qualityAdminIngressMode === 'pending' ? 'approved' : 'pending');
+}
+
+function updateQualityAdminIngressToggleUi() {
+    const approvedBtn = document.getElementById('quality-admin-ingress-label-approved');
+    const pendingBtn = document.getElementById('quality-admin-ingress-label-pending');
+    const qtyHeader = document.getElementById('admin-quality-ingress-qty-header');
+    const dateHeader = document.getElementById('admin-quality-ingress-date-header');
+    const isApprovedMode = qualityAdminIngressMode !== 'pending';
+    if (approvedBtn) {
+        approvedBtn.style.color = isApprovedMode ? 'var(--bpb-blue)' : 'var(--text-secondary)';
+        approvedBtn.style.fontWeight = isApprovedMode ? '700' : '400';
+    }
+    if (pendingBtn) {
+        pendingBtn.style.color = !isApprovedMode ? 'var(--bpb-blue)' : 'var(--text-secondary)';
+        pendingBtn.style.fontWeight = !isApprovedMode ? '700' : '400';
+    }
+
+    if (qtyHeader) qtyHeader.innerHTML = isApprovedMode ? 'Cantidad<br>Aprobada' : 'Cantidad<br>Pendiente';
+    if (dateHeader) dateHeader.innerHTML = isApprovedMode ? 'Fecha<br>Aprobacion' : 'Estado<br>Actual';
+}
+
 function renderAdminQualityProductExplorer(history, productEntries, historyByProduct = new Map(), productsWithIngress = new Set()) {
     const searchInput = document.getElementById('admin-quality-product-search');
     const suggestionsEl = document.getElementById('admin-quality-product-suggestions');
@@ -17692,10 +18046,13 @@ function renderAdminQualityProductExplorer(history, productEntries, historyByPro
     const approvalsTableEl = document.getElementById('admin-quality-product-approvals-table');
     if (!searchInput || !suggestionsEl || !metaEl || !tableEl || !detailMetaEl || !detailSummaryEl || !pieCanvas || !pieLegendEl || !approvalsTableEl) return;
 
+    updateQualityAdminIngressToggleUi();
+
     const query = String(qualityAdminProductQuery || '').trim().toLowerCase();
     const matchedProducts = productEntries.filter((entry) => String(entry.product || '').toLowerCase().includes(query));
     const groupedRows = buildQualityAdminProductGroups(history)
         .filter((group) => !query || String(group.produc || '').toLowerCase().includes(query));
+    const isPendingMode = qualityAdminIngressMode === 'pending';
 
     if (qualityAdminSelectedProductRowKey && !groupedRows.some((group) => group.key === qualityAdminSelectedProductRowKey)) {
         qualityAdminSelectedProductRowKey = '';
@@ -17707,7 +18064,7 @@ function renderAdminQualityProductExplorer(history, productEntries, historyByPro
     const selectedGroup = groupedRows.find((group) => group.key === qualityAdminSelectedProductRowKey) || null;
 
     metaEl.textContent = productEntries.length
-        ? `${groupedRows.length.toLocaleString('es-AR')} controles dentro del filtro`
+        ? `${groupedRows.length.toLocaleString('es-AR')} ingresos ${isPendingMode ? 'pendientes' : 'aprobados'} dentro del filtro`
         : 'Sin datos';
 
     searchInput.value = qualityAdminProductQuery;
@@ -17770,7 +18127,8 @@ function renderAdminQualityProductExplorer(history, productEntries, historyByPro
         qualityAdminPrintState = {
             ...(qualityAdminPrintState || {}),
             productPrintRows: [],
-            productPrintQuery: qualityAdminProductQuery
+            productPrintQuery: qualityAdminProductQuery,
+            productPrintMode: qualityAdminIngressMode
         };
         drawQualityDonutChart(pieCanvas, [], { emptyText: 'Sin seleccion' });
         return;
@@ -17778,6 +18136,13 @@ function renderAdminQualityProductExplorer(history, productEntries, historyByPro
 
     tableEl.innerHTML = groupedRows.map((group) => {
         const isActive = group.key === qualityAdminSelectedProductRowKey;
+        const groupApprovedQty = Math.max(0, Number(group.approved_qty || 0));
+        const groupTotalQty = Math.max(0, Number(group.total_qty || 0));
+        const groupPendingQty = groupTotalQty > 0 ? Math.max(groupTotalQty - groupApprovedQty, 0) : 0;
+        const groupControlledPct = groupTotalQty > 0 ? Math.round((Math.min(groupApprovedQty, groupTotalQty) / groupTotalQty) * 100) : 100;
+        const qtyLabel = isPendingMode ? formatQualityQuantity(group.total_qty > 0 ? Math.max(group.total_qty - group.approved_qty, 0) : 0) : formatQualityQuantity(group.approved_qty);
+        const dateLabel = isPendingMode ? `${groupControlledPct}%` : group.approval_label;
+        const authorLabel = isPendingMode ? '-' : group.author_label;
         return `
             <tr
                 data-row-key="${escapeAdminQualityHtml(group.key)}"
@@ -17785,9 +18150,9 @@ function renderAdminQualityProductExplorer(history, productEntries, historyByPro
             >
                 <td style="padding:10px; word-break:break-word; overflow-wrap:anywhere;">${escapeAdminQualityHtml(group.produc || '-')}</td>
                 <td style="padding:10px; text-align:center;">${formatAdminQualityDate(group.fecha_ing_iso)}</td>
-                <td style="padding:10px; text-align:center;">${formatQualityQuantity(group.approved_qty)}</td>
-                <td style="padding:10px; text-align:center;">${escapeAdminQualityHtml(group.approval_label)}</td>
-                <td style="padding:10px; text-align:center;">${escapeAdminQualityHtml(group.author_label)}</td>
+                <td style="padding:10px; text-align:center;">${qtyLabel}</td>
+                <td style="padding:10px; text-align:center;">${escapeAdminQualityHtml(dateLabel)}</td>
+                <td style="padding:10px; text-align:center;">${escapeAdminQualityHtml(authorLabel)}</td>
             </tr>
         `;
     }).join('');
@@ -17806,9 +18171,9 @@ function renderAdminQualityProductExplorer(history, productEntries, historyByPro
     const detailCards = [
         ['Producto', selectedGroup?.produc || '-'],
         ['Fecha Ingreso', formatAdminQualityDate(selectedGroup?.fecha_ing_iso)],
-        ['Fecha Aprobacion', selectedGroup?.approval_label || '-'],
-        ['Autor', selectedGroup?.authors?.join(', ') || '-'],
-        ['Cant. Controlada', formatQualityQuantity(approvedQty)],
+        [isPendingMode ? 'Estado' : 'Fecha Aprobacion', isPendingMode ? 'Pendiente' : (selectedGroup?.approval_label || '-')],
+        ['Autor', isPendingMode ? '-' : (selectedGroup?.authors?.join(', ') || '-')],
+        [isPendingMode ? 'Cant. Pendiente' : 'Cant. Controlada', formatQualityQuantity(isPendingMode ? remainingQty : approvedQty)],
         ['Cant. Despachada', totalQty > 0 ? formatQualityQuantity(totalQty) : '-']
     ];
 
@@ -17824,29 +18189,29 @@ function renderAdminQualityProductExplorer(history, productEntries, historyByPro
 
     const pieSegments = totalQty > 0
         ? [
-            { label: 'Piezas controladas', value: Math.min(approvedQty, totalQty), color: '#4aa3ff' },
-            { label: 'Piezas restantes', value: remainingQty, color: '#2b2b2b' }
+            { label: isPendingMode ? 'Piezas aprobadas' : 'Piezas controladas', value: Math.min(approvedQty, totalQty), color: '#4aa3ff' },
+            { label: isPendingMode ? 'Piezas pendientes' : 'Piezas restantes', value: remainingQty, color: '#2b2b2b' }
         ]
         : [
-            { label: 'Piezas controladas', value: approvedQty, color: '#4aa3ff' }
+            { label: isPendingMode ? 'Piezas aprobadas' : 'Piezas controladas', value: approvedQty, color: '#4aa3ff' }
         ];
 
     drawQualityDonutChart(pieCanvas, pieSegments, {
-        centerPrimary: totalQty > 0 ? `${controlledPct}%` : formatQualityQuantity(approvedQty),
-        centerSecondary: totalQty > 0 ? 'Controlado' : 'Aprobadas'
+        centerPrimary: totalQty > 0 ? `${isPendingMode ? Math.max(0, 100 - controlledPct) : controlledPct}%` : formatQualityQuantity(isPendingMode ? remainingQty : approvedQty),
+        centerSecondary: totalQty > 0 ? (isPendingMode ? 'Pendiente' : 'Controlado') : (isPendingMode ? 'Pendientes' : 'Aprobadas')
     });
 
     pieLegendEl.innerHTML = `
         <div style="display:flex; flex-direction:column; gap:0.85rem;">
             <div style="display:flex; align-items:center; gap:0.65rem;">
                 <span style="width:12px; height:12px; border-radius:999px; background:#4aa3ff; display:inline-block;"></span>
-                <span>Piezas controladas: <strong style="color:var(--text-primary);">${formatQualityQuantity(approvedQty)}</strong></span>
+                <span>${isPendingMode ? 'Piezas aprobadas' : 'Piezas controladas'}: <strong style="color:var(--text-primary);">${formatQualityQuantity(approvedQty)}</strong></span>
             </div>
             <div style="display:flex; align-items:center; gap:0.65rem;">
                 <span style="width:12px; height:12px; border-radius:999px; background:#2b2b2b; display:inline-block; border:1px solid rgba(255,255,255,0.14);"></span>
-                <span>Piezas restantes: <strong style="color:var(--text-primary);">${formatQualityQuantity(remainingQty)}</strong></span>
+                <span>${isPendingMode ? 'Piezas pendientes' : 'Piezas restantes'}: <strong style="color:var(--text-primary);">${formatQualityQuantity(remainingQty)}</strong></span>
             </div>
-            <div style="padding-top:0.2rem;">Cobertura del ingreso: <strong style="color:var(--text-primary);">${totalQty > 0 ? `${controlledPct}%` : '100%'}</strong></div>
+            <div style="padding-top:0.2rem;">${isPendingMode ? 'Pendiente del ingreso' : 'Cobertura del ingreso'}: <strong style="color:var(--text-primary);">${totalQty > 0 ? `${isPendingMode ? Math.max(0, 100 - controlledPct) : controlledPct}%` : '100%'}</strong></div>
         </div>
     `;
 
@@ -17876,10 +18241,39 @@ function renderAdminQualityProductExplorer(history, productEntries, historyByPro
             ubi: String(record?.ubi || '').trim(),
             author: String(record?.author || '').trim()
         })),
-        productPrintQuery: qualityAdminProductQuery
+        productPrintQuery: qualityAdminProductQuery,
+        productPrintMode: qualityAdminIngressMode
     };
 
-    approvalsTableEl.innerHTML = `
+    approvalsTableEl.innerHTML = isPendingMode ? `
+        <div style="margin-bottom:0.55rem; font-size:0.82rem; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-secondary); font-weight:700;">Estado del Ingreso</div>
+        <div class="table-container" style="max-height:220px; overflow:auto;">
+            <table class="data-table" style="width:100%; border-collapse:separate; border-spacing:0;">
+                <thead>
+                    <tr>
+                        <th style="text-align:left; padding:12px 10px;">Fecha Ingreso</th>
+                        <th style="text-align:right; padding:12px 10px;">Aprobadas</th>
+                        <th style="text-align:right; padding:12px 10px;">Pendientes</th>
+                        <th style="text-align:right; padding:12px 10px;">Progreso</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${selectedGroup ? `
+                        <tr>
+                            <td style="padding:10px;">${formatAdminQualityDate(selectedGroup?.fecha_ing_iso)}</td>
+                            <td style="padding:10px; text-align:right;">${formatQualityQuantity(approvedQty)}</td>
+                            <td style="padding:10px; text-align:right;">${formatQualityQuantity(remainingQty)}</td>
+                            <td style="padding:10px; text-align:right;">${totalQty > 0 ? `${controlledPct}%` : '-'}</td>
+                        </tr>
+                    ` : `
+                        <tr>
+                            <td colspan="4" class="text-center" style="padding:1rem; color:#888;">No hay aprobaciones para mostrar.</td>
+                        </tr>
+                    `}
+                </tbody>
+            </table>
+        </div>
+    ` : `
         <div style="margin-bottom:0.55rem; font-size:0.82rem; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-secondary); font-weight:700;">Aprobaciones del Ingreso</div>
         <div class="table-container" style="max-height:220px; overflow:auto;">
             <table class="data-table" style="width:100%; border-collapse:separate; border-spacing:0;">
@@ -17968,9 +18362,14 @@ function drawQualityAxisLabels(ctx, padding, chartW, chartH, maxVal, formatter, 
     ctx.strokeStyle = options.gridColor || 'rgba(255,255,255,0.08)';
     ctx.lineWidth = 1;
     ctx.fillStyle = options.axisTextColor || 'rgba(255,255,255,0.65)';
-    ctx.font = '10px "Manrope", sans-serif';
+    ctx.font = `${options.axisFontSize || 10}px "Manrope", sans-serif`;
     ctx.textAlign = 'right';
     ctx.textBaseline = 'middle';
+
+    ctx.beginPath();
+    ctx.moveTo(padding.left, padding.top);
+    ctx.lineTo(padding.left, padding.top + chartH);
+    ctx.stroke();
 
     const steps = 4;
     for (let i = 0; i <= steps; i++) {
@@ -18067,7 +18466,19 @@ function drawQualityBarChart(canvas, values, labels, options = {}) {
 
 function drawQualityLineChart(canvas, values, labels, options = {}) {
     if (!canvas) return;
-    const safeValues = (values || []).map((value) => Number(value) || 0);
+    const isMultiSeries = Array.isArray(values) && values.length && typeof values[0] === 'object' && Array.isArray(values[0].values);
+    const seriesList = isMultiSeries
+        ? values.map((series, index) => ({
+            name: String(series?.name || `Serie ${index + 1}`),
+            color: series?.color || ['#4aa3ff', '#f5a623', '#2ecc71', '#e74c3c'][index % 4],
+            values: (series?.values || []).map((value) => Number(value) || 0)
+        }))
+        : [{
+            name: '',
+            color: options.lineColor || '#4aa3ff',
+            values: (values || []).map((value) => Number(value) || 0)
+        }];
+    const safeValues = seriesList.flatMap((series) => series.values);
     if (!safeValues.length) {
         drawQualityEmptyCanvas(canvas, 'Sin datos', options);
         return;
@@ -18075,60 +18486,98 @@ function drawQualityLineChart(canvas, values, labels, options = {}) {
 
     clearQualityCanvasHover(canvas);
     const { ctx, width, height } = isoSetupCanvas(canvas);
-    const padding = { left: 50, right: 18, top: 18, bottom: 42 };
+    const padding = {
+        left: options.leftPadding || 50,
+        right: options.rightPadding || 18,
+        top: options.topPadding || 18,
+        bottom: options.bottomPadding || 70
+    };
     const chartW = width - padding.left - padding.right;
     const chartH = height - padding.top - padding.bottom;
     const maxVal = Math.max(...safeValues, 1);
-    const stepX = chartW / Math.max(safeValues.length - 1, 1);
+    const pointCount = Math.max((labels || []).length, ...seriesList.map((series) => series.values.length), 1);
+    const stepX = chartW / Math.max(pointCount - 1, 1);
     let activeIndex = -1;
-    let points = [];
+    let activeSeriesIndex = -1;
+    let seriesPoints = [];
 
     const drawFrame = () => {
         ctx.clearRect(0, 0, width, height);
         drawQualityAxisLabels(ctx, padding, chartW, chartH, maxVal, null, options);
-
-        points = safeValues.map((value, index) => ({
+        seriesPoints = seriesList.map((series, seriesIndex) => series.values.map((value, index) => ({
             x: padding.left + index * stepX,
             y: padding.top + chartH - (value / maxVal) * chartH,
             label: labels[index],
-            value
-        }));
+            value,
+            seriesName: series.name,
+            seriesColor: series.color,
+            seriesIndex,
+            index
+        })));
 
-        ctx.beginPath();
-        points.forEach((point, index) => {
-            if (index === 0) ctx.moveTo(point.x, point.y);
-            else ctx.lineTo(point.x, point.y);
-        });
-        ctx.strokeStyle = options.lineColor || '#4aa3ff';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-
-        ctx.lineTo(padding.left + chartW, padding.top + chartH);
-        ctx.lineTo(padding.left, padding.top + chartH);
-        ctx.closePath();
-        const gradient = ctx.createLinearGradient(0, padding.top, 0, padding.top + chartH);
-        gradient.addColorStop(0, options.areaStart || 'rgba(74,163,255,0.28)');
-        gradient.addColorStop(1, options.areaEnd || 'rgba(74,163,255,0.04)');
-        ctx.fillStyle = gradient;
-        ctx.fill();
-
-        points.forEach((point, index) => {
+        seriesPoints.forEach((points, seriesIndex) => {
+            if (!points.length) return;
             ctx.beginPath();
-            ctx.arc(point.x, point.y, index === activeIndex ? 5.5 : 4, 0, Math.PI * 2);
-            ctx.fillStyle = index === activeIndex
-                ? (options.pointActiveColor || '#ffffff')
-                : (options.pointColor || '#4aa3ff');
-            ctx.fill();
+            points.forEach((point, index) => {
+                if (index === 0) ctx.moveTo(point.x, point.y);
+                else ctx.lineTo(point.x, point.y);
+            });
+            ctx.strokeStyle = seriesList[seriesIndex].color;
+            ctx.lineWidth = seriesIndex === 0 ? 2.5 : 2;
+            ctx.stroke();
+
+            if (seriesIndex === 0) {
+                ctx.lineTo(padding.left + chartW, padding.top + chartH);
+                ctx.lineTo(padding.left, padding.top + chartH);
+                ctx.closePath();
+                const gradient = ctx.createLinearGradient(0, padding.top, 0, padding.top + chartH);
+                gradient.addColorStop(0, options.areaStart || 'rgba(74,163,255,0.20)');
+                gradient.addColorStop(1, options.areaEnd || 'rgba(74,163,255,0.03)');
+                ctx.fillStyle = gradient;
+                ctx.fill();
+            }
+
+            points.forEach((point) => {
+                const isActive = point.index === activeIndex && point.seriesIndex === activeSeriesIndex;
+                ctx.beginPath();
+                ctx.arc(point.x, point.y, isActive ? 5.5 : 4, 0, Math.PI * 2);
+                ctx.fillStyle = isActive
+                    ? (options.pointActiveColor || '#ffffff')
+                    : point.seriesColor;
+                ctx.fill();
+            });
         });
 
         ctx.fillStyle = options.labelTextColor || '#cfd2d6';
-        ctx.font = '10px "Manrope", sans-serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'top';
+        ctx.font = `${options.labelFontSize || 10}px "Manrope", sans-serif`;
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'middle';
+        const labelStep = Math.max(1, Math.ceil(labels.length / 12));
         labels.forEach((label, index) => {
+            if (index % labelStep !== 0 && index !== labels.length - 1) return;
             const x = padding.left + index * stepX;
-            ctx.fillText(label, x, padding.top + chartH + 8);
+            const y = padding.top + chartH + 16;
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(-Math.PI / 4);
+            ctx.fillText(label, 0, 0);
+            ctx.restore();
         });
+
+        if (seriesList.length > 1) {
+            let legendX = padding.left;
+            let legendY = height - 16;
+            seriesList.forEach((series) => {
+                ctx.fillStyle = series.color;
+                ctx.fillRect(legendX, legendY, 12, 3);
+                ctx.fillStyle = options.labelTextColor || '#cfd2d6';
+                ctx.font = `${options.legendFontSize || 10}px "Manrope", sans-serif`;
+                ctx.textAlign = 'left';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(series.name, legendX + 18, legendY + 1.5);
+                legendX += Math.max(90, ctx.measureText(series.name).width + 34);
+            });
+        }
     };
 
     drawFrame();
@@ -18139,21 +18588,26 @@ function drawQualityLineChart(canvas, values, labels, options = {}) {
         const y = event.clientY - rect.top;
         let hitIndex = -1;
         let minDistance = Infinity;
-        points.forEach((point, index) => {
-            const distance = Math.hypot(x - point.x, y - point.y);
-            if (distance < minDistance && distance <= 18) {
-                minDistance = distance;
-                hitIndex = index;
-            }
+        let hitSeriesIndex = -1;
+        seriesPoints.forEach((points, seriesIndex) => {
+            points.forEach((point, index) => {
+                const distance = Math.hypot(x - point.x, y - point.y);
+                if (distance < minDistance && distance <= 18) {
+                    minDistance = distance;
+                    hitIndex = index;
+                    hitSeriesIndex = seriesIndex;
+                }
+            });
         });
 
-        if (hitIndex !== activeIndex) {
+        if (hitIndex !== activeIndex || hitSeriesIndex !== activeSeriesIndex) {
             activeIndex = hitIndex;
+            activeSeriesIndex = hitSeriesIndex;
             drawFrame();
         }
 
-        if (hitIndex >= 0) {
-            const hit = points[hitIndex];
+        if (hitIndex >= 0 && hitSeriesIndex >= 0) {
+            const hit = seriesPoints[hitSeriesIndex][hitIndex];
             const html = options.tooltipFormatter
                 ? options.tooltipFormatter(hit)
                 : `<strong>${escapeAdminQualityHtml(hit.label)}</strong><br>${hit.value.toLocaleString('es-AR')}`;
@@ -18165,6 +18619,7 @@ function drawQualityLineChart(canvas, values, labels, options = {}) {
 
     const onLeave = () => {
         activeIndex = -1;
+        activeSeriesIndex = -1;
         drawFrame();
         hideQualityChartTooltip();
     };
@@ -22585,7 +23040,7 @@ const COTIZACION_CATEGORY_CONFIG = [
         key: 'produccion',
         label: 'Produccion',
         configLabel: 'Produccion (Cantidad de Maquinas utilizadas)',
-        defaultChecked: true,
+        defaultChecked: false,
         defaultRows: 1,
         subCategory: 'Maquina'
     },
@@ -22593,7 +23048,7 @@ const COTIZACION_CATEGORY_CONFIG = [
         key: 'ensamble',
         label: 'Ensamble',
         configLabel: 'Ensamble (Cantidad de Maquinas utilizadas)',
-        defaultChecked: true,
+        defaultChecked: false,
         defaultRows: 1,
         subCategory: 'Maquina'
     },
@@ -22601,7 +23056,7 @@ const COTIZACION_CATEGORY_CONFIG = [
         key: 'embalaje',
         label: 'Embalaje',
         configLabel: 'Embalaje (Cantidad de Maquinas utilizadas)',
-        defaultChecked: true,
+        defaultChecked: false,
         defaultRows: 1,
         subCategory: 'Maquina / Proceso'
     },
@@ -22609,7 +23064,7 @@ const COTIZACION_CATEGORY_CONFIG = [
         key: 'deposito_logistica',
         label: 'Deposito y Logistica',
         configLabel: 'Deposito y Logistica',
-        defaultChecked: true,
+        defaultChecked: false,
         defaultRows: 1,
         subCategory: 'Maquina / Proceso'
     },
@@ -22625,7 +23080,7 @@ const COTIZACION_CATEGORY_CONFIG = [
         key: 'externos',
         label: 'Externos a BPB',
         configLabel: 'Externos a BPB',
-        defaultChecked: true,
+        defaultChecked: false,
         defaultRows: 1,
         subCategory: 'Maquina / Proceso'
     },
@@ -22633,7 +23088,7 @@ const COTIZACION_CATEGORY_CONFIG = [
         key: 'importacion',
         label: 'Gastos Importacion',
         configLabel: 'Gastos de Importacion',
-        defaultChecked: true,
+        defaultChecked: false,
         defaultRows: 1,
         subCategory: '-'
     },
@@ -22641,7 +23096,7 @@ const COTIZACION_CATEGORY_CONFIG = [
         key: 'costo_byp',
         label: 'Costo BPB',
         configLabel: 'Costo BPB',
-        defaultChecked: true,
+        defaultChecked: false,
         defaultRows: 1,
         subCategory: '-'
     },

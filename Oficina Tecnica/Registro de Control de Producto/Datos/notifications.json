@@ -319,7 +319,7 @@
       "etapa": "Validación"
     },
     "created_at": "2026-02-09T16:44:00.092528",
-    "read": false
+    "read": true
   },
   {
     "id": "fe66d6f3-f3c2-48ed-b022-b29e15ac8148",
@@ -334,7 +334,7 @@
       "etapa": "Cotizaciones"
     },
     "created_at": "2026-02-09T16:45:22.754416",
-    "read": false
+    "read": true
   },
   {
     "id": "a5d5d991-928f-4a54-8c9d-d8a221ce7a8c",
@@ -602,7 +602,7 @@
       "etapa": "Recolección de Datos"
     },
     "created_at": "2026-02-10T11:53:13.457665",
-    "read": false
+    "read": true
   },
   {
     "id": "df57672c-db59-4842-bfd6-97f8add36b72",
@@ -972,7 +972,7 @@
       "etapa": "Diseño y Desarrollo"
     },
     "created_at": "2026-04-09T17:28:39.965139",
-    "read": false
+    "read": true
   },
   {
     "id": "94bce0f4-8b45-45d4-bed8-630a83d5cbd2",

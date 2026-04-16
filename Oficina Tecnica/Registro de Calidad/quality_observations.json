@@ -3223,7 +3223,31 @@
       "observacion": "",
       "updated_at": "",
       "updated_by": ""
+    },
+    "ar4659||bpb-044-bp17010-01": {
+      "item": "AR4659",
+      "produc": "BPB-044-BP17010-01",
+      "subgrupo": "Partes y Piezas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "ar4676||bpb-999-32213-mx": {
+      "item": "AR4676",
+      "produc": "BPB-999-32213-MX",
+      "subgrupo": "Productos Varios",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "6088ic06000076c||b&p-047-sab-212-60dg": {
+      "item": "6088IC06000076C",
+      "produc": "B&P-047-SAB-212-60DG",
+      "subgrupo": "AUTOCENTRANTES",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
     }
   },
-  "updated_at": "2026-04-15T17:08:36"
+  "updated_at": "2026-04-16T13:38:10"
 }
