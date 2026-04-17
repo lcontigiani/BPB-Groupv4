@@ -24,6 +24,9 @@ import threading
 from datetime import datetime, timedelta, date, timezone
 import tempfile
 import warnings
+import base64
+from zipfile import ZipFile
+import xml.etree.ElementTree as ET
 
 from pathlib import Path
 from typing import Optional, Tuple
@@ -2204,12 +2207,84 @@ def _read_r01901_bp_from_word(path: Path) -> Optional[str]:
             pass
 
 
+def _read_r01901_payload_from_word(path: Path) -> dict:
+    script = rf"""
+$fileName = '{path.name.replace("'", "''")}';
+$root = '\\192.168.0.55\utn\REGISTROS';
+$isoRoot = Get-ChildItem -LiteralPath $root | Where-Object {{ $_.PSIsContainer -and $_.Name -like 'REG.DISE*DESARROLLOS' }} | Select-Object -First 1;
+if(-not $isoRoot) {{ '{{}}'; exit 0 }}
+$r01901 = Get-ChildItem -LiteralPath $isoRoot.FullName | Where-Object {{ $_.PSIsContainer -and $_.Name -like 'R019-01*' }} | Select-Object -First 1;
+if(-not $r01901) {{ '{{}}'; exit 0 }}
+$target = Join-Path $r01901.FullName $fileName;
+if(-not (Test-Path -LiteralPath $target)) {{ '{{}}'; exit 0 }}
+$word = $null; $doc = $null; $payload = @{{}};
+try {{
+  $word = New-Object -ComObject Word.Application;
+  $word.Visible = $false;
+  $doc = $word.Documents.Open($target, $false, $true);
+  foreach($bm in $doc.Bookmarks) {{
+    $name = [string]$bm.Name;
+    if(-not $name -or $name.StartsWith('_')) {{ continue }}
+    $value = '';
+    try {{ if($doc.Bookmarks.Exists($name)) {{ $value = [string]$doc.Bookmarks.Item($name).Range.Text }} }} catch {{}}
+    if(-not $value) {{ try {{ $value = [string]$doc.FormFields.Item($name).Result }} catch {{}} }}
+    if(-not $value) {{
+      try {{
+        $cc = $doc.SelectContentControlsByTitle($name);
+        if($cc -and $cc.Count -gt 0) {{ $value = [string]$cc.Item(1).Range.Text }}
+      }} catch {{}}
+    }}
+    $payload[$name] = ($value | Out-String).Trim();
+  }}
+  $payload['R01901_Path'] = $target;
+  $payload['R01901_File'] = $fileName;
+  $payload | ConvertTo-Json -Depth 4 -Compress
+}} finally {{
+  if($doc) {{ $doc.Close([ref]$false) }}
+  if($word) {{ $word.Quit() }}
+  if($doc) {{ [System.Runtime.Interopservices.Marshal]::ReleaseComObject($doc) | Out-Null }}
+  if($word) {{ [System.Runtime.Interopservices.Marshal]::ReleaseComObject($word) | Out-Null }}
+  [gc]::Collect(); [gc]::WaitForPendingFinalizers()
+}}
+"""
+    try:
+        encoded = base64.b64encode(script.encode("utf-16le")).decode("ascii")
+        result = subprocess.run(
+            ["powershell", "-NoProfile", "-NonInteractive", "-EncodedCommand", encoded],
+            capture_output=True,
+            text=True,
+            timeout=120,
+        )
+        if result.returncode != 0:
+            return {}
+        payload = json.loads((result.stdout or "").strip() or "{}")
+        if not isinstance(payload, dict):
+            return {}
+        # Normalizar checkboxes: Word devuelve chars ☑/☐ o strings "True"/"False"
+        _CHK_TRUTHY_EXACT = {'\u2611', '\u2612', '\u2613', '\u2714', '\u2713', '\u22a0', '\u0001', '\u0002'}
+        _CHK_TRUTHY_LOWER = {'true', '1', 'yes', 'x', '\u2611', '\u2612', '\u2713', '\u2714'}
+        for k in list(payload.keys()):
+            if k.startswith('chk_') and isinstance(payload[k], str):
+                v = payload[k].strip()
+                payload[k] = v in _CHK_TRUTHY_EXACT or v.lower() in _CHK_TRUTHY_LOWER
+        bp = _read_r01901_bp_from_word(path)
+        if bp:
+            payload["BP"] = bp
+        return payload
+    except Exception:
+        return {}
+
+
 def _extract_r01901_bp_year_seq(path: Path, year_two: str) -> Optional[Tuple[str, int]]:
+    filename_parts = _extract_bp_year_seq(path.name)
+    if filename_parts and filename_parts[0] == year_two:
+        return filename_parts
+
     bp_value = _read_r01901_bp_from_word(path)
     bp_parts = _extract_bp_year_seq(bp_value)
     if bp_parts and bp_parts[0] == year_two:
         return bp_parts
-    return _extract_bp_year_seq(path.name)
+    return filename_parts
 
 
 def _compute_iso_next_registry() -> dict:
@@ -2243,17 +2318,18 @@ def _compute_iso_next_registry() -> dict:
         finally:
             wb.close()
 
-    try:
-        if ISO_R01901_DOCS_DIR.exists():
-            source_details.append(f"R019-01:{ISO_R01901_DOCS_DIR}")
-            for doc in ISO_R01901_DOCS_DIR.iterdir():
-                if not doc.is_file():
-                    continue
-                bp_parts = _extract_r01901_bp_year_seq(doc, year_two)
-                if bp_parts and bp_parts[0] == year_two:
-                    last_seq = max(last_seq, bp_parts[1])
-    except Exception:
-        pass
+    if last_seq == 0:
+        try:
+            if ISO_R01901_DOCS_DIR.exists():
+                source_details.append(f"R019-01:{ISO_R01901_DOCS_DIR}")
+                for doc in ISO_R01901_DOCS_DIR.iterdir():
+                    if not doc.is_file():
+                        continue
+                    bp_parts = _extract_bp_year_seq(doc.name)
+                    if bp_parts and bp_parts[0] == year_two:
+                        last_seq = max(last_seq, bp_parts[1])
+        except Exception:
+            pass
 
     return {
         "next_num": last_num + 1,
@@ -10024,7 +10100,7 @@ def _ensure_r01904_created(bp: str) -> Path:
     return dest
 
 
-def _generate_r01904(bp: str, allow_empty: bool = False) -> Path:
+def _generate_r01904(bp: str, allow_empty: bool = False, timeout_sec: int = 180) -> Path:
     import sys
 
     events, _ = _read_r01902_events_for_bp(bp)
@@ -10072,11 +10148,39 @@ def _generate_r01904(bp: str, allow_empty: bool = False) -> Path:
         "--out",
         str(dest)
     ]
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    result = subprocess.run(cmd, capture_output=True, text=True, timeout=max(30, int(timeout_sec or 180)))
     if result.returncode != 0:
         err = (result.stderr or result.stdout or "").strip()
         raise RuntimeError(err or "No se pudo generar R019-04.")
-    return dest
+    stdout_text = (result.stdout or "").strip()
+    for line in reversed(stdout_text.splitlines()):
+        if line.startswith("Actualizado:"):
+            generated_path = Path(line.split(":", 1)[1].strip())
+            if generated_path.exists() and generated_path.suffix.lower() == ".mpp":
+                return generated_path
+            if generated_path.exists():
+                raise RuntimeError(
+                    f"R019-04 devolvio un archivo invalido ({generated_path.suffix or 'sin extension'}). "
+                    "La salida debe ser un .mpp generado por Microsoft Project."
+                )
+    if dest.exists() and dest.suffix.lower() == ".mpp":
+        return dest
+    raise RuntimeError("No se pudo generar un archivo .mpp valido para R019-04.")
+
+
+def _generate_r01904_async(bp: str, allow_empty: bool = True, timeout_sec: int = 900) -> None:
+    safe_bp = str(bp or "").strip()
+    if not safe_bp:
+        return
+
+    def _runner():
+        try:
+            _generate_r01904(safe_bp, allow_empty=allow_empty, timeout_sec=timeout_sec)
+        except Exception as exc:
+            print(f"[ISO][R019-04] Generacion asincrona fallida para {safe_bp}: {exc}")
+
+    thread = threading.Thread(target=_runner, name=f"iso-r01904-{safe_bp}", daemon=True)
+    thread.start()
 
 @app.route('/api/iso-r01904-generate', methods=['POST'])
 def iso_r01904_generate():
@@ -10252,15 +10356,17 @@ def iso_r01902_append():
             r01903_error = f"No se pudo actualizar R019-03: {e}"
         r01904_error = None
         try:
-            _generate_r01904(str(bp), allow_empty=True)
+            _generate_r01904_async(str(bp), allow_empty=True)
         except Exception as e:
-            r01904_error = f"No se pudo generar R019-04: {e}"
+            r01904_error = f"No se pudo iniciar la generacion de R019-04: {e}"
 
         resp = {"status": "success", "row": row}
         if r01903_error:
             resp["r01903_error"] = r01903_error
         if r01904_error:
             resp["r01904_error"] = r01904_error
+        else:
+            resp["r01904_queued"] = True
         resp["r01903_updated"] = bool(r01903_updated)
         return jsonify(resp)
     except Exception as e:
@@ -10346,6 +10452,25 @@ def _iso_payloads_path() -> Path:
     return ISO_PAYLOADS_FILE
 
 
+_CHK_TRUTHY_EXACT = {'\u2611', '\u2612', '\u2613', '\u2714', '\u2713', '\u22a0', '\u0001', '\u0002'}
+_CHK_TRUTHY_LOWER = {'true', '1', 'yes', 'x'}
+
+def _normalize_iso_chk(payload: dict) -> dict:
+    """Convierte valores chk_* a booleanos reales.
+    Word puede devolver chars ☑/☐, strings 'True'/'False', o cualquier otro valor."""
+    if not isinstance(payload, dict):
+        return payload
+    result = dict(payload)
+    for k, v in result.items():
+        if k.startswith('chk_') and not isinstance(v, bool):
+            if isinstance(v, str):
+                s = v.strip()
+                result[k] = s in _CHK_TRUTHY_EXACT or s.lower() in _CHK_TRUTHY_LOWER
+            else:
+                result[k] = bool(v)
+    return result
+
+
 def _load_iso_payloads() -> dict:
     path = _iso_payloads_path()
     if not path.exists():
@@ -10410,25 +10535,25 @@ def _find_iso_payload(payloads: dict, key: str):
     if not key_str:
         return None
     if key_str in payloads:
-        return payloads.get(key_str)
+        return _normalize_iso_chk(payloads.get(key_str))
     key_up = key_str.upper()
     for k, v in payloads.items():
         if str(k).strip().upper() == key_up:
-            return v
+            return _normalize_iso_chk(v)
     for v in payloads.values():
         if not isinstance(v, dict):
             continue
         num = v.get("Numero_de_Registro") or v.get("numero")
         if num is not None and str(num).strip() == key_str:
-            return v
+            return _normalize_iso_chk(v)
         bp = v.get("BP") or v.get("bp")
         if bp and str(bp).strip().upper() == key_up:
-            return v
+            return _normalize_iso_chk(v)
     m = re.search(r"(\d+)", key_str)
     if m:
         num_key = m.group(1)
         if num_key in payloads:
-            return payloads.get(num_key)
+            return _normalize_iso_chk(payloads.get(num_key))
     return None
 
 
@@ -10925,8 +11050,47 @@ def iso_update_r01901():
 @app.route('/api/iso-r01901-payload', methods=['GET'])
 def iso_r01901_payload():
     key = request.args.get('key') or request.args.get('id') or request.args.get('bp') or ''
+    # ?live=1 fuerza la lectura del Word desde la red (lenta). Por defecto solo usa el JSON local.
+    force_live = request.args.get('live', '0') in ('1', 'true', 'yes')
     payloads = _load_iso_payloads()
     payload = _find_iso_payload(payloads, key)
+    live_payload = {}
+
+    if force_live:
+        target_path = None
+        if isinstance(payload, dict):
+            raw_path = payload.get("R01901_Path")
+            if raw_path:
+                candidate = Path(str(raw_path))
+                if candidate.exists():
+                    target_path = candidate
+
+        if target_path is None:
+            bp = ""
+            if isinstance(payload, dict):
+                bp = str(payload.get("BP") or payload.get("bp") or "").strip()
+            if not bp:
+                key_up = str(key or "").strip().upper()
+                if re.match(r"^BP-?\d{5}$", key_up):
+                    bp = key_up if key_up.startswith("BP-") else f"BP-{key_up[2:]}"
+            if bp:
+                try:
+                    target_path = _resolve_r01901_output_path(ISO_R01901_DOCS_DIR, bp, must_exist=True)
+                except Exception:
+                    target_path = None
+
+        if target_path is not None and target_path.exists():
+            live_payload = _read_r01901_payload_from_word(target_path)
+
+        if live_payload:
+            merged = dict(payload or {})
+            merged.update(live_payload)
+            payload = merged
+            try:
+                _upsert_iso_payload(payload, merge=True)
+            except Exception:
+                pass
+
     if not payload:
         return jsonify({"status": "error", "message": "No se encontro el registro."}), 404
     return jsonify({"status": "success", "payload": payload})
@@ -15610,6 +15774,41 @@ def _read_quality_pending_records():
         handler_state = _quality_load_pending_handlers_state()
         handler_assignments = handler_state.get('assignments') if isinstance(handler_state, dict) else {}
         handler_assignments = handler_assignments if isinstance(handler_assignments, dict) else {}
+        approval_totals_by_key = {}
+        approval_totals_by_pair = {}
+
+        for row, header_map in _quality_sheet_rows('Aprobaciones'):
+            item = _format_quality_value(_quality_get_value(row, header_map, 'item'))
+            produc = _format_quality_value(_quality_get_value(row, header_map, 'produc'))
+            oc_numero = _format_quality_value(_quality_get_value(row, header_map, 'OC numero', 'OC Numero'))
+            fecha_ing = _format_quality_value(_quality_get_value(row, header_map, 'Fecha_ing', 'fecha_ing', 'Fecha Ing'))
+            approved_qty = max(float(_quality_parse_number(_quality_get_value(row, header_map, 'canti_real', 'CANTI_EXIS')) or 0.0), 0.0)
+            if approved_qty <= 0:
+                continue
+
+            approval_signature = (
+                _format_quality_value(_quality_get_value(row, header_map, 'compro_nume', 'compro nume', 'Compro Nume')),
+                _format_quality_value(_quality_get_value(row, header_map, 'linea_nume', 'linea nume', 'Linea Nume')),
+                _format_quality_value(_quality_get_value(row, header_map, 'ubi', 'Ubi', 'ubicacion', 'Ubicacion')),
+                _format_quality_value(approved_qty),
+                _format_quality_value(_quality_get_value(row, header_map, 'fecha')),
+            )
+
+            full_key = _quality_pending_row_key(item, produc, oc_numero, fecha_ing)
+            pair_key = _quality_pending_row_key(item, produc, oc_numero, '')
+
+            if full_key not in approval_totals_by_key:
+                approval_totals_by_key[full_key] = {'qty': 0.0, 'signatures': set()}
+            if approval_signature not in approval_totals_by_key[full_key]['signatures']:
+                approval_totals_by_key[full_key]['signatures'].add(approval_signature)
+                approval_totals_by_key[full_key]['qty'] += approved_qty
+
+            if pair_key not in approval_totals_by_pair:
+                approval_totals_by_pair[pair_key] = {'qty': 0.0, 'signatures': set()}
+            if approval_signature not in approval_totals_by_pair[pair_key]['signatures']:
+                approval_totals_by_pair[pair_key]['signatures'].add(approval_signature)
+                approval_totals_by_pair[pair_key]['qty'] += approved_qty
+
         grouped_records = {}
         for record in snapshot['records']:
             key = _quality_tracking_key(record['item'], record['produc'])
@@ -15627,12 +15826,10 @@ def _read_quality_pending_records():
                     'observaciones': _format_quality_value(tracked.get('observacion')),
                     'fecha_ing': record['fecha_ing'],
                     'total_qty_num': max(float(record.get('total_qty') or 0.0), 0.0),
-                    'approved_qty_num': 0.0,
                     'is_ar7_item': _quality_is_ar7_item(record['item']),
                     'encargado': _format_quality_value(assigned_handler.get('name')),
                     'encargado_updated_at': _format_quality_value(assigned_handler.get('updated_at')),
                     'encargado_updated_by': _format_quality_value(assigned_handler.get('updated_by')),
-                    '_approved_signatures': set(),
                 }
                 grouped_records[row_key] = bucket
 
@@ -15640,20 +15837,12 @@ def _read_quality_pending_records():
             if not bucket.get('subgrupo') and record.get('subgrupo'):
                 bucket['subgrupo'] = record.get('subgrupo', '')
 
-            approved_qty = max(float(record.get('approved_qty') or 0.0), 0.0)
-            approved_signature = (
-                _format_quality_value(record.get('ubi')),
-                _format_quality_value(approved_qty),
-                _format_quality_value(record.get('total_qty'))
-            )
-            if approved_signature not in bucket['_approved_signatures']:
-                bucket['_approved_signatures'].add(approved_signature)
-                bucket['approved_qty_num'] += approved_qty
-
         records = []
         for bucket in grouped_records.values():
             total_qty = max(bucket.get('total_qty_num') or 0.0, 0.0)
-            approved_qty = max(bucket.get('approved_qty_num') or 0.0, 0.0)
+            pair_key = _quality_pending_row_key(bucket.get('item'), bucket.get('produc'), bucket.get('oc_numero'), '')
+            approved_data = approval_totals_by_key.get(bucket['row_key']) or approval_totals_by_pair.get(pair_key) or {}
+            approved_qty = max(float(approved_data.get('qty') or 0.0), 0.0)
             if total_qty > 0:
                 approved_qty = min(approved_qty, total_qty)
             remaining_qty = max(total_qty - approved_qty, 0.0)
@@ -15668,7 +15857,6 @@ def _read_quality_pending_records():
             if is_approved:
                 continue
 
-            bucket.pop('_approved_signatures', None)
             fecha_ing_date = _quality_parse_date(bucket.get('fecha_ing'))
             records.append({
                 'item': bucket['item'],
@@ -15753,6 +15941,7 @@ def _read_quality_history_records():
                 'item': item,
                 'produc': produc,
                 'ubi': _format_quality_value(_quality_get_value(row, header_map, 'ubi', 'Ubi', 'ubicacion', 'Ubicacion')),
+                'depo': _format_quality_value(_quality_get_value(row, header_map, 'depo', 'Depo')),
                 'observaciones': _format_quality_value(tracked.get('observacion')),
                 'oc_numero': oc_numero,
                 'canti_real': _format_quality_value(_quality_get_value(row, header_map, 'canti_real', 'CANTI_EXIS')),

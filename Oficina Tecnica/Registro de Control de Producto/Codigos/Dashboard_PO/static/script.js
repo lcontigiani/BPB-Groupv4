@@ -96,7 +96,8 @@ let currentUserSignature = '';
 
 window.isProcessing = false;
 
-const isoApprovalUsers = ['Luciano Cochis'];
+const isoApprovalUsers = ['Luciano Cochis', 'Lorenzo Contigiani'];
+const isoApprovalUserEmails = ['lcochis@bpbargentina.com', 'lcontigiani@bpbargentina.com'];
 let isoApprovalCache = { names: [], emails: [] };
 
 function isExternos() {
@@ -2912,14 +2913,14 @@ async function refreshIsoApprovalCache() {
     try {
         const list = await loadIsoDestinatarios();
         const names = isoApprovalUsers.map(n => normalizeIsoText(n));
-        const emails = [];
+        const emails = [...isoApprovalUserEmails];
         isoApprovalUsers.forEach((n) => {
             const match = list.find(r => normalizeIsoText(r.name) === normalizeIsoText(n));
             if (match && match.email) emails.push(match.email.toLowerCase().trim());
         });
-        isoApprovalCache = { names, emails };
+        isoApprovalCache = { names, emails: Array.from(new Set(emails)) };
     } catch (_) {
-        isoApprovalCache = { names: isoApprovalUsers.map(n => normalizeIsoText(n)), emails: [] };
+        isoApprovalCache = { names: isoApprovalUsers.map(n => normalizeIsoText(n)), emails: [...isoApprovalUserEmails] };
     }
 }
 
@@ -3715,9 +3716,19 @@ function fillIsoFormFromPayload(payload) {
         chk_Ens_NoDisp: 'chk-en-nodisp'
     };
 
+    // Chars que Word usa para checkboxes en Content Controls (☑ marcado, ☐ desmarcado)
+    const CHK_TRUTHY = new Set(['true', '1', 'yes', 'x', '\u2611', '\u2612', '\u2613', '\u2713', '\u2714', '\u22a0', '\u0001', '\u0002']);
     Object.keys(chkMap).forEach(key => {
         const el = document.getElementById(chkMap[key]);
-        if (el) el.checked = !!payload[key];
+        if (el) {
+            const val = payload[key];
+            if (typeof val === 'string') {
+                const v = val.trim();
+                el.checked = CHK_TRUTHY.has(v) || CHK_TRUTHY.has(v.toLowerCase());
+            } else {
+                el.checked = !!val;
+            }
+        }
     });
 
     if (typeof bindIsoCheckboxStates === 'function') bindIsoCheckboxStates();
@@ -3884,9 +3895,9 @@ function buildISO019Payload() {
     const chkAnalisis = getCheck("chk-analisis");
     const chkCambio = getCheck("chk-cambio");
     const chkNuevo = getCheck("chk-nuevo");
-    if (!chkAnalisis && !chkCambio && !chkNuevo) errors.push("Analisis/Cambio/Diseno Nuevo (seleccionar uno)");
+    if (!chkAnalisis && !chkCambio && !chkNuevo) errors.push("Análisis/Cambio/Diseño Nuevo (seleccionar uno)");
 
-    requireField("iso-resp-dis", "Responsable Diseno");
+    requireField("iso-resp-dis", "Responsable Diseño");
 
     const chkMagnitud = getCheck("chk-magnitud");
     const cargaMagnitud = getValue("iso-carga-magnitud").trim();
@@ -5492,7 +5503,30 @@ function applyIsoTrackingInputColor(input, group) {
 }
 
 function getIsoTrackingBPOptions() {
-    const records = loadIsoControlRecords();
+    const parseRecordDate = (value) => {
+        const parts = String(value || '').trim().split('/');
+        if (parts.length !== 3) return null;
+        const day = parseInt(parts[0], 10);
+        const month = parseInt(parts[1], 10);
+        const year = parseInt(parts[2], 10);
+        if (!Number.isFinite(day) || !Number.isFinite(month) || !Number.isFinite(year)) return null;
+        return new Date(year, month - 1, day);
+    };
+
+    const records = loadIsoControlRecords().slice().sort((a, b) => {
+        const db = parseRecordDate(b && b.fecha_inicio);
+        const da = parseRecordDate(a && a.fecha_inicio);
+        const tb = db ? db.getTime() : -Infinity;
+        const ta = da ? da.getTime() : -Infinity;
+        if (tb !== ta) return tb - ta;
+
+        const nb = parseInt(b && b.numero ? b.numero : '', 10);
+        const na = parseInt(a && a.numero ? a.numero : '', 10);
+        if (Number.isFinite(nb) && Number.isFinite(na) && nb !== na) return nb - na;
+        if (Number.isFinite(nb) && !Number.isFinite(na)) return -1;
+        if (Number.isFinite(na) && !Number.isFinite(nb)) return 1;
+        return String(b && b.descripcion || '').localeCompare(String(a && a.descripcion || ''));
+    });
     const seen = new Set();
     const list = [];
     records.forEach(rec => {
@@ -5771,15 +5805,13 @@ function renderIsoTrackingTable(recordId) {
         const canApprove = isPending && canApproveUser;
         const notifId = canApprove ? getApprovalNotificationId('', ev.row) : '';
         const resultDisplay = isoResultBadgeHtml(resultados) || resultados;
-        const resultHtml = canApprove
-            ? `<div class="iso-approve-cell">
-                    <div class="iso-approve-badge">${resultDisplay || ''}</div>
-                    <div class="iso-approve-actions">
-                        <button class="btn-check" onclick="approveIsoTrackingEvent('${recordId}', '${ev.row || ''}', 'Aprobado', '', '${notifId || ''}')" title="Marcar como Aprobado">&#10003;</button>
-                        <button class="btn-cancel-check" onclick="openIsoCorrectiveModal('${recordId}', '${ev.row || ''}', '${notifId || ''}')" title="Desaprobar">&#10005;</button>
-                    </div>
+        const actionBase = (ev.accion || '').trim();
+        const actionHtml = canApprove
+            ? `<div class="iso-approve-actions iso-approve-actions-centered">
+                    <button class="btn-check" onclick="approveIsoTrackingEvent('${recordId}', '${ev.row || ''}', 'Aprobado', '', '${notifId || ''}')" title="Marcar como Aprobado">&#10003;</button>
+                    <button class="btn-cancel-check" onclick="openIsoCorrectiveModal('${recordId}', '${ev.row || ''}', '${notifId || ''}')" title="Desaprobar">&#10005;</button>
                </div>`
-            : resultDisplay;
+            : (actionBase || '');
         return `
         <tr data-row="${ev.row || ''}">
             <td>${ev.fecha || ''}</td>
@@ -5787,8 +5819,8 @@ function renderIsoTrackingTable(recordId) {
             <td>${isoBadgeHtml(ev.area, 'area')}</td>
             <td>${isoBadgeHtml(ev.empresa, 'empresa')}</td>
             <td>${ev.descripcion || ''}</td>
-            <td>${resultHtml}</td>
-            <td>${ev.accion || ''}</td>
+            <td>${resultDisplay}</td>
+            <td>${actionHtml}</td>
             <td>${ev.usuario || ''}</td>
         </tr>
         `;
@@ -6091,7 +6123,7 @@ function exitISOTrackingPanel() {
     showISOModule();
 }
 
-function showISOTrackingPanel(fromInfo) {
+async function showISOTrackingPanel(fromInfo) {
     localStorage.setItem('lastView', 'iso-tracking');
     if (fromInfo === 'info') {
         window._isoTrackingReturn = 'iso-info';
@@ -6107,6 +6139,7 @@ function showISOTrackingPanel(fromInfo) {
     const subtitle = document.querySelector('header .subtitle');
     if (subtitle) subtitle.textContent = 'Oficina Técnica | Registro ISO 9001';
 
+    await fetchIsoControlRecords();
     bindIsoTrackingBPSuggestions();
     setupIsoTrackingSuggestions();
 
@@ -6877,6 +6910,7 @@ function bindQualityObservationInputs(scope) {
     if (!scope) return;
     scope.querySelectorAll('.quality-observation-input').forEach((textarea) => {
         autoResizeQualityObservationInput(textarea);
+        if (textarea.readOnly || textarea.disabled) return;
         if (textarea.dataset.bound === '1') return;
         textarea.dataset.lastSaved = textarea.value || '';
         textarea.addEventListener('input', () => autoResizeQualityObservationInput(textarea));
@@ -6885,6 +6919,7 @@ function bindQualityObservationInputs(scope) {
     });
     scope.querySelectorAll('.quality-muestras-input').forEach((textarea) => {
         autoResizeQualityObservationInput(textarea);
+        if (textarea.readOnly || textarea.disabled) return;
         if (textarea.dataset.bound === '1') return;
         textarea.dataset.lastSaved = textarea.value || '';
         textarea.addEventListener('input', () => autoResizeQualityObservationInput(textarea));
@@ -7344,7 +7379,7 @@ function ensureQualityPendingTableHeader() {
 }
 
 function ensureQualityHistoryTableHeader() {
-    setQualityTableColumnWidths('#quality-history-table', ['20%', '10%', '11%', '11%', '11%', '11%', '11%', '15%']);
+    setQualityTableColumnWidths('#quality-history-table', ['18%', '10%', '11%', '10%', '8%', '10%', '11%', '9%', '13%']);
     const thead = document.querySelector('#quality-history-table thead');
     if (!thead) return;
     thead.innerHTML = `
@@ -7353,6 +7388,7 @@ function ensureQualityHistoryTableHeader() {
             <th class="text-center" style="position:sticky; top:0; z-index:3; background:#161616; text-align:center; vertical-align:middle; line-height:1.2;">N&ordm; PO</th>
             <th class="text-center" style="position:sticky; top:0; z-index:3; background:#161616; text-align:center; vertical-align:middle; line-height:1.2;">Cantidad<br>Controlada</th>
             <th class="text-center" style="position:sticky; top:0; z-index:3; background:#161616; text-align:center; vertical-align:middle; line-height:1.2;">N&ordm; Muestras</th>
+            <th class="text-center" style="position:sticky; top:0; z-index:3; background:#161616; text-align:center; vertical-align:middle; line-height:1.2;">Depo</th>
             <th class="text-center" style="position:sticky; top:0; z-index:3; background:#161616; text-align:center; vertical-align:middle; line-height:1.2;">Ubicacion</th>
             <th class="text-center" style="position:sticky; top:0; z-index:3; background:#161616; text-align:center; vertical-align:middle; line-height:1.2;">Fecha de<br>Control</th>
             <th class="text-center" style="position:sticky; top:0; z-index:3; background:#161616; text-align:center; vertical-align:middle; line-height:1.2;">Autor</th>
@@ -7549,8 +7585,10 @@ function renderQualityPendingTable() {
                     data-item="${escapeQualityHtml(record.item || '')}"
                     data-produc="${escapeQualityHtml(record.produc || '')}"
                     data-last-saved="${escapeQualityHtml(record.muestras || '')}"
+                    readonly
+                    tabindex="-1"
                     rows="1"
-                    style="width:100%; min-height:34px; resize:none; overflow:hidden; border:1px solid var(--border); border-radius:6px; background:rgba(255,255,255,0.04); color:var(--text-primary); padding:0.45rem 0.6rem; font:inherit; box-sizing:border-box; text-align:center;"
+                    style="width:100%; min-height:34px; resize:none; overflow:hidden; border:1px solid rgba(255,255,255,0.08); border-radius:6px; background:rgba(255,255,255,0.02); color:var(--text-primary); padding:0.45rem 0.6rem; font:inherit; box-sizing:border-box; text-align:center; cursor:default;"
                 >${escapeQualityHtml(record.muestras || '')}</textarea>
             </td>
             <td class="text-center">
@@ -8061,7 +8099,7 @@ function renderQualityHistoryTable() {
 
     if (!records.length) {
         updateQualityFilterStats('quality-history-stats', 0);
-        tbody.innerHTML = '<tr><td colspan="8" class="text-center" style="padding: 2rem; color: #888;">No hay registros en el historial.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="9" class="text-center" style="padding: 2rem; color: #888;">No hay registros en el historial.</td></tr>';
         return;
     }
 
@@ -8078,6 +8116,7 @@ function renderQualityHistoryTable() {
         const query = currentQualityHistorySearch.toLowerCase();
         return [
             record.produc,
+            record.depo,
             record.ubi,
             record.observaciones,
             record.muestras,
@@ -8091,7 +8130,7 @@ function renderQualityHistoryTable() {
     updateQualityFilterStats('quality-history-stats', filteredRecords.length);
 
     if (!filteredRecords.length) {
-        tbody.innerHTML = '<tr><td colspan="8" class="text-center" style="padding: 2rem; color: #888;">No hay registros que coincidan con los filtros.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="9" class="text-center" style="padding: 2rem; color: #888;">No hay registros que coincidan con los filtros.</td></tr>';
         return;
     }
 
@@ -8114,10 +8153,13 @@ function renderQualityHistoryTable() {
                     data-item="${escapeQualityHtml(record.item || '')}"
                     data-produc="${escapeQualityHtml(record.produc || '')}"
                     data-last-saved="${escapeQualityHtml(record.muestras || '')}"
+                    readonly
+                    tabindex="-1"
                     rows="1"
-                    style="width:100%; min-height:34px; resize:none; overflow:hidden; border:1px solid var(--border); border-radius:6px; background:rgba(255,255,255,0.04); color:var(--text-primary); padding:0.45rem 0.6rem; font:inherit; box-sizing:border-box; text-align:center;"
+                    style="width:100%; min-height:34px; resize:none; overflow:hidden; border:1px solid rgba(255,255,255,0.08); border-radius:6px; background:rgba(255,255,255,0.02); color:var(--text-primary); padding:0.45rem 0.6rem; font:inherit; box-sizing:border-box; text-align:center; cursor:default;"
                 >${escapeQualityHtml(record.muestras || '')}</textarea>
             </td>
+            <td class="text-center">${escapeQualityHtml(record.depo || '-')}</td>
             <td class="text-center">${escapeQualityHtml(record.ubi || '-')}</td>
             <td class="text-center" style="white-space: nowrap;">${fmtHistoryFecha(record.fecha)}</td>
             <td class="text-center">${escapeQualityHtml(record.name || '-')}</td>
@@ -8127,8 +8169,10 @@ function renderQualityHistoryTable() {
                     data-item="${escapeQualityHtml(record.item || '')}"
                     data-produc="${escapeQualityHtml(record.produc || '')}"
                     data-last-saved="${escapeQualityHtml(record.observaciones || '')}"
+                    readonly
+                    tabindex="-1"
                     rows="1"
-                    style="width:100%; min-height:34px; resize:none; overflow:hidden; border:1px solid var(--border); border-radius:6px; background:rgba(255,255,255,0.04); color:var(--text-primary); padding:0.45rem 0.6rem; font:inherit; box-sizing:border-box; text-align:center;"
+                    style="width:100%; min-height:34px; resize:none; overflow:hidden; border:1px solid rgba(255,255,255,0.08); border-radius:6px; background:rgba(255,255,255,0.02); color:var(--text-primary); padding:0.45rem 0.6rem; font:inherit; box-sizing:border-box; text-align:center; cursor:default;"
                 >${escapeQualityHtml(record.observaciones || '')}</textarea>
             </td>
         </tr>
@@ -8573,8 +8617,10 @@ function renderQualityReworksTable() {
                     data-item="${escapeQualityHtml(record.item || '')}"
                     data-produc="${escapeQualityHtml(record.produc || '')}"
                     data-last-saved="${escapeQualityHtml(record.observaciones || '')}"
+                    readonly
+                    tabindex="-1"
                     rows="1"
-                    style="width:100%; min-height:34px; resize:none; overflow:hidden; border:1px solid var(--border); border-radius:6px; background:rgba(255,255,255,0.04); color:var(--text-primary); padding:0.45rem 0.6rem; font:inherit; box-sizing:border-box; text-align:center;"
+                    style="width:100%; min-height:34px; resize:none; overflow:hidden; border:1px solid rgba(255,255,255,0.08); border-radius:6px; background:rgba(255,255,255,0.02); color:var(--text-primary); padding:0.45rem 0.6rem; font:inherit; box-sizing:border-box; text-align:center; cursor:default;"
                 >${escapeQualityHtml(record.observaciones || '')}</textarea>
             </td>
         </tr>
@@ -17105,11 +17151,15 @@ function getQualityPrintChartImage(canvasId) {
     if (canvasId === 'admin-quality-line-chart') {
         canvas.style.width = '980px';
         canvas.style.height = '620px';
-        drawQualityLineChart(canvas, [
-            { name: 'Total', values: state.periodTotalValues || [], color: '#4aa3ff' },
+        const printLineSeries = [
             { name: 'vzarlenga', values: state.periodVzarlengaValues || [], color: '#f5a623' },
-            { name: 'lgonzalez', values: state.periodLgonzalezValues || [], color: '#2ecc71' }
-        ], state.periodLabels || [], {
+            { name: 'lgonzalez', values: state.periodLgonzalezValues || [], color: '#2ecc71' },
+            { name: 'Ingresos Aprobados', values: state.periodTotalValues || [], color: '#4aa3ff' }
+        ];
+        if (Array.isArray(state.periodIngressValues) && state.periodIngressValues.length) {
+            printLineSeries.push({ name: 'Ingresos del Periodo', values: state.periodIngressValues, color: '#9b59b6' });
+        }
+        drawQualityLineChart(canvas, printLineSeries, state.periodLabels || [], {
             ...printColors,
             gridColor: 'rgba(0,0,0,0.16)',
             axisTextColor: '#111111',
@@ -17120,7 +17170,8 @@ function getQualityPrintChartImage(canvasId) {
             leftPadding: 42,
             rightPadding: 10,
             topPadding: 8,
-            bottomPadding: 98
+            bottomPadding: 98,
+            labelRotation: (state.periodLabels || []).some((label) => String(label).startsWith('Sem ')) ? -Math.PI / 6 : -Math.PI / 4
         });
         return canvas.toDataURL('image/png');
     }
@@ -17432,7 +17483,7 @@ function getQualityAdminWeekStart(date) {
     return dt;
 }
 
-function buildQualityAdminPeriodSeries(records) {
+function buildQualityAdminPeriodSeries(records, dateField = 'approval_date') {
     const filteredRecords = Array.isArray(records) ? records : [];
     const bounds = getQualityAdminSelectedDateBounds();
     if (!bounds?.start || !bounds?.end) {
@@ -17452,7 +17503,7 @@ function buildQualityAdminPeriodSeries(records) {
             cursor.setDate(cursor.getDate() + 1);
         }
         filteredRecords.forEach((record) => {
-            const dt = parseQualityFilterDate(record?.approval_date);
+            const dt = parseQualityFilterDate(record?.[dateField]);
             if (!dt) return;
             const key = dt.toISOString().slice(0, 10);
             if (map.has(key)) map.get(key).add(getQualityAdminUniqueRecordKey(record));
@@ -17473,7 +17524,7 @@ function buildQualityAdminPeriodSeries(records) {
             cursor = new Date(cursor.getFullYear(), cursor.getMonth(), cursor.getDate() + 7);
         }
         filteredRecords.forEach((record) => {
-            const dt = parseQualityFilterDate(record?.approval_date);
+            const dt = parseQualityFilterDate(record?.[dateField]);
             if (!dt) return;
             const weekStart = getQualityAdminWeekStart(dt).toISOString().slice(0, 10);
             if (map.has(weekStart)) map.get(weekStart).add(getQualityAdminUniqueRecordKey(record));
@@ -17502,7 +17553,7 @@ function buildQualityAdminPeriodSeries(records) {
         }
     }
     filteredRecords.forEach((record) => {
-        const dt = parseQualityFilterDate(record?.approval_date);
+        const dt = parseQualityFilterDate(record?.[dateField]);
         if (!dt) return;
         const key = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}`;
         if (map.has(key)) map.get(key).add(getQualityAdminUniqueRecordKey(record));
@@ -17530,6 +17581,30 @@ function getQualityAdminPeriodChartRecords(username = '') {
         }
         return isQualityAdminRecordInSelectedPeriod(record, 'approval');
     });
+}
+
+function getQualityAdminIngressPeriodChartRecords() {
+    initAdminQualityStatsYear();
+    const historyRecords = Array.isArray(qualityAdminStatsData?.history_records) ? qualityAdminStatsData.history_records : [];
+    const pendingRecords = Array.isArray(qualityAdminStatsData?.pending_records) ? qualityAdminStatsData.pending_records : [];
+    const byKey = new Map();
+
+    [...historyRecords, ...pendingRecords].forEach((record) => {
+        if (!record || record._ingressYear !== qualityAdminStatsYear) return;
+        if (qualityAdminPeriodGranularity !== 'month' && !isQualityAdminRecordInSelectedPeriod(record, 'ingress')) return;
+        const key = getQualityAdminUniqueRecordKey(record);
+        if (!key) return;
+        if (!byKey.has(key)) {
+            byKey.set(key, record);
+            return;
+        }
+        const current = byKey.get(key);
+        const currentTs = current?._ingressTs ?? Infinity;
+        const nextTs = record?._ingressTs ?? Infinity;
+        if (nextTs < currentTs) byKey.set(key, record);
+    });
+
+    return Array.from(byKey.values());
 }
 
 function renderAdminQualityStatsLoading() {
@@ -17684,7 +17759,7 @@ function renderAdminQualityStatsDashboard() {
     const uniqueProducts = ingressProducts.size;
     const pendingUniqueRecordKeys = new Set(pendingRecordsInPeriod.map((record) => getQualityAdminUniqueRecordKey(record)));
     const periodPendingCount = pendingUniqueRecordKeys.size;
-    const periodCompletedCount = Array.from(uniqueControlRecords).filter((key) => !pendingUniqueRecordKeys.has(key)).length;
+    const periodCompletedCount = uniqueControlRecords.size;
 
     const cards = document.getElementById('admin-quality-stats-cards');
     if (cards) {
@@ -17771,21 +17846,34 @@ function renderAdminQualityStatsDashboard() {
         }
     }
 
+    const isIngressComparisonMode = qualityAdminPeriodGranularity === 'month' || qualityAdminPeriodGranularity === 'week';
     const periodSeriesVzarlenga = buildQualityAdminPeriodSeries(getQualityAdminPeriodChartRecords('vzarlenga'));
     const periodSeriesLgonzalez = buildQualityAdminPeriodSeries(getQualityAdminPeriodChartRecords('lgonzalez'));
-    const periodSeriesTotal = {
-        labels: [...periodSeriesVzarlenga.labels],
-        values: periodSeriesVzarlenga.values.map((value, index) => value + (periodSeriesLgonzalez.values[index] || 0))
-    };
+    const periodSeriesApproved = buildQualityAdminPeriodSeries(getQualityAdminPeriodChartRecords());
+    const pendingPeriodSource = isIngressComparisonMode
+        ? (qualityAdminPeriodGranularity === 'month'
+            ? pendingRecords.filter((record) => record && record._ingressYear === qualityAdminStatsYear)
+            : pendingRecordsInPeriod)
+        : [];
+    const pendingPeriodSeries = isIngressComparisonMode
+        ? buildQualityAdminPeriodSeries(pendingPeriodSource, 'fecha_ing_iso')
+        : null;
+    const ingressPeriodSeries = isIngressComparisonMode
+        ? {
+            labels: [...periodSeriesApproved.labels],
+            values: periodSeriesApproved.values.map((value, index) => value + ((pendingPeriodSeries?.values || [])[index] || 0))
+        }
+        : null;
     updateQualityAdminPeriodToggleUi();
     qualityAdminPrintState = {
         topUsersLabels: topUsers.map((entry) => entry[0]),
         topUsersValues: topUsers.map((entry) => entry[1]),
         durationValues: [...durationValues],
-        periodLabels: [...periodSeriesTotal.labels],
-        periodTotalValues: [...periodSeriesTotal.values],
+        periodLabels: [...periodSeriesApproved.labels],
+        periodTotalValues: [...periodSeriesApproved.values],
         periodVzarlengaValues: [...periodSeriesVzarlenga.values],
         periodLgonzalezValues: [...periodSeriesLgonzalez.values],
+        periodIngressValues: ingressPeriodSeries ? [...ingressPeriodSeries.values] : [],
         statusSegments: [
             { label: 'Con cantidades pendientes', value: periodPendingCount, color: '#f5a623' },
             { label: 'Terminados', value: periodCompletedCount, color: '#4aa3ff' }
@@ -17793,11 +17881,16 @@ function renderAdminQualityStatsDashboard() {
         statusCenterPrimary: `${periodPendingCount + periodCompletedCount}`,
         statusCenterSecondary: 'Registros'
     };
-    drawQualityLineChart(document.getElementById('admin-quality-line-chart'), [
-        { name: 'Total', values: periodSeriesTotal.values, color: '#4aa3ff' },
+    const periodChartSeries = [
         { name: 'vzarlenga', values: periodSeriesVzarlenga.values, color: '#f5a623' },
-        { name: 'lgonzalez', values: periodSeriesLgonzalez.values, color: '#2ecc71' }
-    ], periodSeriesTotal.labels, {
+        { name: 'lgonzalez', values: periodSeriesLgonzalez.values, color: '#2ecc71' },
+        { name: 'Ingresos Aprobados', values: periodSeriesApproved.values, color: '#4aa3ff' }
+    ];
+    if (ingressPeriodSeries) {
+        periodChartSeries.push({ name: 'Ingresos del Periodo', values: ingressPeriodSeries.values, color: '#9b59b6' });
+    }
+    drawQualityLineChart(document.getElementById('admin-quality-line-chart'), periodChartSeries, (isIngressComparisonMode ? ingressPeriodSeries?.labels : periodSeriesApproved.labels) || periodSeriesApproved.labels, {
+        labelRotation: qualityAdminPeriodGranularity === 'week' ? -Math.PI / 6 : -Math.PI / 4,
         tooltipFormatter: ({ label, value, seriesName }) => `<strong>${escapeAdminQualityHtml(seriesName || '')}</strong><br>${escapeAdminQualityHtml(label)}<br>${value.toLocaleString('es-AR')} controles`
     });
 
@@ -18466,6 +18559,14 @@ function drawQualityBarChart(canvas, values, labels, options = {}) {
 
 function drawQualityLineChart(canvas, values, labels, options = {}) {
     if (!canvas) return;
+    const hexToRgba = (hex, alpha) => {
+        const value = String(hex || '').replace('#', '').trim();
+        if (value.length !== 6) return `rgba(74,163,255,${alpha})`;
+        const r = parseInt(value.slice(0, 2), 16);
+        const g = parseInt(value.slice(2, 4), 16);
+        const b = parseInt(value.slice(4, 6), 16);
+        return `rgba(${r},${g},${b},${alpha})`;
+    };
     const isMultiSeries = Array.isArray(values) && values.length && typeof values[0] === 'object' && Array.isArray(values[0].values);
     const seriesList = isMultiSeries
         ? values.map((series, index) => ({
@@ -18526,16 +18627,18 @@ function drawQualityLineChart(canvas, values, labels, options = {}) {
             ctx.lineWidth = seriesIndex === 0 ? 2.5 : 2;
             ctx.stroke();
 
-            if (seriesIndex === 0) {
-                ctx.lineTo(padding.left + chartW, padding.top + chartH);
-                ctx.lineTo(padding.left, padding.top + chartH);
-                ctx.closePath();
-                const gradient = ctx.createLinearGradient(0, padding.top, 0, padding.top + chartH);
-                gradient.addColorStop(0, options.areaStart || 'rgba(74,163,255,0.20)');
-                gradient.addColorStop(1, options.areaEnd || 'rgba(74,163,255,0.03)');
-                ctx.fillStyle = gradient;
-                ctx.fill();
-            }
+            ctx.lineTo(padding.left + chartW, padding.top + chartH);
+            ctx.lineTo(padding.left, padding.top + chartH);
+            ctx.closePath();
+            const gradient = ctx.createLinearGradient(0, padding.top, 0, padding.top + chartH);
+            gradient.addColorStop(0, seriesIndex === 0
+                ? (options.areaStart || hexToRgba(seriesList[seriesIndex].color, 0.20))
+                : hexToRgba(seriesList[seriesIndex].color, 0.12));
+            gradient.addColorStop(1, seriesIndex === 0
+                ? (options.areaEnd || hexToRgba(seriesList[seriesIndex].color, 0.03))
+                : hexToRgba(seriesList[seriesIndex].color, 0.015));
+            ctx.fillStyle = gradient;
+            ctx.fill();
 
             points.forEach((point) => {
                 const isActive = point.index === activeIndex && point.seriesIndex === activeSeriesIndex;
@@ -18559,7 +18662,7 @@ function drawQualityLineChart(canvas, values, labels, options = {}) {
             const y = padding.top + chartH + 16;
             ctx.save();
             ctx.translate(x, y);
-            ctx.rotate(-Math.PI / 4);
+            ctx.rotate(options.labelRotation ?? (-Math.PI / 4));
             ctx.fillText(label, 0, 0);
             ctx.restore();
         });

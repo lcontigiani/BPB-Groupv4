@@ -515,6 +515,10 @@ def append_r01902_event(output_path: Path, event: dict) -> int:
                     wb.close()
                 except Exception:
                     pass
+                try:
+                    del wb
+                except Exception:
+                    pass
 
     if last_err:
         raise last_err

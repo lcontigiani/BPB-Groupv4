@@ -433,6 +433,10 @@ tr:hover td {
     gap: 6px;
 }
 
+.iso-approve-actions-centered {
+    justify-content: center;
+}
+
 .iso-row-highlight td {
     background: rgba(207, 22, 37, 0.12);
 }
@@ -2682,6 +2686,34 @@ tbody tr:nth-child(n+11) {
     table-layout: fixed;
 }
 
+#view-iso-tracking .table-container {
+    max-height: 62vh;
+    overflow: auto;
+    position: relative;
+}
+
+#iso-tracking-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    background: #161616;
+}
+
+#iso-tracking-table th:nth-child(1),
+#iso-tracking-table td:nth-child(1),
+#iso-tracking-table th:nth-child(2),
+#iso-tracking-table td:nth-child(2),
+#iso-tracking-table th:nth-child(3),
+#iso-tracking-table td:nth-child(3),
+#iso-tracking-table th:nth-child(4),
+#iso-tracking-table td:nth-child(4),
+#iso-tracking-table th:nth-child(6),
+#iso-tracking-table td:nth-child(6),
+#iso-tracking-table th:nth-child(8),
+#iso-tracking-table td:nth-child(8) {
+    text-align: center;
+}
+
 #iso-tracking-table th:nth-child(5),
 #iso-tracking-table td:nth-child(5) {
     width: 300px;
@@ -2692,13 +2724,6 @@ tbody tr:nth-child(n+11) {
     white-space: normal;
     word-break: break-word;
     overflow-wrap: anywhere;
-}
-
-#iso-tracking-table th:nth-child(6),
-#iso-tracking-table td:nth-child(6),
-#iso-tracking-table th:nth-child(8),
-#iso-tracking-table td:nth-child(8) {
-    text-align: center;
 }
 
 #iso-control-table th:nth-child(6),

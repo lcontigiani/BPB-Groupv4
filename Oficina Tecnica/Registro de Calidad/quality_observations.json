@@ -573,8 +573,8 @@
       "produc": "BPB-041-MS04-2RS",
       "subgrupo": "Rod. Rigidos de Bolas",
       "observacion": "",
-      "updated_at": "",
-      "updated_by": ""
+      "updated_at": "2026-04-17T11:35:17",
+      "updated_by": "calidad@bpbargentina.com"
     },
     "epfab1184||bpb-043-cb6203-1450": {
       "item": "EPFAB1184",
@@ -2941,8 +2941,8 @@
       "produc": "B&P-047-SAB-207-35DG",
       "subgrupo": "AUTOCENTRANTES",
       "observacion": "",
-      "updated_at": "",
-      "updated_by": ""
+      "updated_at": "2026-04-17T14:47:33",
+      "updated_by": "calidad@bpbargentina.com"
     },
     "1088ic05000106n||b&p-048-203-krr3-e2": {
       "item": "1088IC05000106N",
@@ -3141,8 +3141,8 @@
       "produc": "B&P-037-BP-25008",
       "subgrupo": "VARIOS",
       "observacion": "",
-      "updated_at": "",
-      "updated_by": ""
+      "updated_at": "2026-04-17T14:46:28",
+      "updated_by": "calidad@bpbargentina.com"
     },
     "6088ic06000070t||b&p-040-1212-tn-c3": {
       "item": "6088IC06000070T",
@@ -3165,8 +3165,8 @@
       "produc": "B&P-040-1307-TN-C3",
       "subgrupo": "Rod. Varios",
       "observacion": "",
-      "updated_at": "",
-      "updated_by": ""
+      "updated_at": "2026-04-17T14:46:11",
+      "updated_by": "calidad@bpbargentina.com"
     },
     "6088ic06000070t||b&p-041-ms10-2rs": {
       "item": "6088IC06000070T",
@@ -3197,8 +3197,8 @@
       "produc": "B&P-047-SAB-212-60DG",
       "subgrupo": "AUTOCENTRANTES",
       "observacion": "",
-      "updated_at": "",
-      "updated_by": ""
+      "updated_at": "2026-04-17T14:47:03",
+      "updated_by": "calidad@bpbargentina.com"
     },
     "ar7306||b&p-041-ms01-2rs": {
       "item": "AR7306",
@@ -3247,7 +3247,23 @@
       "observacion": "",
       "updated_at": "",
       "updated_by": ""
+    },
+    "a000400000422||bpb-044-bp17010-04": {
+      "item": "A000400000422",
+      "produc": "BPB-044-BP17010-04",
+      "subgrupo": "Partes y Piezas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
+    },
+    "a000400000429||bpb-044-bp17010-04": {
+      "item": "A000400000429",
+      "produc": "BPB-044-BP17010-04",
+      "subgrupo": "Partes y Piezas",
+      "observacion": "",
+      "updated_at": "",
+      "updated_by": ""
     }
   },
-  "updated_at": "2026-04-16T13:38:10"
+  "updated_at": "2026-04-17T15:09:50"
 }

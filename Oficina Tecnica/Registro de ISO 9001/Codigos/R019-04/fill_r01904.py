@@ -6,6 +6,7 @@ Uso:
   python Codigos/R019-04/fill_r01904.py eventos.csv --modelo modelo.json
   python Codigos/R019-04/fill_r01904.py eventos.csv --modelo modelo.json --out R019-04-ejemplo.mpp
   python Codigos/R019-04/fill_r01904.py eventos.csv --modelo modelo.json --inplace
+  python Codigos/R019-04/fill_r01904.py eventos.csv --modelo modelo.json --mpp
 """
 
 from __future__ import annotations
@@ -19,6 +20,8 @@ import sys
 import tempfile
 import time as pytime
 from typing import Dict, List, Tuple
+import pythoncom
+import openpyxl
 
 LEGACY_ISO_DOCS_ROOT = Path(r"\\192.168.0.55\utn\REGISTROS\REG.DISEÑOS Y DESARROLLOS")
 
@@ -49,7 +52,7 @@ def _resolve_output_dir(root: Path, prefix: str, preferred_name: str) -> Path:
 ISO_DOCS_ROOT = _resolve_iso_root()
 R01904_OUTPUT_DIR = _resolve_output_dir(ISO_DOCS_ROOT, "R019-04", "R019-04 - Planificación de Diseño")
 
-from win32com.client import Dispatch
+from win32com.client import Dispatch, DispatchEx, gencache
 
 
 EXPECTED_COLS = [
@@ -124,13 +127,48 @@ def parse_date(value: str):
         return None
 
 
+def load_workbook_quietly(*args, **kwargs):
+    return openpyxl.load_workbook(*args, **kwargs)
+
+
+def read_r01902_rows(path: Path) -> List[Dict[str, str]]:
+    wb = load_workbook_quietly(str(path), read_only=True, data_only=True)
+    try:
+        ws_name = next((n for n in wb.sheetnames if n.strip().lower() == "listado"), None)
+        ws = wb[ws_name] if ws_name else wb.active
+        rows = []
+        empty_streak = 0
+        max_row = ws.max_row or 0
+        for row_idx in range(4, max_row + 1):
+            values = [ws.cell(row=row_idx, column=col).value for col in range(1, 9)]
+            if all(v is None or str(v).strip() == "" for v in values):
+                empty_streak += 1
+                if empty_streak >= 5:
+                    break
+                continue
+            empty_streak = 0
+            rows.append({
+                "fecha": str(values[0]).strip() if values[0] is not None else "",
+                "etapa": str(values[1]).strip() if values[1] is not None else "",
+                "area": str(values[2]).strip() if values[2] is not None else "",
+                "empresa": str(values[3]).strip() if values[3] is not None else "",
+                "descripcion": str(values[4]).strip() if values[4] is not None else "",
+                "resultado": str(values[5]).strip() if values[5] is not None else "",
+                "accion": str(values[6]).strip() if values[6] is not None else "",
+                "usuario": str(values[7]).strip() if values[7] is not None else "",
+            })
+        return rows
+    finally:
+        wb.close()
+
+
 def task_name(event: Dict[str, str]) -> str:
     desc = (event.get("descripcion") or "").strip()
     if desc:
-        return desc[:60]
+        return desc
     etapa = (event.get("etapa") or "").strip()
     if etapa:
-        return etapa[:60]
+        return etapa
     parts = [event.get("etapa"), event.get("area"), event.get("empresa")]
     name = " | ".join([p for p in parts if p])
     return name if name else "Evento"
@@ -147,6 +185,57 @@ def build_notes(event: Dict[str, str]) -> str:
     if event.get("usuario"):
         lines.append(f"Usuario: {event['usuario']}")
     return "\n".join(lines)
+
+
+def compute_stage_stats_durations(root: Path) -> Dict[str, int]:
+    r01902_dir = _resolve_output_dir(root, "R019-02", "R019-02 - Revisión, Verificación y Validación")
+    if not r01902_dir.exists():
+        return {}
+
+    stage_durations: Dict[str, List[int]] = {}
+    for path in r01902_dir.glob("R019-02 Rev03 - *.xls*"):
+        try:
+            rows = read_r01902_rows(path)
+        except Exception:
+            continue
+        dates_by_stage: Dict[str, List[datetime]] = {}
+        for row in rows:
+            etapa = (row.get("etapa") or "").strip()
+            dt = parse_date(row.get("fecha", ""))
+            if not etapa or not dt:
+                continue
+            dates_by_stage.setdefault(etapa, []).append(dt)
+        for etapa, dates in dates_by_stage.items():
+            if not dates:
+                continue
+            min_dt = min(dates)
+            max_dt = max(dates)
+            duration = round((max_dt - min_dt).total_seconds() / 86400)
+            stage_durations.setdefault(etapa, []).append(duration)
+
+    avg_map: Dict[str, int] = {}
+    for etapa, values in stage_durations.items():
+        if not values:
+            continue
+        avg = sum(values) / len(values)
+        avg_map[etapa] = max(1, int(round(avg)))
+    return avg_map
+
+
+def build_stage_blocks(eventos: List[Dict[str, str]]) -> List[Dict[str, object]]:
+    dates: List[Tuple[Dict[str, str], datetime | None]] = [(e, parse_date(e.get("fecha", ""))) for e in eventos]
+    blocks: List[Dict[str, object]] = []
+    current = None
+    for event, dt in dates:
+        etapa = (event.get("etapa") or "").strip() or "Sin etapa"
+        if current is None or current["etapa"] != etapa:
+            current = {"etapa": etapa, "start": dt, "end": dt, "events": [event]}
+            blocks.append(current)
+        else:
+            current["events"].append(event)
+            if dt:
+                current["end"] = dt
+    return blocks
 
 
 def load_model(path: Path | None) -> Tuple[Dict[str, int], int, datetime | None]:
@@ -166,30 +255,67 @@ def load_model(path: Path | None) -> Tuple[Dict[str, int], int, datetime | None]
     return cleaned, default, start_dt
 
 
+def _call_with_retries(target, attr_name: str, *args, retries: int = 6, sleep_base: float = 0.6, **kwargs):
+    last_err = None
+    for attempt in range(1, retries + 1):
+        try:
+            attr = getattr(target, attr_name)
+            return attr(*args, **kwargs) if callable(attr) else attr
+        except Exception as e:
+            last_err = e
+            pytime.sleep(sleep_base * attempt)
+            try:
+                pythoncom.PumpWaitingMessages()
+            except Exception:
+                pass
+    raise RuntimeError(f"No se pudo ejecutar '{attr_name}' en MS Project. Error: {last_err}")
+
+
+def _create_msproject_app():
+    last_err = None
+    for factory in (
+        lambda: gencache.EnsureDispatch("MSProject.Application"),
+        lambda: DispatchEx("MSProject.Application"),
+        lambda: Dispatch("MSProject.Application"),
+    ):
+        try:
+            return factory()
+        except Exception as e:
+            last_err = e
+    raise RuntimeError(f"No se pudo iniciar la automatizacion COM de Microsoft Project. Error: {last_err}")
+
+
 def open_project_with_retries(app, project_path: Path, retries: int = 4):
     last_err = None
     for attempt in range(1, retries + 1):
         try:
-            app.FileOpen(str(project_path), ReadOnly=False)
+            if hasattr(app, "FileOpenEx"):
+                _call_with_retries(app, "FileOpenEx", str(project_path), False, retries=1)
+            elif hasattr(app, "FileOpen"):
+                _call_with_retries(app, "FileOpen", str(project_path), ReadOnly=False, retries=1)
+            else:
+                raise RuntimeError("La instalacion de Microsoft Project no expone FileOpen/FileOpenEx via COM.")
         except Exception as e:
             last_err = e
 
-        try:
-            proj = app.ActiveProject
-            if proj is not None:
-                return proj
-        except Exception as e:
-            last_err = e
-
-        try:
-            if app.Projects.Count > 0:
-                proj = app.Projects(1)
+        for accessor in (
+            lambda: getattr(app, "ActiveProject"),
+            lambda: getattr(getattr(app, "Application"), "ActiveProject"),
+            lambda: getattr(app, "Projects")(1),
+            lambda: getattr(getattr(app, "Application"), "Projects")(1),
+        ):
+            try:
+                proj = accessor()
                 if proj is not None:
                     return proj
-        except Exception as e:
-            last_err = e
+            except Exception as e:
+                last_err = e
 
         pytime.sleep(0.4 * attempt)
+        try:
+            pythoncom.PumpWaitingMessages()
+        except Exception:
+            pass
 
     raise RuntimeError(
         f"No se pudo abrir el modelo R019-04 en MS Project ({project_path}). "
@@ -243,111 +369,133 @@ def main() -> None:
     tmp = Path(tmp_name)
     tmp.write_bytes(model.read_bytes())
 
-    app = Dispatch("MSProject.Application")
+    output_path = dest
     try:
+        pythoncom.CoInitialize()
+        app = _create_msproject_app()
         try:
-            app.Visible = False
-        except Exception:
-            pass
-        try:
-            app.DisplayAlerts = False
-        except Exception:
-            pass
+            try:
+                app.Visible = False
+            except Exception:
+                pass
+            try:
+                app.DisplayAlerts = False
+            except Exception:
+                pass
 
-        proj = open_project_with_retries(app, tmp)
+            proj = open_project_with_retries(app, tmp)
 
-        # Limpiar tareas existentes
-        for i in range(proj.Tasks.Count, 0, -1):
-            t = proj.Tasks(i)
-            if t is not None:
-                t.Delete()
+            model_durations, default_duration, model_start = load_model(model_path)
+            stats_durations = compute_stage_stats_durations(ISO_DOCS_ROOT)
+            dates: List[Tuple[Dict[str, str], datetime | None]] = [
+                (e, parse_date(e.get("fecha", ""))) for e in eventos
+            ]
+            stage_blocks = build_stage_blocks(eventos)
+            project_start = model_start or parse_date(eventos[0].get("fecha", "")) or datetime.now()
+            project_start = datetime.combine(project_start.date(), time(9, 0))
 
-        # Duraciones modelo para baseline
-        model_durations, default_duration, model_start = load_model(model_path)
+            for i in range(proj.Tasks.Count, 0, -1):
+                t = proj.Tasks(i)
+                if t is not None:
+                    t.Delete()
 
-        # Crear tareas
-        dates: List[Tuple[Dict[str, str], datetime | None]] = [
-            (e, parse_date(e.get("fecha", ""))) for e in eventos
-        ]
+            baseline_cursor = None
+            if model_start:
+                proj.ProjectStart = datetime.combine(model_start.date(), time(9, 0))
+                baseline_cursor = proj.ProjectStart
 
-        # Base para el baseline (se alinea al inicio real de la primera tarea)
-        baseline_cursor = None
-        if model_start:
-            proj.ProjectStart = datetime.combine(model_start.date(), time(9, 0))
-            baseline_cursor = proj.ProjectStart
-
-        for idx, (event, dt) in enumerate(dates, start=1):
-            task = proj.Tasks.Add(task_name(event))
-            if include_notes:
-                notes = build_notes(event)
-                if notes:
-                    task.Notes = notes
-            # Campos auxiliares (mapeados a columnas Etapa/Area/Empresa/Descripcion del modelo)
-            if event.get("etapa"):
-                task.Text1 = event["etapa"]
-            if event.get("area"):
-                task.Text2 = event["area"]
-            if event.get("empresa"):
-                task.Text3 = event["empresa"]
-            if event.get("descripcion"):
-                task.Text4 = event["descripcion"]
-            if event.get("resultado"):
-                task.Text5 = event["resultado"]
-
-            if dt:
-                # Hora base 09:00 inicio, 18:00 fin para el real
-                start_dt = datetime.combine(dt.date(), time(9, 0))
-                next_dt = dates[idx][1] if idx < len(dates) else None
-                if next_dt:
-                    finish_dt = datetime.combine(next_dt.date(), time(18, 0))
-                else:
-                    finish_dt = start_dt
-                    task.Milestone = True
-                task.Start = start_dt
-                task.Finish = finish_dt
-
-            # Baseline (modelo)
-            etapa = event.get("etapa", "")
-            dur_days = model_durations.get(etapa, default_duration)
-            if baseline_cursor is None and dt:
-                baseline_cursor = start_dt
-            if baseline_cursor:
-                base_start = baseline_cursor
-                base_finish = base_start + timedelta(days=dur_days)
+            for idx, (event, dt) in enumerate(dates, start=1):
+                task = proj.Tasks.Add(task_name(event))
                 try:
-                    task.BaselineStart = base_start
-                    task.BaselineFinish = base_finish
-                    try:
-                        task.BaselineDuration = f"{dur_days}d"
-                    except Exception:
-                        pass
+                    task.Estimated = False
                 except Exception:
                     pass
-                baseline_cursor = base_finish
-            # Predecesor secuencial
-            if idx > 1:
-                task.Predecessors = str(idx - 1)
+                if include_notes:
+                    notes = build_notes(event)
+                    if notes:
+                        task.Notes = notes
+                if event.get("etapa"):
+                    task.Text1 = event["etapa"]
+                if event.get("area"):
+                    task.Text2 = event["area"]
+                if event.get("empresa"):
+                    task.Text3 = event["empresa"]
+                if event.get("descripcion"):
+                    task.Text4 = event["descripcion"]
+                if event.get("resultado"):
+                    task.Text5 = event["resultado"]
 
-        # Guardar salida
-        if inplace:
-            app.FileSave()
-        else:
-            app.FileSaveAs(str(dest))
+                if dt:
+                    start_dt = datetime.combine(dt.date(), time(9, 0))
+                    next_dt = dates[idx][1] if idx < len(dates) else None
+                    if next_dt:
+                        finish_dt = datetime.combine(next_dt.date(), time(18, 0))
+                    else:
+                        finish_dt = start_dt
+                        task.Milestone = True
+                    task.Start = start_dt
+                    task.Finish = finish_dt
+
+                etapa = event.get("etapa", "")
+                dur_days = model_durations.get(etapa, default_duration)
+                if baseline_cursor is None and dt:
+                    baseline_cursor = start_dt
+                if baseline_cursor:
+                    base_start = baseline_cursor
+                    base_finish = base_start + timedelta(days=dur_days)
+                    try:
+                        task.BaselineStart = base_start
+                        task.BaselineFinish = base_finish
+                        try:
+                            task.BaselineDuration = f"{dur_days}d"
+                        except Exception:
+                            pass
+                    except Exception:
+                        pass
+                    baseline_cursor = base_finish
+
+            for block in stage_blocks:
+                stage_name = str(block["etapa"])
+                stage_start = block["start"] or project_start
+                avg_days = stats_durations.get(stage_name, model_durations.get(stage_name, default_duration))
+                milestone_date = datetime.combine(stage_start.date(), time(18, 0)) + timedelta(days=max(1, int(avg_days)))
+                milestone = proj.Tasks.Add(f"Milestone objetivo - {stage_name}")
+                try:
+                    milestone.Estimated = False
+                except Exception:
+                    pass
+                milestone.Start = milestone_date
+                milestone.Finish = milestone_date
+                milestone.Milestone = True
+                try:
+                    milestone.Notes = f"Hito objetivo calculado desde estadisticas para la etapa {stage_name}."
+                except Exception:
+                    pass
+
+            if inplace:
+                _call_with_retries(app, "FileSave")
+            else:
+                _call_with_retries(app, "FileSaveAs", str(dest))
+        finally:
+            try:
+                _call_with_retries(app, "FileCloseAll", True, retries=1)
+            except Exception:
+                pass
+            try:
+                app.Quit()
+            except Exception:
+                pass
+            try:
+                pythoncom.CoUninitialize()
+            except Exception:
+                pass
     finally:
-        try:
-            app.FileCloseAll(True)
-        except Exception:
-            pass
-        try:
-            app.Quit()
-        except Exception:
-            pass
         try:
             tmp.unlink()
         except Exception:
             pass
 
-    print(f"Actualizado: {dest}")
+    print(f"Actualizado: {output_path}")
 
 
 if __name__ == "__main__":
